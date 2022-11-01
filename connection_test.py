@@ -1,6 +1,8 @@
 import argparse
 from dronekit import connect, VehicleMode
+from math import pi
 from time import sleep
+
 
 parser = argparse.ArgumentParser(description='Establish MavLink Connection')
 parser.add_argument('--master', type=str, nargs='?', default='127.0.0.1:14550', help='port for MavLink connection')
@@ -13,7 +15,7 @@ print(f'Connecting to {args.master}')
 vehicle = connect(args.master, wait_ready=args.wait_ready)
 
 while True:
-    roll = vehicle.attitude.roll
+    roll = vehicle.attitude.roll*180/pi
     mode = vehicle.mode
     print(roll)
 
