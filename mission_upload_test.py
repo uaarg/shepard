@@ -15,8 +15,8 @@ vehicle = connect(args.master, wait_ready=args.wait_ready)
 
 # Get the set of commands from the vehicle
 cmds = vehicle.commands
-cmds.download()
-cmds.wait_ready()
+# cmds.download()
+# cmds.wait_ready()
 
 # Load, create and add commands
 test_mission = mi.Mission.load_from_wkt('test_waypoints/2023_AEAC_Task_Waypoints.csv')
