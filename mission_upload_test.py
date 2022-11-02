@@ -25,3 +25,4 @@ for mission in mission_matrix:
     cmds.add(Command(*mission))
 
 cmds.upload()  # Send commands
+print('Mission uploaded')
