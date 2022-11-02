@@ -109,17 +109,18 @@ class Mission:
             return commands
 
     @classmethod
-    def load_from_wkt(cls, file_name: str):
+    def load_from_wkt(cls, file_name: str, encoding: str = 'UTF-8'):
         """
         Load a .csv file that uses WKT format to represent AEAC waypoints, this .csv file is created by first loading
         the waypoints table in Excel from the AEAC rulebook, then saving it as a csv file
 
         :param file_name: Path to the file
+        :param encoding: Name of the encoding to decode the file
         :return: A Mission instance that contains all the waypoints in the .csv file
         """
 
         waypoints = []
-        with open(file_name) as wkt_file:
+        with open(file_name, encoding=encoding) as wkt_file:
             wkt_reader = csv.reader(wkt_file)
             next(wkt_reader, None)
             for row in wkt_reader:
