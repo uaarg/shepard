@@ -1,9 +1,9 @@
 import argparse
 from dronekit import connect, Command, VehicleMode, CommandSequence
 from typing import Tuple
-import random
+from random import randint
 from geopy.distance import distance as dt
-import time
+from time import sleep
 
 
 def generate_random_waypoint(current: Tuple[float, float],
@@ -17,25 +17,24 @@ def generate_random_waypoint(current: Tuple[float, float],
     :return: A tuple of latitude and longitude of the generated waypoint
     """
 
-    bearing = random.randint(*bearing)
-    distance = random.randint(*distance)
+    bearing = randint(*bearing)
+    distance = randint(*distance)
     destination = dt(meters=distance).destination(current, bearing)
     (lat, long, alt) = destination
     return lat, long
 
 
-def upload_waypoints(commands: CommandSequence, location: Tuple[float, float], altitude: float, verbose: bool = True):
+def upload_waypoints(commands: CommandSequence, coordinate: Tuple[float, float], altitude: float, verbose: bool = True):
     """
     Generate a random waypoint and upload the MavLink command
 
     :param commands: The CommandSequence instance used to upload the MavLink command
-    :param location: The location of the waypoint
+    :param coordinate: The location of the waypoint
     :param altitude: The target altitude of the waypoint
     :param verbose: Verbosity, when set to True, print the location of the newly generated waypoint
     """
 
-    waypoint = generate_random_waypoint(location)
-    commands.add(Command(0, 0, 0, 3, 16, 0, 0, 0, 0, 0, 0, *waypoint, altitude))
+    commands.add(Command(0, 0, 0, 3, 16, 0, 0, 0, 0, 0, 0, *coordinate, altitude))
     commands.upload()
     if verbose:
         print(f'New waypoint generated at {waypoint}')
@@ -55,7 +54,7 @@ print(f'Connecting to {args.master}')
 vehicle = connect(args.master, wait_ready=args.wait_ready)
 print(f'Connected to vehicle on {args.master}')
 
-# Create and start new mission
+# Create new mission
 position = vehicle.location.global_relative_frame
 position = (position.lat, position.lon)
 print(f'Current location: {position}')
@@ -64,8 +63,11 @@ print(f'Target altitude: {alt}')
 
 cmds = vehicle.commands
 cmds.clear()
-upload_waypoints(cmds, position, alt)
+waypoint = generate_random_waypoint(position)
+upload_waypoints(cmds, waypoint, alt)
+# sleep(5)
 
+# Start mission
 vehicle.mode = VehicleMode('AUTO')
 print('Starting mission')
 
@@ -76,5 +78,8 @@ while True:
     if cmds.next == cmds.count:
         last_cmd = cmds[-1]
         location = (last_cmd.x, last_cmd.y)
+        waypoint = generate_random_waypoint(location)
         upload_waypoints(cmds, location, alt)
-    time.sleep(1)
+        sleep(2)
+    sleep(1)
+    
