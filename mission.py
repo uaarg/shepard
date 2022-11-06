@@ -1,5 +1,7 @@
 import csv
-from typing import List
+from typing import List, Tuple
+from geopy.distance import distance
+from numpy import array, mean
 
 
 class Command:
@@ -21,6 +23,8 @@ class Command:
         self.altitude = altitude
         self.attributes = (self.frame, self.command_id, self.param1, self.param2, self.param3, self.param4,
                            self.latitude, self.longitude, self.altitude)
+        self.xy = (self.latitude, self.longitude)
+        self.xyz = (self.latitude, self.longitude, self.altitude)
         self.name = name
 
     def to_mission_planner(self, sequence: int, is_home: bool = False):
@@ -60,7 +64,10 @@ class Mission:
     """
 
     def __init__(self, commands: List[Command] = None):
-            self.commands = commands if commands else []
+        self.commands = commands if commands else []
+        self.xy = list(command.xy for command in self.commands)
+        self.xyz = list(command.xyz for command in self.commands)
+        self.attributes = list(command.attributes for command in self.commands)
 
     def __len__(self):
         return len(self.commands)
@@ -122,7 +129,7 @@ class Mission:
         waypoints = []
         with open(file_name, encoding=encoding) as wkt_file:
             wkt_reader = csv.reader(wkt_file)
-            next(wkt_reader, None)
+            next(wkt_reader, None)  # Skip header
             for row in wkt_reader:
                 point = list(map(float, row[0][7:-1].split()))
                 point.reverse()  # Latitude and longitude is inverted in the AEAC rulebook because apparently the
@@ -131,13 +138,65 @@ class Mission:
                 waypoints.append(Command(0, 16, 0, 0, 0, 0, *point, 0, name=name))
             return Mission(waypoints)
 
+    @classmethod
+    def load_from_waypoint(cls, file_name, encoding: str = 'UTF-8'):
+        """
+        Load a .waypoint file saved by Mission Planner that contains information about mission and fences
+
+        :param file_name: Path to the file
+        :param encoding: Name of the encoding to decode the file
+        :return:A mission instance that contains all the waypoints in the .waypoint file
+        """
+
+        waypoints = []
+        with open(file_name, encoding=encoding) as waypoint_file:
+            waypoint_reader = csv.reader(waypoint_file, delimiter='\t')
+            next(waypoint_reader, None)  # Skip the first line of .waypoint file
+            for row in waypoint_reader:
+                command = list(map(float, row[2:10]))
+                waypoints.append(Command(*command))
+            return Mission(waypoints)
+
+
+def gps_to_cartesian(gps_coordinates: List[Tuple[float, float]], origin: Tuple[float, float] = None):
+    """
+    Convert a series of GPS coordinates to cartesian coordinates
+
+    :param gps_coordinates: A list of GPS coordinates to be converted
+    :param origin: gps coordinate of the origin in the cartesian coordinate system
+    :return: A list of cartesian coordinates that represent the GPS coordinates
+    """
+
+    gps_coordinates = array(gps_coordinates)
+    if origin is None:
+        origin = mean(gps_coordinates, axis=0)
+    else:
+        origin = array(origin)
+    xy = []
+    for coordinate in gps_coordinates:
+        x = distance(origin, (origin[0], coordinate[1])).m
+        y = distance(origin, (coordinate[0], origin[1])).m
+        x = -x if coordinate[1] < origin[1] else x
+        y = -y if coordinate[0] < origin[0] else y
+        xy.append((x, y))
+    return xy
+
 
 if __name__ == '__main__':
-    test = 2
-    if test == 1:
+    test = 3
+    if test == 1:  # Test loading from wkt and save to .waypoints
         test_mission = Mission.load_from_wkt('test_waypoints/2023_AEAC_Task_Waypoints.csv')
         test_mission.save()
-    elif test == 2:
+
+    elif test == 2:  # Test loading from wkt and convert to dronekit command format
         test_mission = Mission.load_from_wkt('test_waypoints/2023_AEAC_Task_Waypoints.csv')
         mission_matrix = test_mission.to_dronekit()
         print(mission_matrix)
+
+    elif test == 3:  # Test converting from gps to cartesian
+        import matplotlib.pyplot as plt
+        test_fence = Mission.load_from_waypoint('test_waypoints/mission_planner_example_fence.waypoints')
+        test_gps_coordinates = test_fence.xy[1:]
+        result_cartesian = gps_to_cartesian(test_gps_coordinates)
+        plt.plot(*list(zip(*result_cartesian)))
+        plt.show()
