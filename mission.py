@@ -198,5 +198,6 @@ if __name__ == '__main__':
         test_fence = Mission.load_from_waypoint('test_waypoints/mission_planner_example_fence.waypoints')
         test_gps_coordinates = test_fence.xy[1:]
         result_cartesian = gps_to_cartesian(test_gps_coordinates)
-        plt.plot(*list(zip(*result_cartesian)))
+        draw_cartesian = result_cartesian + [result_cartesian[0]]
+        plt.plot(*list(zip(*draw_cartesian)))
         plt.show()

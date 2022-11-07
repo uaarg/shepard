@@ -82,4 +82,3 @@ while True:
         upload_waypoints(cmds, location, alt)
         sleep(2)
     sleep(1)
-    
