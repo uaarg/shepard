@@ -15,9 +15,13 @@ dist/
 
 # Log files
 *.log
+logs/*
 
 # Package files
 *.jar
+
+# Python Virtual Enviroments
+venv
 
 # Maven
 target/
