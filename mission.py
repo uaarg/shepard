@@ -1,3 +1,9 @@
+#   UAARG - Autopilot 2022
+"""
+This file contains classes of waypoint commands and missions with MAVLink-like style, and functions to convert
+different type of waypoints and missions format between Mission Planner, drone-kit, wkl, etc.
+"""
+
 import csv
 from typing import List, Tuple
 from geopy.distance import distance
@@ -6,7 +12,7 @@ from numpy import array, mean
 
 class Command:
     """
-    A class that contains all the information contained in a typical MavLink command
+    A class that contains all the information contained in a typical MAVLink command
     """
 
     def __init__(self, frame: int = 0, command_id: int = 16,
@@ -51,7 +57,7 @@ class Command:
         ). This should be set to zero as the API will automatically set the correct value when uploading a mission.
         :param current: Set to zero (not supported).
         :param autocontinue: Set to zero (not supported).
-        :return: A tuple with elements that can be passed to the dronekit Command class to create MavLink commands
+        :return: A tuple with elements that can be passed to the dronekit Command class to create MAVLink commands
         """
 
         return (target_system, target_component, sequence) + \
@@ -107,7 +113,7 @@ class Mission:
         Convert the Mission to a series of dronekit Command format
 
         :return: A List of dronekit-formatted commands, each command is a list with elements that can be passed to the
-        dronekit Command Class to create MavLink commands
+        dronekit Command Class to create MAVLink commands
         """
         if self.commands:
             commands = []

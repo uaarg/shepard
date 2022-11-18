@@ -1,3 +1,8 @@
+#   UAARG - Autopilot 2022
+"""
+This file contains functions to generate random waypoints in flight and upload them to onboard autopilot via MAVLink
+"""
+
 import argparse
 from dronekit import connect, Command, VehicleMode, CommandSequence
 from typing import Tuple
@@ -26,9 +31,9 @@ def generate_random_waypoint(current: Tuple[float, float],
 
 def upload_waypoints(commands: CommandSequence, coordinate: Tuple[float, float], altitude: float, verbose: bool = True):
     """
-    Generate a random waypoint and upload the MavLink command
+    Generate a random waypoint and upload the MAVLink command
 
-    :param commands: The CommandSequence instance used to upload the MavLink command
+    :param commands: The CommandSequence instance used to upload the MAVLink command
     :param coordinate: The location of the waypoint
     :param altitude: The target altitude of the waypoint
     :param verbose: Verbosity, when set to True, print the location of the newly generated waypoint
@@ -41,8 +46,8 @@ def upload_waypoints(commands: CommandSequence, coordinate: Tuple[float, float],
 
 
 # Parse command-line arguments
-parser = argparse.ArgumentParser(description='Establish MavLink Connection')
-parser.add_argument('--master', type=str, nargs='?', default='127.0.0.1:14550', help='port for MavLink connection')
+parser = argparse.ArgumentParser(description='Establish MAVLink Connection')
+parser.add_argument('--master', type=str, nargs='?', default='127.0.0.1:14550', help='port for MAVLink connection')
 parser.add_argument('--wait_ready', nargs='?', type=bool, default=False, const=True,
                     help='whether to wait for attribute download')
 parser.add_argument('--altitude', '--alt', nargs='?', type=float, default='10',

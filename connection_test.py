@@ -1,3 +1,8 @@
+#   UAARG - Autopilot 2022
+"""
+This file tests the connection to autopilot software using drone-kit via MAVLink
+"""
+
 import argparse
 from dronekit import connect, VehicleMode
 from math import pi
@@ -5,8 +10,8 @@ from time import sleep
 
 
 # Parse command-line arguments
-parser = argparse.ArgumentParser(description='Establish MavLink Connection')
-parser.add_argument('--master', type=str, nargs='?', default='127.0.0.1:14550', help='port for MavLink connection')
+parser = argparse.ArgumentParser(description='Establish MAVLink Connection')
+parser.add_argument('--master', type=str, nargs='?', default='127.0.0.1:14550', help='port for MAVLink connection')
 parser.add_argument('--wait_ready', nargs='?', type=bool, default=False, const=True,
                     help='whether to wait for attribute download')
 args = parser.parse_args()
