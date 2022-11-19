@@ -1,29 +1,8 @@
-# README #
+# AStar
+A Python implementation of the A* pathfinding algorithm.
 
-This README would normally document whatever steps are necessary to get your application up and running.
+[![CodeFactor](https://www.codefactor.io/repository/github/wrongsyntax/astar/badge)](https://www.codefactor.io/repository/github/wrongsyntax/astar)
 
-### What is this repository for? ###
+Given a series of points that form the boundary of a region that is to be avoided, the goal of this algorithm is to find the shortest route around the obstacle.
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
-
-### How do I get set up? ###
-
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
-
-### Contribution guidelines ###
-
-* Writing tests
-* Code review
-* Other guidelines
-
-### Who do I talk to? ###
-
-* Repo owner or admin
-* Other community or team contact
+The documentation for this project is in [the wiki.](https://github.com/wrongsyntax/AStar/wiki)
