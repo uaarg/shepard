@@ -8,7 +8,7 @@ locked while our system is finding objects in the image.
 from multiprocessing import Queue
 from image_analysis.inference_yolov5 import setup_ml, analyze_img
 
-def inference_queue_handler(inference_img_queue, model):
+def inference_queue_handler(inference_img_queue, model, imgsz):
     """
     Multiprocessing function to handle making inferences
     
@@ -19,7 +19,7 @@ def inference_queue_handler(inference_img_queue, model):
     """
 
     # One time required setup
-    model, imgsz = setup_ml(weights=model, imgsz=(512, 512), device='cpu')
+    model, imgsz = setup_ml(weights=model, imgsz=imgsz, device='cpu')
     
     while True:
         # Block until a new image is available

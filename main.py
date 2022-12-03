@@ -23,7 +23,7 @@ def main(options):
     inference_img_queue = Queue()
 
     # Some options will be handled by argparse
-    inference_process = Process(target=inference_queue_handler, args=(inference_img_queue, str(Path(__file__).parents[0])+"/tests/pytorch_yolov5_image_inference/landing_nano.pt"))
+    inference_process = Process(target=inference_queue_handler, args=(inference_img_queue, options.weights, options.imgsz, ))
 
     # Create separate process for autopilot scripts
 
@@ -44,6 +44,20 @@ def parse_opt():
     """
     Parses options passed in command line
     """
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--weights', default=str(Path(__file__).parents[0])+"/landing_nano.pt",
+        help='Path to Machine Learning Model')
+    parser.add_argument('--imgsz', default=640, type=int, help='Width/Height to scale images for inferencing')
+    parser.add_argument('--use-camera', default=True, type=bool, help='Chooses if the script will use the camera')
+    opts = parser.parse_args()
+
+    # imgsz should be a tuple of pixel height and width
+    opts.imgsz = (opts.imgsz, opts.imgsz)
+
+    # For Debugging, we should print out this configuration to console
+    print(vars(opts))
+
+    return opts
     
 if __name__ == "__main__":
     options = parse_opt()
