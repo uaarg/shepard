@@ -24,6 +24,10 @@ def setup_ml(weights='yolov5s.pt', imgsz=(640, 640), device='cpu', data='data/co
         half=False,  # use FP16 half-precision inference
         dnn=False,  # use OpenCV DNN for ONNX inference
         ):
+    """
+    Loads the inference model into memory and other setup
+    """
+
     # Load model
     device = select_device(device)
     model = DetectMultiBackend(weights, device=device, dnn=dnn, data=data, fp16=half)
@@ -39,7 +43,12 @@ def analyze_img(path, model, imgsz=(640, 640),
         iou_thres=0.45,  # NMS IOU threshold
         max_det=1000,  # maximum detections per image
         ):
-    
+    """
+    Runs the model on the supplied images
+
+    Returns a list with dictionary items for each prediction
+    """
+
     # Dataloader
     im0 = cv.imread(path)
     gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
