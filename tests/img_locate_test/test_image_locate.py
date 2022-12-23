@@ -1,3 +1,10 @@
+"""
+Unit Testing for Object Location Determination
+
+This unit test verifies that our code can determine the GPS coordinates of 
+a object based on the GPS position of the camera and the camera angle
+"""
+
 import unittest
 import sys
 
@@ -36,7 +43,7 @@ class TestImageLocate(unittest.TestCase):
 
         lon, lat = get_inference_location(str(FILE.parent) + "/0.png", inference)
 
-        self.assertAlmostEqual(lat, 53.5121564) # approximately 2m north
+        self.assertAlmostEqual(lat, 53.5121564, places=4) # approximately 2m north
         self.assertAlmostEqual(lon, -113.5491390, places=4)
 
 if __name__ == '__main__':

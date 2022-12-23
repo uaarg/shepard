@@ -1,14 +1,12 @@
 """
-Multiprocessing queue for Image inferences
+Multiprocessing Task for Image inferences
 
-This process holds a queue of images to make inferences on
-using our ML algorithm. This prevents other processes from being 
-locked while our system is finding objects in the image.
+This file contains the "Main Loop" for the image analysis process
 """
 from multiprocessing import Queue
 from image_analysis.inference_yolov5 import setup_ml, analyze_img
 
-def inference_queue_handler(inference_img_queue, model, imgsz):
+def inference_main(inference_img_queue, image_analysis_results, model, imgsz):
     """
     Multiprocessing function to handle making inferences
     
@@ -23,8 +21,8 @@ def inference_queue_handler(inference_img_queue, model, imgsz):
     
     while True:
         # Block until a new image is available
-        img_file = inference_img_queue.get()
-
+        img_dict = inference_img_queue.get()
+        
         # Print out the results to console
-        print(analyze_img(img_file, model=model, imgsz=imgsz))
+        print(analyze_img(img_dict['img_path'], model=model, imgsz=imgsz))
 
