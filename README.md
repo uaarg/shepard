@@ -1,6 +1,7 @@
 # UAARG Onboard Script #
 
 This repository holds the scripts for:
+
 * Recording and logging images, positional information and messages
 * Making pathing decisions based on current data and mission objectives
 * Making inferences on images for object identification and location
@@ -13,6 +14,7 @@ This script is designed to run on a system with a USB or UART connection to a Pi
 ## For X86 or arm64 Systems (ie Desktop + Laptop Computers + RPi)
 
 * Install Python3
+* Optional Step: It's highly recommended, you create a virtual env before installing dependencies. Activate the virtual environment and proceed. OS specific steps are available in the docs [https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/]
 * Initialize all submodules ```git submodule update --init --recursive```
 * Install the required dependancies via ```pip install -r requirements.txt```
 * You should now be able to run testing python scripts and launch the application
