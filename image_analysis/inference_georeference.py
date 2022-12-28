@@ -10,7 +10,8 @@ This maps traditional Latitude and Longitude into an X Y coordinate grid
 where X, Y are in meters
 """
 import json
-from math import sin, cos, tan, radians
+import numpy as np
+from math import sin, cos, tan, atan, radians
 import pyproj
 
 def LonLat_To_XY(lon, lat, zone=12):
@@ -35,7 +36,76 @@ def XY_To_LonLat(x, y, zone=12):
 
     return P(x,y,inverse=True)    
 
-def get_inference_location(path, inference):
+def get_camera_dir_vector(fovh, fovv, x : float, y : float) -> np.array:
+    """
+    Calculates the unit vector from a top down camera to an object at x, y pixel coordinates
+    
+    both fovs' are in degrees, x and y are normalized between 0 and 1
+    """
+    
+    # angle between x and z axis
+    theta_x = atan((x - 0.5) * tan(radians(fovh/2)) / 0.5)
+
+    # angle between y and z axis
+    theta_y = atan((0.5 - y) * tan(radians(fovv/2)) / 0.5)
+
+    # Direction Vector
+    dir_v = np.array([sin(theta_x), sin(theta_y), -1])
+
+    # Normalized Direction Vector
+    return dir_v / np.linalg.norm(dir_v)
+
+def adjust_dir_vector_orientation(input_dir : np.array, pitch, roll, yaw) -> np.array:
+    """
+    Rotates the direction vector using the camera pitch, roll and yaw
+    
+    All inputs are in degrees
+    """
+    # Construct the rotation matrices for pitch, roll, and yaw
+    Rx = np.array([[1, 0, 0],
+                    [0, cos(radians(pitch)), -sin(radians(pitch))],
+                    [0, sin(radians(pitch)), cos(radians(pitch))]])
+
+    Ry = np.array([[cos(radians(roll)), 0, -sin(radians(roll))],
+                    [0, 1, 0],
+                    [sin(radians(roll)), 0, cos(radians(roll))]])
+
+    Rz = np.array([[cos(radians(yaw)), sin(radians(yaw)), 0],
+                    [-sin(radians(yaw)), cos(radians(yaw)), 0],
+                    [0, 0, 1]])
+
+    return Rz @ Ry @ Rx @ input_dir
+
+def calculate_object_offsets(height, pitch, roll, yaw, x : float, y : float, fovh=62.2, fovv=48.8) -> np.array:
+    """
+    Calculates the Easting and Northing Offsets for a given point in an image
+    
+    Height is the posistion of the camera above ground level
+    pitch, roll, and yaw are the orientation of the camera in degrees
+    fovh, fovv is the field of view of the camera
+    x and y are the normalized pixel coordinates between 0 and 1
+    """
+    
+    # Calculate the unit vector relative to the camera 
+    camera_unit_vector = get_camera_dir_vector(fovh, fovv, x, y)
+
+    # Calculate the absolute unit vector
+    absolute_unit_vector = adjust_dir_vector_orientation(camera_unit_vector, pitch, roll, yaw)
+
+    # Calculate the scaling factor from the height
+    scale = -height / absolute_unit_vector[2]
+
+    if (scale < 0):
+        # detection is above horizon, this is an error
+        print("Object was detected above horizon, ignoring...")
+        return np.array([None, None])
+    
+    # Finally calculate the overall offsets
+    offsets = scale * absolute_unit_vector[:2]
+
+    return offsets
+    
+def get_inference_location(path, inference) -> tuple:
     """
     This function parses the latest gps information from each image
     then calculates the location of the inference provided
@@ -54,21 +124,17 @@ def get_inference_location(path, inference):
     H_FOV = 62.2 # degrees
     V_FOV = 48.8 # degrees
 
-    camera_x_angle = (inference['x'] - 0.5) * H_FOV + data['roll']
-    camera_y_angle = -(inference['y'] - 0.5) * V_FOV + data['pitch']
+    x_offset, y_offset = calculate_object_offsets(data['relative_alt'], data['pitch'], data['roll'],
+                            data['yaw'], inference['x'], inference['y'], H_FOV, V_FOV)
 
-    offset_x = data['relative_alt'] * tan(radians(camera_x_angle))
-    offset_y = data['relative_alt'] * tan(radians(camera_y_angle))
+    print(f"Image Location Offsets: {x_offset}, {y_offset}")
 
-    # Rotate by yaw
-    rotated_offset_x = offset_x * cos(radians(data['yaw'])) - offset_y * sin(radians(data['yaw']))
-    rotated_offset_y = offset_x * sin(radians(data['yaw'])) + offset_y * cos(radians(data['yaw']))
-
-    print(f"Image Location Offsets: {rotated_offset_x}, {rotated_offset_y}")
-
+    if (None in (x_offset, y_offset)):
+        # This is a false detection, offsets arent real
+        return None, None
     easting, northing = LonLat_To_XY(data['lon'], data['lat'])
 
-    lon, lat = XY_To_LonLat(easting + rotated_offset_x, northing + rotated_offset_y)
+    lon, lat = XY_To_LonLat(easting + x_offset, northing + y_offset)
 
     return lon, lat
 
