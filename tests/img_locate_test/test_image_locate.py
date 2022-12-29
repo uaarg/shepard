@@ -15,6 +15,7 @@ if (str(ROOT)) not in sys.path:
     sys.path.append(str(ROOT))  # add root directory to PATH
     
 from image_analysis.inference_georeference import calculate_object_offsets
+from math import radians
 
 class TestImageLocate(unittest.TestCase):
 
@@ -26,7 +27,7 @@ class TestImageLocate(unittest.TestCase):
         The test verifies the base functionality
         """
 
-        x_offset, y_offset = calculate_object_offsets(height=10, pitch=0, roll=0, yaw=180, x=0.5, y=0.5)
+        x_offset, y_offset = calculate_object_offsets(height=10, pitch=0, roll=0, yaw=radians(180), x=0.5, y=0.5)
 
         self.assertAlmostEqual(x_offset, 0, places=5)
         self.assertAlmostEqual(y_offset, 0, places=5)
@@ -65,7 +66,7 @@ class TestImageLocate(unittest.TestCase):
         This test verifies that yaw is orientated correctly
         """
 
-        x_offset, y_offset = calculate_object_offsets(height=10, pitch=0, roll=0, yaw=90, x=0.5, y=0.25)
+        x_offset, y_offset = calculate_object_offsets(height=10, pitch=0, roll=0, yaw=radians(90), x=0.5, y=0.25)
 
         self.assertAlmostEqual(x_offset, 2.211920356, places=5)
         self.assertAlmostEqual(y_offset, 0, places=5)
@@ -78,7 +79,7 @@ class TestImageLocate(unittest.TestCase):
         This test verifies that pitch is orientated correctly
         """
 
-        x_offset, y_offset = calculate_object_offsets(height=10, pitch=15, roll=0, yaw=0, x=0.5, y=0.5)
+        x_offset, y_offset = calculate_object_offsets(height=10, pitch=radians(15), roll=0, yaw=0, x=0.5, y=0.5)
 
         self.assertAlmostEqual(x_offset, 0, places=5)
         self.assertAlmostEqual(y_offset, 2.679491924, places=5)
@@ -91,7 +92,7 @@ class TestImageLocate(unittest.TestCase):
         This test verifies that roll is orientated correctly
         """
 
-        x_offset, y_offset = calculate_object_offsets(height=10, pitch=0, roll=15, yaw=0, x=0.5, y=0.5)
+        x_offset, y_offset = calculate_object_offsets(height=10, pitch=0, roll=radians(15), yaw=0, x=0.5, y=0.5)
 
         self.assertAlmostEqual(x_offset, 2.679491924, places=5)
         self.assertAlmostEqual(y_offset, 0, places=5)
@@ -104,7 +105,7 @@ class TestImageLocate(unittest.TestCase):
         the detection instead
         """
 
-        x_offset, y_offset = calculate_object_offsets(height=10, pitch=0, roll=100, yaw=0, x=0.5, y=0.5)
+        x_offset, y_offset = calculate_object_offsets(height=10, pitch=0, roll=radians(100), yaw=0, x=0.5, y=0.5)
 
         self.assertEqual(x_offset, None)
         self.assertEqual(y_offset, None)
