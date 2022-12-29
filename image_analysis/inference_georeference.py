@@ -105,14 +105,14 @@ def calculate_object_offsets(height, pitch, roll, yaw, x : float, y : float, fov
 
     return offsets
     
-def get_inference_location(path, inference) -> tuple:
+def get_object_location(path, inference) -> tuple:
     """
     This function parses the latest gps information from each image
     then calculates the location of the inference provided
 
     returns the longitude, latitude in degrees
     """
-    with open(path + ".json") as data_file:
+    with open(path) as data_file:
         data = json.load(data_file)
 
     # Raspberry Pi 2 Camera

@@ -3,8 +3,10 @@ Multiprocessing Task for Image inferences
 
 This file contains the "Main Loop" for the image analysis process
 """
+import os
 from multiprocessing import Queue
 from image_analysis.inference_yolov5 import setup_ml, analyze_img
+from image_analysis.inference_georeference import get_object_location
 
 def inference_main(inference_img_queue, image_analysis_results, model, imgsz):
     """
@@ -21,8 +23,28 @@ def inference_main(inference_img_queue, image_analysis_results, model, imgsz):
     
     while True:
         # Block until a new image is available
-        img_dict = inference_img_queue.get()
+        img_data = inference_img_queue.get()
         
         # Print out the results to console
-        print(analyze_img(img_dict['img_path'], model=model, imgsz=imgsz))
+        inference = analyze_img(img_data['img_path'], model=model, imgsz=imgsz)
+
+        analysis_data = {'img_num' : img_data['img_num'], 'results' : []}
+        for obj in inference:
+            data_file = f"{os.path.dirname(img_data['img_path'])}/{img_data['img_num']}.json"
+            lat, lon = get_object_location(path=data_file, inference=obj)
+            if (None in (lat, lon)):
+                # This is a false detection, offsets arent real
+                continue
+            
+            analysis_data['results'].append({
+                'confidence'    : obj['confidence'],
+                'type'          : obj['type'],
+                'lat'           : lat,
+                'lon'           : lon
+            })
+        
+        # Return this data to the autopilot loop
+        image_analysis_results.put(analysis_data)
+            
+
 
