@@ -9,3 +9,6 @@ tqdm>=4.64.0
 matplotlib>=3.2.2
 seaborn>=0.11.0
 pyproj>=3.4.0
+serial>=0.0.97
+# Dronekit distributed by Pip has a bug with python 3.10, so install directly from github for fix
+git+https://github.com/dronekit/dronekit-python

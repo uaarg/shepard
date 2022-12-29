@@ -28,6 +28,13 @@ This script is designed to run on a system with a USB or UART connection to a Pi
 * Install the required dependancies via ```pip install -r requirements.txt```
 * You should now be able to run testing python scripts and launch the application
 
+## How to Solve Permission Errors on Linux
+
+* If you have permission errors accessing ports, you may need to add your user to the 'tty' and 'dialout' groups
+* ```sudo usermod -a -G tty {your username}```
+* ```sudo usermod -a -G dialout {your username}```
+* You will then need to logout and login completely to update your permissions
+
 ### Contribution guidelines ###
 
 * Write tests so that functionality can be easily reviewed at a later date
