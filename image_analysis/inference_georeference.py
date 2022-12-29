@@ -112,8 +112,12 @@ def get_object_location(path, inference) -> tuple:
 
     returns the longitude, latitude in degrees
     """
-    with open(path) as data_file:
-        data = json.load(data_file)
+    try:
+        with open(path) as data_file:
+            data = json.load(data_file)
+    except EnvironmentError:
+        print(f"Image Analysis could not open file {path}, ignoring...")
+        return None, None
 
     # Raspberry Pi 2 Camera
     H_FOV = radians(62.2)
