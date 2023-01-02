@@ -6,8 +6,9 @@ This file contains the "Main Loop" for the image capture process
 from multiprocessing import Queue
 from pathlib import Path
 import time
+import cv2
 
-def image_capture_main(new_images_queue, capture_rate, no_camera):
+def image_capture_main(new_images_queue, capture_rate, camera, camera_port):
     """
     Multiprocessing function called in a separate process for image capture
     
@@ -20,16 +21,47 @@ def image_capture_main(new_images_queue, capture_rate, no_camera):
 
     # One time required setup
     current_img_index = 1
-    # TODO: Camera Initialization
+    
+    # open video0
+    if camera == "arducam":
+        cap = cv2.VideoCapture(camera_port)
+        # set width and height, fps
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 3264)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 2448)
+        cap.set(cv2.CAP_PROP_FPS, 15)
+        cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+    elif camera == "webcam":
+        # Used for debugging application
+        cap = cv2.VideoCapture(camera_port)
+        cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+    else:
+        cap = None
+        print("No Camera Specified: Using Test Images Instead...")
+    # add statements for additional camera as supported
+        
     
     while True:
         timestamp = time.time()
         
-        if no_camera:
+        if cap == None:
             img_path = str(Path(__file__).parents[1])+"/tests/pytorch_yolov5_image_inference/0.png"
         else:
-            # TODO: Capture image (if you can get a more accurate timestamp, do that)
-            img_path = '/'
+            cap.grab()
+            ret, frame = cap.read()
+            if not ret:
+                # Frame is invalid
+                print("Failed to capture image!")
+                time.sleep(max(0, (1 / capture_rate) + timestamp - time.time()))
+                continue
+            
+            img_path = f"logs/{current_img_index}.png"
+            cv2.imwrite(img_path, frame)
+            if camera == "webcam":
+                # Help debug by adding webcam display
+                cv2.imshow('frame', frame)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+
 
         # Print out the timestamp to console
         print(f"Image Captured, timestamp = {timestamp}")
