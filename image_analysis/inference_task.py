@@ -31,7 +31,7 @@ def inference_main(inference_img_queue, image_analysis_results, model, imgsz, di
 
         if display:
             print(f"Inference Results: {inference}")
-            cv.imshow('frame', annotate_img(img_data['img_path'], inference))
+            cv.imshow('Inference Results', annotate_img(img_data['img_path'], inference))
             if cv.waitKey(1) & 0xFF == ord('q'):
                 break
 

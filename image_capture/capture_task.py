@@ -58,7 +58,7 @@ def image_capture_main(new_images_queue, capture_rate, camera, camera_port, disp
             cv2.imwrite(img_path, frame)
             if display:
                 # Help debug by adding webcam display
-                cv2.imshow('frame', frame)
+                cv2.imshow('Camera', frame)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
 
