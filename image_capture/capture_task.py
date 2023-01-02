@@ -8,7 +8,7 @@ from pathlib import Path
 import time
 import cv2
 
-def image_capture_main(new_images_queue, capture_rate, camera, camera_port):
+def image_capture_main(new_images_queue, capture_rate, camera, camera_port, display):
     """
     Multiprocessing function called in a separate process for image capture
     
@@ -56,7 +56,7 @@ def image_capture_main(new_images_queue, capture_rate, camera, camera_port):
             
             img_path = f"logs/{current_img_index}.png"
             cv2.imwrite(img_path, frame)
-            if camera == "webcam":
+            if display:
                 # Help debug by adding webcam display
                 cv2.imshow('frame', frame)
                 if cv2.waitKey(1) & 0xFF == ord('q'):

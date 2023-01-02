@@ -19,6 +19,7 @@ from models.common import DetectMultiBackend
 from utils.augmentations import letterbox
 from utils.general import non_max_suppression, check_img_size, xyxy2xywh, scale_coords
 from utils.torch_utils import select_device
+from utils.plots import Annotator
 
 def setup_ml(weights='yolov5s.pt', imgsz=(640, 640), device='cpu', data='data/coco128.yaml',
         half=False,  # use FP16 half-precision inference
@@ -79,3 +80,25 @@ def analyze_img(path, model, imgsz=(640, 640),
             xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist() 
             results.append({'type': model.names[int(cls)], 'confidence': conf, 'x': xywh[0], 'y': xywh[1], 'w': xywh[2], 'h': xywh[3]})
     return results
+
+def annotate_img(path, inference):
+    """
+    Returns an annotated image with the given inferences
+
+    Note the inference should be a list of dictionaries 
+    with keys 'x', 'y', 'w', 'h', 'type'
+    """
+
+    im0 = cv.imread(path)
+    height, width = im0.shape[:2]
+    im0 = np.ascontiguousarray(im0)
+    annotator = Annotator(im0, line_width=3)
+
+    for obj in inference:
+        x1 = width * (obj['x'] - obj['w'] / 2)
+        y1 = height * (obj['y'] - obj['h'] / 2)
+        x2 = width * (obj['x'] + obj['w'] / 2)
+        y2 = height * (obj['y'] + obj['h'] / 2)
+        annotator.box_label((x1, y1, x2, y2), obj['type'])
+
+    return annotator.result()
