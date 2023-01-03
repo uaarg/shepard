@@ -31,7 +31,7 @@ def main(options):
     analysis_process = Process(target=inference_main, args=(images_to_analyze, image_analysis_results, options.weights, options.imgsz, ))
 
     # Create separate process for autopilot scripts
-    autopilot_process = Process(target=autopilot_main, args=(new_images_queue, images_to_analyze, image_analysis_results, ))
+    autopilot_process = Process(target=autopilot_main, args=(new_images_queue, images_to_analyze, image_analysis_results, options.port))
 
     # Create separate process for image capture
     image_capture_process = Process(target=image_capture_main, args=(new_images_queue, options.capture_rate, options.no_camera, ))
@@ -40,6 +40,14 @@ def main(options):
     analysis_process.start()
     autopilot_process.start()
     image_capture_process.start()
+
+    # Check each second if all processes are alive. If one died, we should terminate all
+    while (analysis_process.is_alive() and autopilot_process.is_alive() and image_capture_process.is_alive()):
+        time.sleep(1)
+    
+    analysis_process.terminate()
+    autopilot_process.terminate()
+    image_capture_process.terminate()
 
 def parse_opt():
     """
@@ -56,6 +64,9 @@ def parse_opt():
     parser.add_argument('--no-camera', default=False, action='store_true', help='Chooses if the script will use the camera')
     parser.add_argument('--capture-rate', default=1, type=float, help='Camera Capture Rate in Seconds')
     
+    # Autopilot Options
+    parser.add_argument('--port', default='', help='Port to connect to Pixhawk with, leave blank for no connection')
+
     opts = parser.parse_args()
 
     # imgsz should be a tuple of pixel height and width

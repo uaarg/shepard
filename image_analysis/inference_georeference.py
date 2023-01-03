@@ -40,14 +40,14 @@ def get_camera_dir_vector(fovh, fovv, x : float, y : float) -> np.array:
     """
     Calculates the unit vector from a top down camera to an object at x, y pixel coordinates
     
-    both fovs' are in degrees, x and y are normalized between 0 and 1
+    both fovs' are in radians, x and y are normalized between 0 and 1
     """
     
     # angle between x and z axis
-    theta_x = atan((x - 0.5) * tan(radians(fovh/2)) / 0.5)
+    theta_x = atan((x - 0.5) * tan(fovh/2) / 0.5)
 
     # angle between y and z axis
-    theta_y = atan((0.5 - y) * tan(radians(fovv/2)) / 0.5)
+    theta_y = atan((0.5 - y) * tan(fovv/2) / 0.5)
 
     # Direction Vector
     dir_v = np.array([sin(theta_x), sin(theta_y), -1])
@@ -59,29 +59,29 @@ def adjust_dir_vector_orientation(input_dir : np.array, pitch, roll, yaw) -> np.
     """
     Rotates the direction vector using the camera pitch, roll and yaw
     
-    All inputs are in degrees
+    All inputs are in radians
     """
     # Construct the rotation matrices for pitch, roll, and yaw
     Rx = np.array([[1, 0, 0],
-                    [0, cos(radians(pitch)), -sin(radians(pitch))],
-                    [0, sin(radians(pitch)), cos(radians(pitch))]])
+                    [0, cos(pitch), -sin(pitch)],
+                    [0, sin(pitch), cos(pitch)]])
 
-    Ry = np.array([[cos(radians(roll)), 0, -sin(radians(roll))],
+    Ry = np.array([[cos(roll), 0, -sin(roll)],
                     [0, 1, 0],
-                    [sin(radians(roll)), 0, cos(radians(roll))]])
+                    [sin(roll), 0, cos(roll)]])
 
-    Rz = np.array([[cos(radians(yaw)), sin(radians(yaw)), 0],
-                    [-sin(radians(yaw)), cos(radians(yaw)), 0],
+    Rz = np.array([[cos(yaw), sin(yaw), 0],
+                    [-sin(yaw), cos(yaw), 0],
                     [0, 0, 1]])
 
     return Rz @ Ry @ Rx @ input_dir
 
-def calculate_object_offsets(height, pitch, roll, yaw, x : float, y : float, fovh=62.2, fovv=48.8) -> np.array:
+def calculate_object_offsets(height, pitch, roll, yaw, x : float, y : float, fovh=radians(62.2), fovv=radians(48.8)) -> np.array:
     """
     Calculates the Easting and Northing Offsets for a given point in an image
     
     Height is the posistion of the camera above ground level
-    pitch, roll, and yaw are the orientation of the camera in degrees
+    pitch, roll, and yaw are the orientation of the camera in radians
     fovh, fovv is the field of view of the camera
     x and y are the normalized pixel coordinates between 0 and 1
     """
@@ -105,24 +105,23 @@ def calculate_object_offsets(height, pitch, roll, yaw, x : float, y : float, fov
 
     return offsets
     
-def get_inference_location(path, inference) -> tuple:
+def get_object_location(path, inference) -> tuple:
     """
     This function parses the latest gps information from each image
     then calculates the location of the inference provided
 
     returns the longitude, latitude in degrees
     """
-    with open(path + ".json") as data_file:
-        data = json.load(data_file)
-        
-        # Correct data to degrees, meters
-        data['lat'] = data['lat'] * 10**-7
-        data['lon'] = data['lon'] * 10**-7
-        data['relative_alt'] = data['relative_alt'] * 10**-3
-        data['alt'] = data['alt'] * 10**-3
+    try:
+        with open(path) as data_file:
+            data = json.load(data_file)
+    except EnvironmentError:
+        print(f"Image Analysis could not open file {path}, ignoring...")
+        return None, None
 
-    H_FOV = 62.2 # degrees
-    V_FOV = 48.8 # degrees
+    # Raspberry Pi 2 Camera
+    H_FOV = radians(62.2)
+    V_FOV = radians(48.8)
 
     x_offset, y_offset = calculate_object_offsets(data['relative_alt'], data['pitch'], data['roll'],
                             data['yaw'], inference['x'], inference['y'], H_FOV, V_FOV)
