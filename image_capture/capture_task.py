@@ -34,6 +34,13 @@ def image_capture_main(new_images_queue, capture_rate, camera, camera_port, disp
         # Used for debugging application
         cap = cv2.VideoCapture(camera_port)
         cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+    elif camera == "rpicam2":
+        from picamera2 import Picamera2
+        cap = Picamera2()
+        config = cap.create_still_configuration(main={"size": (800, 600), 'format': 'RGB888'})
+        cap.configure(config)
+        cap.start()
+        
     else:
         cap = None
         print("No Camera Specified: Using Test Images Instead...")
@@ -45,6 +52,16 @@ def image_capture_main(new_images_queue, capture_rate, camera, camera_port, disp
         
         if cap == None:
             img_path = str(Path(__file__).parents[1])+"/tests/pytorch_yolov5_image_inference/0.png"
+        elif camera == 'rpicam2':
+            frame = cap.capture_array()
+            
+            img_path = f"logs/{current_img_index}.png"
+            cv2.imwrite(img_path, frame)
+            if display:
+                # Help debug by adding webcam display
+                cv2.imshow('Camera', frame)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
         else:
             cap.grab()
             ret, frame = cap.read()

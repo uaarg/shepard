@@ -99,6 +99,6 @@ def annotate_img(path, inference):
         y1 = height * (obj['y'] - obj['h'] / 2)
         x2 = width * (obj['x'] + obj['w'] / 2)
         y2 = height * (obj['y'] + obj['h'] / 2)
-        annotator.box_label((x1, y1, x2, y2), obj['type'])
+        annotator.box_label((x1, y1, x2, y2), f"{obj['type']}:{obj['confidence']}")
 
     return annotator.result()
