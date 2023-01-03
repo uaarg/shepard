@@ -28,13 +28,13 @@ def main(options):
     image_analysis_results = Queue()
 
     # Some options will be handled by argparse
-    analysis_process = Process(target=inference_main, args=(images_to_analyze, image_analysis_results, options.weights, options.imgsz, ))
+    analysis_process = Process(target=inference_main, args=(images_to_analyze, image_analysis_results, options.weights, options.imgsz, options.display, ))
 
     # Create separate process for autopilot scripts
     autopilot_process = Process(target=autopilot_main, args=(new_images_queue, images_to_analyze, image_analysis_results, options.port))
 
     # Create separate process for image capture
-    image_capture_process = Process(target=image_capture_main, args=(new_images_queue, options.capture_rate, options.no_camera, ))
+    image_capture_process = Process(target=image_capture_main, args=(new_images_queue, options.capture_rate, options.camera, options.camera_port, options.display, ))
 
     # Start each process
     analysis_process.start()
@@ -59,9 +59,11 @@ def parse_opt():
     parser.add_argument('--weights', default=str(Path(__file__).parents[0])+"/landing_nano.pt",
         help='Path to Machine Learning Model')
     parser.add_argument('--imgsz', default=640, type=int, help='Width/Height to scale images for inferencing')
+    parser.add_argument('--display', default=False, action='store_true', help='Creates a window showing the capture and anaylsis results')
 
     # Image Capture Options
-    parser.add_argument('--no-camera', default=False, action='store_true', help='Chooses if the script will use the camera')
+    parser.add_argument('--camera', default='none', help='Camera Name. Supported cameras: arducam, webcam')
+    parser.add_argument('--camera-port', default='/dev/video0', help='file path to camera. Try 0, 1, 2 on Windows')
     parser.add_argument('--capture-rate', default=1, type=float, help='Camera Capture Rate in Seconds')
     
     # Autopilot Options

@@ -4,11 +4,12 @@ Multiprocessing Task for Image inferences
 This file contains the "Main Loop" for the image analysis process
 """
 import os
+import cv2 as cv
 from multiprocessing import Queue
-from image_analysis.inference_yolov5 import setup_ml, analyze_img
+from image_analysis.inference_yolov5 import setup_ml, analyze_img, annotate_img
 from image_analysis.inference_georeference import get_object_location
 
-def inference_main(inference_img_queue, image_analysis_results, model, imgsz):
+def inference_main(inference_img_queue, image_analysis_results, model, imgsz, display):
     """
     Multiprocessing function to handle making inferences
     
@@ -26,7 +27,13 @@ def inference_main(inference_img_queue, image_analysis_results, model, imgsz):
         img_data = inference_img_queue.get()
         
         # Print out the results to console
-        inference = analyze_img(img_data['img_path'], model=model, imgsz=imgsz)
+        inference = analyze_img(img_data['img_path'], model=model, imgsz=imgsz, conf_thres=0.75)
+
+        if display:
+            print(f"Inference Results: {inference}")
+            cv.imshow('Inference Results', annotate_img(img_data['img_path'], inference))
+            if cv.waitKey(1) & 0xFF == ord('q'):
+                break
 
         analysis_data = {'img_num' : img_data['img_num'], 'results' : []}
         for obj in inference:
