@@ -1,5 +1,5 @@
 import cv2
-import numpy as np
+import os
 import qr
 
 cam = cv2.VideoCapture(0)
@@ -25,3 +25,4 @@ while True:
 
 cam.release()
 cv2.destroyAllWindows()
+os.remove("inter.png")
