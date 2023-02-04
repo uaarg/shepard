@@ -24,7 +24,11 @@ def readQRCode(image):
     QRCodeDetector = cv2.QRCodeDetector()
     decoded_text, _, _ = QRCodeDetector.detectAndDecode(img)
 
-    print(decoded_text)
+    if (decoded_text != ""):
+        print(decoded_text)
+    else:
+        print("No text decoded. This may mean the QR code could not be read in the image. Try again with a different image.")
+        return 1
 
 
 if __name__ == "__main__":
