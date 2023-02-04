@@ -12,7 +12,7 @@ IMAGE_PATH = "None"
 # get image path passed in as argument from cli
 if len(sys.argv) != 2:
     print(f"""
-        INVALID USAGE. Specify a path to image of QR code. 
+        INVALID USAGE. Specify a path to image of QR code.
     """)
 else:
     IMAGE_PATH = sys.argv[1]
