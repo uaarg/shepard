@@ -6,17 +6,6 @@ import cv2
 import sys
 
 
-IMAGE_PATH = "None"
-
-# get image path passed in as argument from cli
-if len(sys.argv) != 2:
-    print("""
-        INVALID USAGE. Specify a path to image of QR code.
-    """)
-else:
-    IMAGE_PATH = sys.argv[1]
-
-
 def readQRCode(image):
     img = cv2.imread(image)
 
@@ -24,14 +13,21 @@ def readQRCode(image):
     decoded_text, _, _ = QRCodeDetector.detectAndDecode(img)
 
     if (decoded_text != ""):
-        print(decoded_text)
+        return "Failed."
     else:
-        print("*** !! NO TEXT DECODED !! ***")
-        print("This may mean the QR code could not be read in the image.")
-        print("Try again with a different image.")
-        return 1
+        return decoded_text
 
 
 if __name__ == "__main__":
-    readQRCode(IMAGE_PATH)
+    IMAGE_PATH = "None"
+
+# get image path passed in as argument from cli
+    if len(sys.argv) != 2:
+        print("""
+            INVALID USAGE. Specify a path to image of QR code.
+        """)
+    else:
+        IMAGE_PATH = sys.argv[1]
+
+    print(readQRCode(IMAGE_PATH))
 
