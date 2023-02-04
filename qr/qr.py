@@ -22,7 +22,7 @@ def readQRCode(image):
     img = cv2.imread(image)
 
     QRCodeDetector = cv2.QRCodeDetector()
-    decoded_text, points, _ = QRCodeDetector.detectAndDecode(img)
+    decoded_text, _, _ = QRCodeDetector.detectAndDecode(img)
 
     print(decoded_text)
 
