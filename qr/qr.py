@@ -27,7 +27,9 @@ def readQRCode(image):
     if (decoded_text != ""):
         print(decoded_text)
     else:
-        print("No text decoded. This may mean the QR code could not be read in the image. Try again with a different image.")
+        print("*** !! NO TEXT DECODED !! ***")
+        print("This may mean the QR code could not be read in the image.")
+        print("Try again with a different image.")
         return 1
 
 
