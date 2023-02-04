@@ -1,7 +1,6 @@
 import cv2
-import time
+import numpy as np
 import qr
-
 
 cam = cv2.VideoCapture(0)
 cv2.namedWindow("view")
@@ -11,19 +10,18 @@ while True:
     if not ret:
         print("Frame grab failed.")
         break
-    cv2.imwrite("inter.png", frame)
-    cv2.imshow("view", frame)
 
+    cv2.imwrite("inter.png", frame)
     read = qr.readQRCode("inter.png")
+
+    cv2.imshow("view", frame)
+    cv2.waitKey(1)
+
     if read != "":
         print(read)
         break
     else:
-        print("no qr code/text found.")
-
-    time.sleep(1)
-
+        pass
 
 cam.release()
 cv2.destroyAllWindows()
-

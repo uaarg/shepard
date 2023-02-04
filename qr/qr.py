@@ -10,10 +10,10 @@ def readQRCode(image):
     img = cv2.imread(image)
 
     QRCodeDetector = cv2.QRCodeDetector()
-    decoded_text, _, _ = QRCodeDetector.detectAndDecode(img)
+    decoded_text, bbox, rectifiedImage = QRCodeDetector.detectAndDecode(img)
 
-    if (decoded_text != ""):
-        return "Failed."
+    if decoded_text == "":
+        return ""
     else:
         return decoded_text
 
@@ -21,7 +21,7 @@ def readQRCode(image):
 if __name__ == "__main__":
     IMAGE_PATH = "None"
 
-# get image path passed in as argument from cli
+    # get image path passed in as argument from cli
     if len(sys.argv) != 2:
         print("""
             INVALID USAGE. Specify a path to image of QR code.
