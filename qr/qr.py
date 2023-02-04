@@ -3,7 +3,6 @@
 """
 
 import cv2
-import math
 import sys
 
 
@@ -11,7 +10,7 @@ IMAGE_PATH = "None"
 
 # get image path passed in as argument from cli
 if len(sys.argv) != 2:
-    print(f"""
+    print("""
         INVALID USAGE. Specify a path to image of QR code.
     """)
 else:
