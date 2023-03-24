@@ -9,6 +9,8 @@ from enum import Enum
 import dronekit
 import sys, os
 import json
+from math import ceil
+import time
 
 DroneStates = Enum('State', ['STOPPED', 'TAKEOFF', 'TRAVELLING', 'SEARCHING', 'LANDING'])
 
@@ -16,7 +18,8 @@ class AutopilotVars:
     state = DroneStates.SEARCHING
     # Add any additional variables being tracked here
 
-def autopilot_main(new_images_queue, images_to_analyze, image_analysis_results, connection_string):
+def autopilot_main(new_images_queue : Queue, images_to_analyze : Queue, image_analysis_results : Queue, 
+                   camera_command_queue : Queue, connection_string : str):
     """
     Multiprocessing function called in a separate process for autopilot
     
@@ -45,9 +48,13 @@ def autopilot_main(new_images_queue, images_to_analyze, image_analysis_results, 
         print('No connection was specified for PixHawk, ignoring connection...')
         vehicle = None
         
-    @vehicle.on_message('COMMAND_LONG')
+    @vehicle.on_message('MAV_CMD_IMAGE_START_CAPTURE')
     def listener(self, name, message):
-        print(f"Recieved {name}, Data:{message}")
+        camera_command_queue.put("START_CAPTURE")
+
+    @vehicle.on_message('MAV_CMD_IMAGE_STOP_CAPTURE')
+    def listener(self, name, message):
+        camera_command_queue.put("STOP_CAPTURE")
 
     while True:
 
@@ -96,8 +103,9 @@ def transmit_image(vehicle, image_path : str):
         data_seg = blob_data[data_start_index:data_start_index+ENCAPSULATED_DATA_LEN]
         print(data_seg)
         vehicle.message_factory.encapsulated_data_send(msg_index, data_seg)
+        time.sleep(0.2)
     
-    vehicle.message_factory.data_transmission_handshake_send(0, 0, 0, 0, 0, 0, 0)
+    vehicle.message_factory.data_transmission_handshake_send(0, len(blob_data), 0, 0, ceil(len(blob_data) / ENCAPSULATED_DATA_LEN), ENCAPSULATED_DATA_LEN, 0)
 
 def log_image_georeference_data(vehicle, img_path, img_num, timestamp):
     """

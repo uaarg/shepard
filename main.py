@@ -26,15 +26,17 @@ def main(options):
     new_images_queue = Queue()
     images_to_analyze = Queue()
     image_analysis_results = Queue()
+    camera_command_queue = Queue()
+
 
     # Some options will be handled by argparse
     analysis_process = Process(target=inference_main, args=(images_to_analyze, image_analysis_results, options.weights, options.imgsz, options.display, ))
 
     # Create separate process for autopilot scripts
-    autopilot_process = Process(target=autopilot_main, args=(new_images_queue, images_to_analyze, image_analysis_results, options.port))
+    autopilot_process = Process(target=autopilot_main, args=(new_images_queue, images_to_analyze, image_analysis_results, camera_command_queue, options.port))
 
     # Create separate process for image capture
-    image_capture_process = Process(target=image_capture_main, args=(new_images_queue, options.capture_rate, options.camera, options.camera_port, options.display, ))
+    image_capture_process = Process(target=image_capture_main, args=(new_images_queue, camera_command_queue, options.capture_rate, options.camera, options.camera_port, options.display, ))
 
     # Start each process
     analysis_process.start()

@@ -8,7 +8,7 @@ from pathlib import Path
 import time
 import cv2
 
-def image_capture_main(new_images_queue, capture_rate, camera, camera_port, display):
+def image_capture_main(new_images_queue : Queue, camera_commands_queue : Queue, capture_rate : float, camera : str, camera_port : str, display : bool):
     """
     Multiprocessing function called in a separate process for image capture
     
@@ -46,8 +46,23 @@ def image_capture_main(new_images_queue, capture_rate, camera, camera_port, disp
         print("No Camera Specified: Using Test Images Instead...")
     # add statements for additional camera as supported
         
-    
+    capture_enabled = True
     while True:
+        while ~(camera_commands_queue.empty()):
+            cmd = camera_commands_queue.get()
+
+            if cmd == "START_CAPTURE":
+                capture_enabled = True
+            elif cmd == "STOP_CAPTURE":
+                capture_enabled = False
+            else:
+                print(f"Unknown Camera Command {cmd}")
+
+            
+        if ~capture_enabled:
+            time.sleep(1 / capture_rate)
+            continue
+
         timestamp = time.time()
         
         if cap == None:
