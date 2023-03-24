@@ -96,6 +96,8 @@ def transmit_image(vehicle, image_path : str):
         data_seg = blob_data[data_start_index:data_start_index+ENCAPSULATED_DATA_LEN]
         print(data_seg)
         vehicle.message_factory.encapsulated_data_send(msg_index, data_seg)
+    
+    vehicle.message_factory.data_transmission_handshake_send(0, 0, 0, 0, 0, 0, 0)
 
 def log_image_georeference_data(vehicle, img_path, img_num, timestamp):
     """
