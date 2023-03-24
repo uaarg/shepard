@@ -27,7 +27,7 @@ def inference_main(inference_img_queue, image_analysis_results, model, imgsz, di
         img_data = inference_img_queue.get()
         
         # Print out the results to console
-        inference = analyze_img(img_data['img_path'], model=model, imgsz=imgsz, conf_thres=0.75)
+        inference = analyze_img(img_data['img_path'], model=model, imgsz=imgsz, conf_thres=0.10)
 
         if display:
             print(f"Inference Results: {inference}")

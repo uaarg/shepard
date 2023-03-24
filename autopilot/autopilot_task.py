@@ -30,7 +30,7 @@ def autopilot_main(new_images_queue, images_to_analyze, image_analysis_results, 
     # One time required setup
     if connection_string != '':
         try:
-            vehicle = dronekit.connect(connection_string, heartbeat_timeout=15)
+            vehicle = dronekit.connect(connection_string, heartbeat_timeout=15, source_system=0)
 
         # Bad TTY connection
         except OSError as e:
@@ -38,12 +38,16 @@ def autopilot_main(new_images_queue, images_to_analyze, image_analysis_results, 
             sys.exit()
 
         # API Error
-        except dronekit.APIException:
-            print(f"Autopilot Timeout Error: {e.strerror}")
+        except dronekit.APIException as e:
+            print(f"Autopilot Timeout Error: {e}")
             sys.exit()
     else:
         print('No connection was specified for PixHawk, ignoring connection...')
         vehicle = None
+        
+    @vehicle.on_message('COMMAND_LONG')
+    def listener(self, name, message):
+        print(f"Recieved {name}, Data:{message}")
 
     while True:
 
@@ -71,6 +75,27 @@ def autopilot_main(new_images_queue, images_to_analyze, image_analysis_results, 
 
                         # TODO: Implement Communication of the new waypoint at object['lat'], object['lon']
                         AutopilotVars.state = DroneStates.LANDING
+
+def transmit_status(vehicle, status : str):
+    """
+    Transmits the provided status string over the Mavlink Connection
+    """
+    msg = vehicle.message_factory.statustext_encode(True)
+    vehicle.send_mavlink(msg)
+
+def transmit_image(vehicle, image_path : str):
+    """
+    Transmits the provided status string over the Mavlink Connection
+    """
+
+    with open(image_path, 'rb') as f:
+        blob_data = bytearray(f.read())
+
+    ENCAPSULATED_DATA_LEN = 253
+    for msg_index, data_start_index in enumerate(range(0, len(blob_data), ENCAPSULATED_DATA_LEN)):
+        data_seg = blob_data[data_start_index:data_start_index+ENCAPSULATED_DATA_LEN]
+        print(data_seg)
+        vehicle.message_factory.encapsulated_data_send(msg_index, data_seg)
 
 def log_image_georeference_data(vehicle, img_path, img_num, timestamp):
     """
