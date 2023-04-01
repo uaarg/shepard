@@ -4,6 +4,7 @@ Multiprocessing Task for Image inferences
 This file contains the "Main Loop" for the image capture process
 """
 from multiprocessing import Queue
+from queue import Empty
 from pathlib import Path
 import time
 import cv2
@@ -48,8 +49,12 @@ def image_capture_main(new_images_queue : Queue, camera_commands_queue : Queue, 
         
     capture_enabled = True
     while True:
-        while ~(camera_commands_queue.empty()):
-            cmd = camera_commands_queue.get()
+        while True:
+            print("cmd looop")
+            try:
+                cmd = camera_commands_queue.get(block=False)
+            except Empty:
+                break
 
             if cmd == "START_CAPTURE":
                 capture_enabled = True
@@ -59,7 +64,7 @@ def image_capture_main(new_images_queue : Queue, camera_commands_queue : Queue, 
                 print(f"Unknown Camera Command {cmd}")
 
             
-        if ~capture_enabled:
+        if not capture_enabled:
             time.sleep(1 / capture_rate)
             continue
 

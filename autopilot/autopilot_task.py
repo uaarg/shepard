@@ -47,14 +47,15 @@ def autopilot_main(new_images_queue : Queue, images_to_analyze : Queue, image_an
     else:
         print('No connection was specified for PixHawk, ignoring connection...')
         vehicle = None
-        
-    @vehicle.on_message('MAV_CMD_IMAGE_START_CAPTURE')
-    def listener(self, name, message):
-        camera_command_queue.put("START_CAPTURE")
+    
+    if vehicle:
+        @vehicle.on_message('MAV_CMD_IMAGE_START_CAPTURE')
+        def listener(self, name, message):
+            camera_command_queue.put("START_CAPTURE")
 
-    @vehicle.on_message('MAV_CMD_IMAGE_STOP_CAPTURE')
-    def listener(self, name, message):
-        camera_command_queue.put("STOP_CAPTURE")
+        @vehicle.on_message('MAV_CMD_IMAGE_STOP_CAPTURE')
+        def listener(self, name, message):
+            camera_command_queue.put("STOP_CAPTURE")
 
     while True:
 
