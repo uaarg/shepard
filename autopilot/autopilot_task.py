@@ -9,7 +9,7 @@ from enum import Enum
 import dronekit
 import sys, os
 import json
-from math import ceil
+from math import floor
 import time
 
 DroneStates = Enum('State', ['STOPPED', 'TAKEOFF', 'TRAVELLING', 'SEARCHING', 'LANDING'])
@@ -90,7 +90,15 @@ def transmit_status(vehicle, status : str):
     msg = vehicle.message_factory.statustext_encode(True)
     vehicle.send_mavlink(msg)
 
-def transmit_image(vehicle, image_path : str):
+def wait_for_ack(vehicle):
+    done = False
+    def command_ack(name, message):
+        done = True
+    vehicle.add_message_listener("COMMAND_ACK", command_ack)
+    vehicle.wait_for(lambda: done)
+    vehicle.remove_message_listener("COMMAND_ACK", command_ack)
+
+def transmit_image(vehicle: dronekit.Vehicle, image_path : str):
     """
     Transmits the provided status string over the Mavlink Connection
     """
@@ -98,14 +106,46 @@ def transmit_image(vehicle, image_path : str):
     with open(image_path, 'rb') as f:
         blob_data = bytearray(f.read())
 
+    vehicle.message_factory.camera_image_captured_send(
+        time_boot_ms=time.time(),
+        time_utc=0,
+        camera_id=0,
+        lat=0,
+        lon=0,
+        alt=0,
+        relative_alt=0,
+        q=(1, 0, 0, 0),
+        image_index=-1,
+        capture_result=1,
+        file_url="")
+
+    wait_for_ack(vehicle)
+
     ENCAPSULATED_DATA_LEN = 253
-    for msg_index, data_start_index in enumerate(range(0, len(blob_data), ENCAPSULATED_DATA_LEN)):
-        data_seg = blob_data[data_start_index:data_start_index+ENCAPSULATED_DATA_LEN]
-        print(data_seg)
+
+    vehicle.message_factory.data_transmission_handshake_send(0, len(blob_data), 0, 0, floor(len(blob_data) / ENCAPSULATED_DATA_LEN), ENCAPSULATED_DATA_LEN, 0)
+
+    wait_for_ack(vehicle)
+
+    data = []
+    for start in range(0, len(blob_data), ENCAPSULATED_DATA_LEN):
+        data_seg = blob_data[start:start+ENCAPSULATED_DATA_LEN]
+        data.append(data_seg)
+
+    for msg_index, data_seg in enumerate(data):
         vehicle.message_factory.encapsulated_data_send(msg_index, data_seg)
         time.sleep(0.2)
-    
-    vehicle.message_factory.data_transmission_handshake_send(0, len(blob_data), 0, 0, ceil(len(blob_data) / ENCAPSULATED_DATA_LEN), ENCAPSULATED_DATA_LEN, 0)
+
+    vehicle.message_factory.data_transmission_handshake_send(0, len(blob_data), 0, 0, floor(len(blob_data) / ENCAPSULATED_DATA_LEN), ENCAPSULATED_DATA_LEN, 0)
+
+    def resend_image_packets(name, message):
+        msg_index = message.seqnr
+        data_seg = data[msg_index]
+        vehicle.message_factory.encapsulated_data_send(msg_index, data_seg)
+
+    vehicle.add_message_listener("ENCAPSULATED_DATA", resend_image_packets)
+    wait_for_ack(vehicle)
+    vehicle.remove_message_listener("ENCAPSULATED_DATA", resend_image_packets)
 
 def log_image_georeference_data(vehicle, img_path, img_num, timestamp):
     """
