@@ -50,7 +50,6 @@ def image_capture_main(new_images_queue : Queue, camera_commands_queue : Queue, 
     capture_enabled = True
     while True:
         while True:
-            print("cmd looop")
             try:
                 cmd = camera_commands_queue.get(block=False)
             except Empty:
