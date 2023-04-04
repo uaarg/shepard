@@ -28,6 +28,35 @@ This script is designed to run on a system with a USB or UART connection to a Pi
 * Install the required dependancies via ```pip install -r requirements.txt```
 * You should now be able to run testing python scripts and launch the application
 
+## How to setup for auto-running on a rpi
+
+To setup a systemd service so that shepard will automatically start and
+restart.
+
+```sh
+uaarg@raspberrypi:~/shepard $ sudo ln shepard.service /etc/systemd/system
+uaarg@raspberrypi:~/shepard $ sudo systemctl enable shepard.service 
+Created symlink /etc/systemd/system/multi-user.target.wants/shepard.service → /etc/systemd/system/shepard.service.
+uaarg@raspberrypi:~/shepard $ sudo systemctl start shepard.service
+```
+
+Then you can confirm that everything is working by running:
+
+```sh
+uaarg@raspberrypi:~/shepard $ sudo systemctl status shepard.service 
+● shepard.service - Shepard
+     Loaded: loaded (/etc/systemd/system/shepard.service; enabled; vendor preset: enabled)
+     Active: active (running) since Mon 2023-04-03 18:40:55 MDT; 8min ago
+   Main PID: 2210 (python)
+      Tasks: 9 (limit: 3933)
+        CPU: 15min 59.449s
+     CGroup: /system.slice/shepard.service
+             ├─2210 python /home/uaarg/shepard/main.py
+             ├─2220 python /home/uaarg/shepard/main.py
+             ├─2221 python /home/uaarg/shepard/main.py
+             └─2222 python /home/uaarg/shepard/main.py
+```
+
 ## How to Solve Permission Errors on Linux
 
 * If you have permission errors accessing ports, you may need to add your user to the 'tty' and 'dialout' groups

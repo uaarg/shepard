@@ -1,0 +1,11 @@
+[Unit]
+Description=Shepard
+After=login.target
+
+[Service]
+ExecStart=/home/uaarg/shepard/run.sh
+WorkingDirectory=/home/uaarg/shepard
+User=uaarg
+
+[Install]
+WantedBy=multi-user.target
