@@ -13,6 +13,8 @@ import json
 from math import floor
 import time
 
+IMAGE_SEND_PEROID = 20 # no. of seconds to wait before sending each image
+
 DroneStates = Enum('State', ['STOPPED', 'TAKEOFF', 'TRAVELLING', 'SEARCHING', 'LANDING'])
 
 class AutopilotVars:
@@ -68,13 +70,16 @@ def autopilot_main(new_images_queue : Queue, images_to_analyze : Queue, image_an
             elif message.command == mavutil.mavlink.MAV_CMD_IMAGE_STOP_CAPTURE:
                 camera_command_queue.put("STOP_CAPTURE")
 
-
+    # intermediate variables used in the event loop below
+    last_image_send = time.time()
+    last_image = None
 
     while True:
 
         # Check if there are new images to get GPS
         while ~(new_images_queue.empty()):
             img_data = new_images_queue.get()
+            last_image = img_data['img_path']
 
             log_image_georeference_data(vehicle, img_data['img_path'], img_data['img_num'], img_data['time'])
 
@@ -96,6 +101,11 @@ def autopilot_main(new_images_queue : Queue, images_to_analyze : Queue, image_an
 
                         # TODO: Implement Communication of the new waypoint at object['lat'], object['lon']
                         AutopilotVars.state = DroneStates.LANDING
+
+        should_send = time.time() - last_image_send > IMAGE_SEND_PEROID
+        if should_send and last_image is not None:
+            transmit_image(last_image)
+            last_image_send = time.time()
 
 def transmit_status(vehicle, status : str):
     """
@@ -130,6 +140,8 @@ def transmit_image(vehicle: dronekit.Vehicle, image_path : str):
     """
     Transmits the provided status string over the Mavlink Connection
     """
+
+    print("Sending image")
 
     with open(image_path, 'rb') as f:
         blob_data = bytearray(f.read())
