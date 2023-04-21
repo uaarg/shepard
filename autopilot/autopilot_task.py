@@ -5,12 +5,14 @@ This file contains the "Main Loop" which sets up all autopilot
 functions to be executed by our script
 """
 from multiprocessing import Queue
+from queue import Empty
 from enum import Enum
 import dronekit
 from pymavlink import mavutil
+from PIL import Image
 import sys, os
 import json
-from math import floor
+from math import ceil
 import time
 
 IMAGE_SEND_PEROID = 20 # no. of seconds to wait before sending each image
@@ -18,7 +20,7 @@ IMAGE_SEND_PEROID = 20 # no. of seconds to wait before sending each image
 DroneStates = Enum('State', ['STOPPED', 'TAKEOFF', 'TRAVELLING', 'SEARCHING', 'LANDING'])
 
 class AutopilotVars:
-    state = DroneStates.SEARCHING
+    state = DroneStates.TRAVELLING
     # Add any additional variables being tracked here
 
 def autopilot_main(new_images_queue : Queue, images_to_analyze : Queue, image_analysis_results : Queue, 
@@ -36,7 +38,7 @@ def autopilot_main(new_images_queue : Queue, images_to_analyze : Queue, image_an
     # One time required setup
     if connection_string != '':
         try:
-            vehicle = dronekit.connect(connection_string, heartbeat_timeout=15, source_system=1, source_component=2)
+            vehicle = dronekit.connect(connection_string, source_system=1, source_component=2)
 
         # Bad TTY connection
         except OSError as e:
@@ -64,7 +66,6 @@ def autopilot_main(new_images_queue : Queue, images_to_analyze : Queue, image_an
             
         @vehicle.on_message('COMMAND_LONG')
         def listener(self, name, message):
-            print(message)
             if message.command == mavutil.mavlink.MAV_CMD_IMAGE_START_CAPTURE:
                 camera_command_queue.put("START_CAPTURE")
             elif message.command == mavutil.mavlink.MAV_CMD_IMAGE_STOP_CAPTURE:
@@ -77,8 +78,12 @@ def autopilot_main(new_images_queue : Queue, images_to_analyze : Queue, image_an
     while True:
 
         # Check if there are new images to get GPS
-        while ~(new_images_queue.empty()):
-            img_data = new_images_queue.get()
+        while True:
+            try:
+                img_data = new_images_queue.get(block=False)
+            except Empty:
+                break
+                
             last_image = img_data['img_path']
 
             log_image_georeference_data(vehicle, img_data['img_path'], img_data['img_num'], img_data['time'])
@@ -89,8 +94,11 @@ def autopilot_main(new_images_queue : Queue, images_to_analyze : Queue, image_an
                 images_to_analyze.put({'img_path' : img_data['img_path'], 'img_num' : img_data['img_num']})
 
         # Check if there are new results to analyze
-        while ~(image_analysis_results.empty()):
-            new_img_results = image_analysis_results.get()
+        while True:
+            try:
+                new_img_results = image_analysis_results.get(block=False)
+            except Empty:
+                break
 
             if (AutopilotVars.state == DroneStates.SEARCHING 
                     or AutopilotVars.state == DroneStates.LANDING):
@@ -104,7 +112,7 @@ def autopilot_main(new_images_queue : Queue, images_to_analyze : Queue, image_an
 
         should_send = time.time() - last_image_send > IMAGE_SEND_PEROID
         if should_send and last_image is not None:
-            transmit_image(last_image)
+            transmit_image(vehicle, last_image)
             last_image_send = time.time()
 
 def transmit_status(vehicle, status : str):
@@ -124,7 +132,8 @@ class Ref:
     def get(self):
         return self.value
 
-def wait_for_ack(vehicle, cmd_id):
+def wait_for_ack(vehicle, cmd_id) -> bool:
+    """Waits for an ack for the specific command"""
     done = Ref(False)
     def command_ack(self, name, message):
         print(message)
@@ -132,70 +141,81 @@ def wait_for_ack(vehicle, cmd_id):
             done.set(True)
     print("Waiting for ACK")
     vehicle.add_message_listener("COMMAND_ACK", command_ack)
-    vehicle.wait_for(lambda: done.get(), timeout=15)
+    try:
+        vehicle.wait_for(lambda: done.get(), timeout=5)
+        print("Got ACK")
+    except dronekit.TimeoutError:
+        print("ACK timed out")
+        
     vehicle.remove_message_listener("COMMAND_ACK", command_ack)
-    print("Got ACK")
+    return done.get()
 
 def transmit_image(vehicle: dronekit.Vehicle, image_path : str):
     """
     Transmits the provided status string over the Mavlink Connection
     """
-
+    
+    # Compress image
+    im = Image.open(image_path)
+    im = im.resize((200,150), Image.ANTIALIAS)
+    im.save(f"{image_path}_cmp.jpg", quality=75)
     print("Sending image")
 
-    with open(image_path, 'rb') as f:
+    with open(f"{image_path}_cmp.jpg", 'rb') as f:
         blob_data = bytearray(f.read())
-
-    while True:
-        vehicle.message_factory.camera_image_captured_send(
-            time_boot_ms=int(time.time()),
-            time_utc=0,
-            camera_id=0,
-            lat=0,
-            lon=0,
-            alt=0,
-            relative_alt=0,
-            q=(1, 0, 0, 0),
-            image_index=-1,
-            capture_result=1,
-            file_url="".encode())
-
-        try:
-            wait_for_ack(vehicle, 263)
-            break
-        except dronekit.TimeoutError:
-            pass
+    
+    vehicle.message_factory.camera_image_captured_send(
+        time_boot_ms=int(time.time()),
+        time_utc=0,
+        camera_id=0,
+        lat=0,
+        lon=0,
+        alt=0,
+        relative_alt=0,
+        q=(1, 0, 0, 0),
+        image_index=-1,
+        capture_result=1,
+        file_url="".encode())
+        
+    if not wait_for_ack(vehicle, 263):
+        return
 
     ENCAPSULATED_DATA_LEN = 253
+    
+    vehicle.message_factory.data_transmission_handshake_send(0, len(blob_data), 0, 0, ceil(len(blob_data) / ENCAPSULATED_DATA_LEN), ENCAPSULATED_DATA_LEN, 0)
 
-    while True:
-        vehicle.message_factory.data_transmission_handshake_send(0, len(blob_data), 0, 0, floor(len(blob_data) / ENCAPSULATED_DATA_LEN) -1, ENCAPSULATED_DATA_LEN, 0)
-
-        try:
-            wait_for_ack(vehicle, 130)
-            break
-        except dronekit.TimeoutError:
-            pass
+    if not wait_for_ack(vehicle, 130):
+        return
 
     data = []
     for start in range(0, len(blob_data), ENCAPSULATED_DATA_LEN):
         data_seg = blob_data[start:start+ENCAPSULATED_DATA_LEN]
         data.append(data_seg)
-
+    
     for msg_index, data_seg in enumerate(data):
-        vehicle.message_factory.encapsulated_data_send(msg_index, data_seg)
-        time.sleep(0.2)
+        if len(data_seg) < ENCAPSULATED_DATA_LEN:
+            data_seg.extend(bytearray(ENCAPSULATED_DATA_LEN - len(data_seg)))
+        vehicle.message_factory.encapsulated_data_send(msg_index + 1, data_seg)
+        time.sleep(0.5)
 
-    vehicle.message_factory.data_transmission_handshake_send(0, len(blob_data), 0, 0, floor(len(blob_data) / ENCAPSULATED_DATA_LEN), ENCAPSULATED_DATA_LEN, 0)
+    vehicle.message_factory.data_transmission_handshake_send(
+        0, 
+        len(blob_data),
+        0, 
+        0, 
+        ceil(len(blob_data) / ENCAPSULATED_DATA_LEN), 
+        ENCAPSULATED_DATA_LEN, 
+        0,
+        )
 
     def resend_image_packets(name, message):
         msg_index = message.seqnr
         data_seg = data[msg_index]
         vehicle.message_factory.encapsulated_data_send(msg_index, data_seg)
 
-    vehicle.add_message_listener("ENCAPSULATED_DATA", resend_image_packets)
-    #wait_for_ack(vehicle)
-    vehicle.remove_message_listener("ENCAPSULATED_DATA", resend_image_packets)
+    #vehicle.add_message_listener("ENCAPSULATED_DATA", resend_image_packets)
+    #wait_for_ack(vehicle, 130)
+    #vehicle.remove_message_listener("ENCAPSULATED_DATA", resend_image_packets)
 
 def log_image_georeference_data(vehicle, img_path, img_num, timestamp):
     """
