@@ -15,10 +15,11 @@ import json
 from math import ceil
 import time
 from autopilot.led_controls import setup_leds, set_color
+from autopilot.control_scripts import transmit_text, takeoff, follow_mission, initiate_landing_search, land
 
 IMAGE_SEND_PERIOD = 30 # no. of seconds to wait before sending each image
 
-DroneStates = Enum('State', ['IDLE', 'TAKEOFF', 'FOLLOW_MISSION', 'LANDING_SEARCH', 'LANDING'])
+DroneStates = Enum('State', ['IDLE', 'TAKEOFF', 'FOLLOW_MISSION', 'LANDING_SEARCH', 'LAND'])
 
 class AutopilotVars:
     state = DroneStates.IDLE
@@ -56,7 +57,9 @@ def autopilot_main(new_images_queue : Queue, images_to_analyze : Queue, image_an
     
     led = setup_leds()
     transmit_next_img = Ref(False)
+    state_change = Ref(None)
     last_image = None
+    
     #last_image_send = time.time()
     
     if vehicle:
@@ -80,7 +83,7 @@ def autopilot_main(new_images_queue : Queue, images_to_analyze : Queue, image_an
                 print(f"Recieved Custom Command {int(message.param1)}")
                 if int(message.param1) == 1: # Set Mode
                     print(f"Setting Mode to {DroneStates(int(message.param2)).name}")
-                    AutopilotVars.state = DroneStates(int(message.param2))
+                    state_change.set(DroneStates(int(message.param2)))
                 elif int(message.param1) == 2: # Set Lights
                     print(f"Setting lights {message.param2}")
                     if int(message.param2) == 0:
@@ -102,7 +105,6 @@ def autopilot_main(new_images_queue : Queue, images_to_analyze : Queue, image_an
             except Empty:
                 break
             
-            transmit_text(vehicle, "Hi")
             last_image = img_data['img_path']
 
             log_image_georeference_data(vehicle, img_data['img_path'], img_data['img_num'], img_data['time'])
@@ -137,14 +139,23 @@ def autopilot_main(new_images_queue : Queue, images_to_analyze : Queue, image_an
         if transmit_next_img.get() and last_image is not None:
             transmit_image(vehicle, last_image)
             transmit_next_img.set(False)
-            
+        
+        # Check for state change
+        if state_change.get() is not None:
+            AutopilotVars.state = state_change.get()
+            state_change.set(None)
+            if AutopilotVars.state == DroneStates.IDLE:
+                pass
+            elif AutopilotVars.state == DroneStates.TAKEOFF:
+                takeoff(vehicle)
+            elif AutopilotVars.state == DroneStates.FOLLOW_MISSION:
+                follow_mission(vehicle)
+            elif AutopilotVars.state == DroneStates.LANDING_SEARCH:
+                initiate_landing_search(vehicle)
+            elif AutopilotVars.state == DroneStates.LAND:
+                land(vehicle)
+                
         time.sleep(0.1)
-
-def transmit_text(vehicle, text : str):
-    """
-    Transmits the provided status string over the Mavlink Connection
-    """
-    vehicle.message_factory.statustext_send(severity=5, text=text.encode())
 
 class Ref:
     def __init__(self, value):
