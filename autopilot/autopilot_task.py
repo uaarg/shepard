@@ -15,7 +15,8 @@ import json
 from math import ceil
 import time
 from autopilot.led_controls import setup_leds, set_color
-from autopilot.control_scripts import transmit_text, takeoff, follow_mission, initiate_landing_search, land
+from autopilot.control_scripts import transmit_text, takeoff, follow_mission, initiate_landing_search, land, get_horizontal_dist_to_location
+from autopilot.autopilot_imaging_integration import log_image_georeference_data
 
 IMAGE_SEND_PERIOD = 30 # no. of seconds to wait before sending each image
 
@@ -23,6 +24,8 @@ DroneStates = Enum('State', ['IDLE', 'TAKEOFF', 'FOLLOW_MISSION', 'LANDING_SEARC
 
 class AutopilotVars:
     state = DroneStates.IDLE
+    img_being_processed = None
+    next_destination = None
     # Add any additional variables being tracked here
 
 def autopilot_main(new_images_queue : Queue, images_to_analyze : Queue, image_analysis_results : Queue, 
@@ -121,13 +124,7 @@ def autopilot_main(new_images_queue : Queue, images_to_analyze : Queue, image_an
                 break
 
             if (AutopilotVars.state == DroneStates.LANDING_SEARCH):
-                # handle each found object in the image
-                for object in new_img_results['results']:
-                    if object['type'] == 'blue landing pad':
-                        print('Landing Pad Found, Updating Waypoints...')
-
-                        # TODO: Implement Communication of the new waypoint at object['lat'], object['lon']
-                        AutopilotVars.state = DroneStates.LANDING
+                autopilot_handle_inference_results(vehicle, new_img_results)
         
         # This works, but not used for flight test due to message delays
         #should_send = time.time() - last_image_send > IMAGE_SEND_PERIOD
@@ -251,33 +248,28 @@ def transmit_image(vehicle: dronekit.Vehicle, image_path : str):
     #wait_for_ack(vehicle, 130)
     #vehicle.remove_message_listener("ENCAPSULATED_DATA", resend_image_packets)
 
-def log_image_georeference_data(vehicle, img_path, img_num, timestamp):
-    """
-    Polls the Pixhawk for the latest GPS information for any image just taken
 
-    This function sends a command to the PixHawk and returns the latest GPS position
-    This position is then written to a text file '{img_num}.json' saving all the GPS positions
+def autopilot_handle_inference_results(vehicle, new_img_results : dict):
     """
+    Takes the output from the imaging analysis and determines next steps
+    for our drone to take
+    """
+    
+    # We should now filter our results so that only objects that are blue landing pads are considered
+    new_img_results['results'] = [obj for obj in new_img_results['results'] if obj['type'] == 'blue landing pad']
 
-    if vehicle is None:
-        # We are not connected to a vehicle, this function should do nothing
+    if new_img_results['results'] == []:
+        # There were no objects located by our search
+        transmit_text(vehicle, "No Landing Pad Found")
         return
+    
+    # Our image results must have at least 1 orange landing pad
+    # We need to get the result with the highest confidence
+    best_landing_pad = max(new_img_results['results'], key=lambda obj:obj['confidence'])
 
-    json_file_path = f"{os.path.dirname(img_path)}/{img_num}.json"
-
-    log = {
-        'time'          : timestamp,
-        'fixtype'       : vehicle.gps_0.fix_type,
-        'lat'           : vehicle.location.global_frame.lat,
-        'lon'           : vehicle.location.global_frame.lon,
-        'relative_alt'  : vehicle.location.global_relative_frame.alt,
-        'alt'           : vehicle.location.global_frame.alt,
-        'pitch'         : vehicle.attitude.pitch,
-        'roll'          : vehicle.attitude.roll,
-        'yaw'           : vehicle.attitude.yaw
-    }
-
-    with open(json_file_path, "w") as json_file:
-        json.dump(log, json_file, indent=2)
-
-
+    # Determine the altitude we should make our next waypoint
+    target = dronekit.LocationGlobalRelative(lat=best_landing_pad['lat'], lon=best_landing_pad['lon'])
+    distance = get_horizontal_dist_to_location(vehicle, target)
+    target.alt = 30
+    
+    vehicle.simple_goto(target)

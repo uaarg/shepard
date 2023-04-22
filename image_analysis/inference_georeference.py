@@ -16,7 +16,7 @@ import pyproj
 
 def LonLat_To_XY(lon, lat, zone=12):
     """
-    Returns the Easting and Westing of given Lat, Lon on the WGS84
+    Returns the Easting and Northing of given Lon, Lat on the WGS84
     Projection Model
     
     Input is in degrees, return is in meters
@@ -27,7 +27,7 @@ def LonLat_To_XY(lon, lat, zone=12):
 
 def XY_To_LonLat(x, y, zone=12):
     """
-    Returns the Lat, Lon of given Easting, Northing on the WGS84
+    Returns the Lon, Lat of given Easting, Northing on the WGS84
     Projection Model
     
     Input is in meters, return is in degrees
