@@ -65,7 +65,7 @@ def land(vehicle):
 	
 	transmit_text(vehicle, "Drone is landing")
 
-def get_searchpoint_offset(points_checked) -> tuple(float, float):
+def get_searchpoint_offset(points_checked) -> tuple([float, float]):
     """
     This function calculates the next offset the drone will search
 
