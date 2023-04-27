@@ -94,7 +94,7 @@ class TestImageLocate(unittest.TestCase):
 
         x_offset, y_offset = calculate_object_offsets(height=10, pitch=0, roll=radians(15), yaw=0, x=0.5, y=0.5)
 
-        self.assertAlmostEqual(x_offset, 2.679491924, places=5)
+        self.assertAlmostEqual(x_offset, -2.679491924, places=5)
         self.assertAlmostEqual(y_offset, 0, places=5)
 
     def test_error_handle(self):

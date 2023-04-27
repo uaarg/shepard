@@ -66,9 +66,9 @@ def adjust_dir_vector_orientation(input_dir : np.array, pitch, roll, yaw) -> np.
                     [0, cos(pitch), -sin(pitch)],
                     [0, sin(pitch), cos(pitch)]])
 
-    Ry = np.array([[cos(roll), 0, -sin(roll)],
+    Ry = np.array([[cos(roll), 0, sin(roll)],
                     [0, 1, 0],
-                    [sin(roll), 0, cos(roll)]])
+                    [-sin(roll), 0, cos(roll)]])
 
     Rz = np.array([[cos(yaw), sin(yaw), 0],
                     [-sin(yaw), cos(yaw), 0],
