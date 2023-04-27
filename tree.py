@@ -15,15 +15,19 @@ def parse_data(filename: str):
 
     nodes = {}
 
-    with open(filename, newline='') as infile:
+    with open(filename, newline="") as infile:
         data_reader = csv.reader(infile)
         next(data_reader, None)  # skip the headers
         for row in data_reader:
             try:
                 nodes[row[0]] = (
-                float(row[1]), float(row[2]), row[3])  # nodes = {'waypoint_name': (x, y, classification)}
+                    float(row[1]),
+                    float(row[2]),
+                    row[3],
+                )  # nodes = {'waypoint_name': (x, y, classification)}
             except ValueError:
                 print(f"ValueError occurred in parse_data for loop.")
+                exit(1)
 
     return nodes
 
@@ -41,13 +45,15 @@ def create_safe_waypoints(nodes: dict, margin: float = 1.3):
     """
 
     # list of (x,y) of obstacle bounds
-    restricted_vertices = [(node[0], node[1]) for node in nodes.values() if node[2] == 'obstacle']
+    restricted_vertices = [
+        (node[0], node[1]) for node in nodes.values() if node[2] == "obstacle"
+    ]
     restricted_region = sp.convex_hull(*restricted_vertices)
 
     safe_waypoints = dict()
     # list of (x,y) of START and TARGET
     for name, data in nodes.items():
-        if data[2] != 'obstacle':
+        if data[2] != "obstacle":
             safe_waypoints[name] = (data[0], data[1])
 
     safe_region = restricted_region.scale(margin, margin, restricted_region.centroid)
@@ -62,24 +68,31 @@ def create_safe_waypoints(nodes: dict, margin: float = 1.3):
     for name in nodes:
         if name not in safe_waypoints:
             try:
-                safe_waypoints[name] = (safe_region.vertices[i].x, safe_region.vertices[i].y)
+                safe_waypoints[name] = (
+                    safe_region.vertices[i].x,
+                    safe_region.vertices[i].y,
+                )
                 i += 1
             except IndexError:
                 # IMPORTANT: This is caused by the fact that the convex_hull ignores points that would make the polygon
                 #   be not convex at any point. This should be fine since having that point in the polygon would be
                 #   of no use since a path that goes there and then back to another point would not be optimal.
-                print("IndexError occurred while making safe_waypoints dict.")
+                print("Warning: IndexError occurred while making safe_waypoints dict.")
         else:
             pass
 
     # Move the target to the end of the dictionary
-    safe_waypoints['T'] = safe_waypoints.pop('T')
+    safe_waypoints["T"] = safe_waypoints.pop("T")
 
     return safe_waypoints, restricted_region, safe_region
 
 
-def find_valid_connections(safe_waypoints: dict, restricted_region: sp.Polygon, safe_region: sp.Polygon,
-                           intersect_safe: bool = True):
+def find_valid_connections(
+    safe_waypoints: dict,
+    restricted_region: sp.Polygon,
+    safe_region: sp.Polygon,
+    intersect_safe: bool = True,
+):
     """
     Finds all connections_names between any two nodes in the given data that don't intersect the polygon bounded by the
     vertices labelled 'obstacle'. Also has the option to set `intersect_safe` to True, which will ensure that the paths
@@ -105,11 +118,15 @@ def find_valid_connections(safe_waypoints: dict, restricted_region: sp.Polygon, 
     for combo in combos:
         intersect_inner = sp.intersection(sp.Segment(*combo), restricted_region)
         intersect_outer = sp.intersection(sp.Segment(*combo), safe_region)
-        if (not intersect_inner and not (len(intersect_outer) > 1)) or (not intersect_inner and not intersect_safe):
+        if (not intersect_inner and not (len(intersect_outer) > 1)) or (
+            not intersect_inner and not intersect_safe
+        ):
             first = waypoint_values.index(combo[0])
             second = waypoint_values.index(combo[1])
             # append ('first', 'second') to valid_connections_names
-            valid_connections_names.append((waypoint_names[first], waypoint_names[second]))
+            valid_connections_names.append(
+                (waypoint_names[first], waypoint_names[second])
+            )
 
             first = combo[0]
             second = combo[1]
@@ -169,8 +186,9 @@ def generate_tree(connections_names, connections_coords):
 
 
 if __name__ == "__main__":
-    parsed_nodes = parse_data("randomdata.csv")
+    parsed_nodes = parse_data("data2.csv")
 
+    print(parsed_nodes)
     waypoints, nofly_region, margin_region = create_safe_waypoints(parsed_nodes)
 
     connections, coords = find_valid_connections(waypoints, nofly_region, margin_region)
