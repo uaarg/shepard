@@ -15,7 +15,18 @@ target_col = "limegreen"
 
 # get all required data
 parsed_nodes = tree.parse_data(DATA_SOURCE)
+parsed_nodes, start_point = tree.set_start_waypoint(parsed_nodes)
+parsed_nodes, skipped_points = tree.set_skipped_points(parsed_nodes)
+print(f"{start_point = }")
 waypoints, nofly_region, margin_region = tree.create_safe_waypoints(parsed_nodes)
+
+for name, data in parsed_nodes.items():
+    if data[2] == "waypoint":
+        plt.plot(data[0], data[1], marker="o", mfc="white", mec="grey")
+        plt.text(data[0] - 0.5, data[1] + 0.1, name)
+    if data[2] == "skipped":
+        plt.plot(data[0], data[1], marker="o", mfc="white", mec="lightgrey")
+        plt.text(data[0] - 0.5, data[1] + 0.1, name)
 
 # original nodes
 points_x = [i[0] for i in parsed_nodes.values() if i[2] == "obstacle"]
@@ -39,7 +50,7 @@ for i in range(len(waypoints)):
     x = safe_x[i]
     y = safe_y[i]
     plt.plot(x, y, marker="^", mfc=waypoint_col, mec=waypoint_col)
-    plt.text(x + 0.1, y + 0.1, names[i])
+    # plt.text(x + 0.1, y + 0.1, names[i])
 
 # polygon sides
 for side in nofly_region.sides:

@@ -32,6 +32,55 @@ def parse_data(filename: str):
     return nodes
 
 
+# TODO: Find waypoint closest to region and set that as start
+def set_start_waypoint(nodes: dict, margin: float = 1.3):
+    restricted_vertices = [
+        (node[0], node[1]) for node in nodes.values() if node[2] == "obstacle"
+    ]
+    restricted_region = sp.convex_hull(*restricted_vertices)
+
+    safe_region = safe_region = restricted_region.scale(margin, margin, restricted_region.centroid)
+
+    closest_point = "1"  # The first waypoint in the data file
+    dist_for_closest = safe_region.distance(
+        sp.Point(nodes["1"][0], nodes["1"][1])
+    )
+
+    for name, data in nodes.items():
+        if data[2] == "waypoint":
+            # TODO: Calculate distance from current waypoint to region, store if closer than previous closest
+            #  - Break when a waypoint ends up inside the region
+            current = sp.Point(data[0], data[1])
+            if safe_region.encloses_point(current):
+                break
+            current_dist = safe_region.distance(current)
+            if current_dist < dist_for_closest:
+                closest_point = name
+                dist_for_closest = current_dist
+
+    nodes[closest_point] = (nodes[closest_point][0], nodes[closest_point][1], "start")
+
+    return nodes, closest_point
+
+
+def set_skipped_points(nodes: dict):
+    restricted_vertices = [
+        (node[0], node[1]) for node in nodes.values() if node[2] == "obstacle"
+    ]
+    restricted_region = sp.convex_hull(*restricted_vertices)
+
+    skipped_points = list()
+
+    for name, data in nodes.items():
+        if data[2] == "waypoint":
+            current = sp.Point(data[0], data[1])
+            if restricted_region.encloses_point(current):
+                nodes[name] = (data[0], data[1], "skipped")
+                skipped_points.append(name)
+
+    return nodes, skipped_points
+
+
 def create_safe_waypoints(nodes: dict, margin: float = 1.3):
     """
     Apply a safety margin to nodes so connections_names can be made without being on the border of the restricted region,
@@ -53,7 +102,7 @@ def create_safe_waypoints(nodes: dict, margin: float = 1.3):
     safe_waypoints = dict()
     # list of (x,y) of START and TARGET
     for name, data in nodes.items():
-        if data[2] != "obstacle":
+        if data[2] == "start" or data[2] == "target":
             safe_waypoints[name] = (data[0], data[1])
 
     safe_region = restricted_region.scale(margin, margin, restricted_region.centroid)
@@ -66,7 +115,7 @@ def create_safe_waypoints(nodes: dict, margin: float = 1.3):
     #   Only tested for first two nodes being START and TARGET and rest being OBSTACLE
     i = 0  # FIXME: there must be a better way to do this
     for name in nodes:
-        if name not in safe_waypoints:
+        if name not in safe_waypoints and nodes[name][2] == "obstacle":
             try:
                 safe_waypoints[name] = (
                     safe_region.vertices[i].x,
@@ -78,8 +127,6 @@ def create_safe_waypoints(nodes: dict, margin: float = 1.3):
                 #   be not convex at any point. This should be fine since having that point in the polygon would be
                 #   of no use since a path that goes there and then back to another point would not be optimal.
                 print("Warning: IndexError occurred while making safe_waypoints dict.")
-        else:
-            pass
 
     # Move the target to the end of the dictionary
     safe_waypoints["T"] = safe_waypoints.pop("T")
@@ -88,10 +135,10 @@ def create_safe_waypoints(nodes: dict, margin: float = 1.3):
 
 
 def find_valid_connections(
-    safe_waypoints: dict,
-    restricted_region: sp.Polygon,
-    safe_region: sp.Polygon,
-    intersect_safe: bool = True,
+        safe_waypoints: dict,
+        restricted_region: sp.Polygon,
+        safe_region: sp.Polygon,
+        intersect_safe: bool = True,
 ):
     """
     Finds all connections_names between any two nodes in the given data that don't intersect the polygon bounded by the
@@ -119,7 +166,7 @@ def find_valid_connections(
         intersect_inner = sp.intersection(sp.Segment(*combo), restricted_region)
         intersect_outer = sp.intersection(sp.Segment(*combo), safe_region)
         if (not intersect_inner and not (len(intersect_outer) > 1)) or (
-            not intersect_inner and not intersect_safe
+                not intersect_inner and not intersect_safe
         ):
             first = waypoint_values.index(combo[0])
             second = waypoint_values.index(combo[1])
@@ -188,11 +235,16 @@ def generate_tree(connections_names, connections_coords):
 if __name__ == "__main__":
     parsed_nodes = parse_data("data2.csv")
 
-    print(parsed_nodes)
+    parsed_nodes, start_point = set_start_waypoint(parsed_nodes)
+    parsed_nodes, skipped_points = set_skipped_points(parsed_nodes)
+
     waypoints, nofly_region, margin_region = create_safe_waypoints(parsed_nodes)
 
     connections, coords = find_valid_connections(waypoints, nofly_region, margin_region)
     # print(f"{connections = }\n{coords = }")
 
     final_tree_names, final_tree_coords = generate_tree(connections, coords)
+
+    print(f"{start_point = }")
+    print(f"{skipped_points = }")
     print(f"{final_tree_names = }\n{final_tree_coords = }")
