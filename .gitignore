@@ -53,3 +53,6 @@ Thumbs.db
 
 # Intermediate files
 qr/inter.png
+
+# pyenv
+.python-version
