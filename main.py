@@ -19,7 +19,7 @@ from image_capture.capture_task import image_capture_main
 from autopilot.autopilot_task import autopilot_main
 
 FILE = Path(__file__).resolve()
-ROOT = FILE.parents[1]
+ROOT = FILE.parents[0]
 
 def main(options):
     
@@ -61,10 +61,11 @@ def main(options):
 def find_available_save_folder():
     """Creates a new folder in the logs directory"""
     
-    num_folders = len(next(os.walk(f"{ROOT}/logs"))[1])
+    num_folders = len([entry for entry in os.scandir(f"{ROOT}/logs") if entry.is_dir()])
     print(f"Found {num_folders} folders in {ROOT}/logs")
+    os.mkdir(f"{ROOT}/logs/flight{num_folders+1}")
 
-    return f"{ROOT}/logs/flight{num_folders}"
+    return f"{ROOT}/logs/flight{num_folders+1}"
 
 def parse_opt():
     """
