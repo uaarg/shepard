@@ -9,7 +9,7 @@ from pathlib import Path
 import time
 import cv2
 
-def image_capture_main(new_images_queue : Queue, camera_commands_queue : Queue, capture_rate : float, camera : str, camera_port : str, display : bool):
+def image_capture_main(new_images_queue : Queue, camera_commands_queue : Queue, capture_rate : float, camera : str, camera_port : str, display : bool, save_folder):
     """
     Multiprocessing function called in a separate process for image capture
     
@@ -90,7 +90,7 @@ def image_capture_main(new_images_queue : Queue, camera_commands_queue : Queue, 
                 time.sleep(max(0, (1 / capture_rate) + timestamp - time.time()))
                 continue
             
-            img_path = f"logs/{current_img_index}.png"
+            img_path = f"{save_folder}/{current_img_index}.png"
             cv2.imwrite(img_path, frame)
             if display:
                 # Help debug by adding webcam display

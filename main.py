@@ -17,11 +17,18 @@ from multiprocessing import Process, Queue
 from image_analysis.inference_task import inference_main
 from image_capture.capture_task import image_capture_main
 from autopilot.autopilot_task import autopilot_main
+
+FILE = Path(__file__).resolve()
+ROOT = FILE.parents[1]
+
 def main(options):
     
     """
     Starts the drone application
     """
+    # Get the next available log folder
+    save_folder = find_available_save_folder()
+
     # Create Queues for interprocess Communication
     new_images_queue = Queue()
     images_to_analyze = Queue()
@@ -36,7 +43,7 @@ def main(options):
     autopilot_process = Process(target=autopilot_main, args=(new_images_queue, images_to_analyze, image_analysis_results, camera_command_queue, options.port))
 
     # Create separate process for image capture
-    image_capture_process = Process(target=image_capture_main, args=(new_images_queue, camera_command_queue, options.capture_rate, options.camera, options.camera_port, options.display, ))
+    image_capture_process = Process(target=image_capture_main, args=(new_images_queue, camera_command_queue, options.capture_rate, options.camera, options.camera_port, options.display, save_folder))
 
     # Start each process
     analysis_process.start()
@@ -50,6 +57,14 @@ def main(options):
     analysis_process.terminate()
     autopilot_process.terminate()
     image_capture_process.terminate()
+
+def find_available_save_folder():
+    """Creates a new folder in the logs directory"""
+    
+    num_folders = len(next(os.walk(f"{ROOT}/logs"))[1])
+    print(f"Found {num_folders} folders in {ROOT}/logs")
+
+    return f"{ROOT}/logs/flight{num_folders}"
 
 def parse_opt():
     """
