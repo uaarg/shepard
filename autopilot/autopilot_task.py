@@ -227,7 +227,7 @@ def transmit_image(vehicle: dronekit.Vehicle, image_path : str):
         if len(data_seg) < ENCAPSULATED_DATA_LEN:
             data_seg.extend(bytearray(ENCAPSULATED_DATA_LEN - len(data_seg)))
         vehicle.message_factory.encapsulated_data_send(msg_index + 1, data_seg)
-        time.sleep(0.5)
+        time.sleep(0.2)
 
     vehicle.message_factory.data_transmission_handshake_send(
         0, 
@@ -240,13 +240,16 @@ def transmit_image(vehicle: dronekit.Vehicle, image_path : str):
         )
 
     def resend_image_packets(name, message):
-        msg_index = message.seqnr
-        data_seg = data[msg_index]
-        vehicle.message_factory.encapsulated_data_send(msg_index, data_seg)
+        if message.command == mavutil.mavlink.MAV_CMD_REQUEST_IMAGE_CAPTURE:
+            msg_index = message.param1
+            data_seg = data[msg_index]
+            if len(data_seg) < ENCAPSULATED_DATA_LEN:
+                data_seg.extend(bytearray(ENCAPSULATED_DATA_LEN - len(data_seg)))
+            vehicle.message_factory.encapsulated_data_send(msg_index, data_seg)
 
-    #vehicle.add_message_listener("ENCAPSULATED_DATA", resend_image_packets)
-    #wait_for_ack(vehicle, 130)
-    #vehicle.remove_message_listener("ENCAPSULATED_DATA", resend_image_packets)
+    vehicle.add_message_listener("COMMAND_LONG", resend_image_packets)
+    wait_for_ack(vehicle, 130)
+    vehicle.remove_message_listener("COMMAND_LONG", resend_image_packets)
 
 
 def autopilot_handle_inference_results(vehicle, new_img_results : dict):

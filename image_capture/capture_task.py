@@ -74,7 +74,7 @@ def image_capture_main(new_images_queue : Queue, camera_commands_queue : Queue, 
         elif camera == 'rpicam2':
             frame = cap.capture_array()
             
-            img_path = f"logs/{current_img_index}.png"
+            img_path = f"{save_folder}/{current_img_index}.png"
             cv2.imwrite(img_path, frame)
             if display:
                 # Help debug by adding webcam display

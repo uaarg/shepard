@@ -1,7 +1,7 @@
 from rpi_ws281x import PixelStrip, Color
 from time import sleep
 
-LED_COUNT = 8
+LED_COUNT = 24
 LED_PIN = 18
 
 def set_color(led_strip : PixelStrip, r : int, g : int, b : int, delay_s=0.05):
