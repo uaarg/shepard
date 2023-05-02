@@ -1,13 +1,13 @@
 #   UAARG - Autopilot 2022
 """
 This file contains classes of waypoint commands and missions with MAVLink-like style, and functions to convert
-different type of waypoints and missions format between Mission Planner, drone-kit, wkl, etc.
+different type of waypoints_gps and missions format between Mission Planner, drone-kit, wkl, etc.
 """
 
 import csv
 from typing import List, Tuple
 from geopy.distance import distance
-from numpy import array, mean
+from numpy import array, mean, arctan, sqrt, power, pi
 
 
 class Command:
@@ -89,18 +89,18 @@ class Mission:
         self.commands.append(command)
         pass
 
-    def save(self, file_name: str = 'waypoints', file_type: str = '.waypoints'):
+    def save(self, file_name: str = 'waypoints_gps', file_type: str = '.waypoints_gps'):
         """
         Save the mission to a file, exact type and format varies
 
         :param file_name: Name of the file
-        :param file_type: Filetype of the file, Mission Planner is .waypoints
+        :param file_type: Filetype of the file, Mission Planner is .waypoints_gps
         :return: A file that contains the mission's information
         """
 
         mission_file = open(file_name + file_type, 'w')
-        if file_type == '.waypoints':
-            mission_file.write('QGC WPL 110\n')  # Meaning unclear as for now, needed for Mission Planner waypoints file
+        if file_type == '.waypoints_gps':
+            mission_file.write('QGC WPL 110\n')  # Meaning unclear as for now, needed for Mission Planner waypoints_gps file
             for sequence, command in enumerate(self.commands):
                 is_home = False if sequence != 0 else True
                 line = command.to_mission_planner(sequence, is_home) + '\n'
@@ -124,12 +124,12 @@ class Mission:
     @classmethod
     def load_from_wkt(cls, file_name: str, encoding: str = 'UTF-8'):
         """
-        Load a .csv file that uses WKT format to represent AEAC waypoints, this .csv file is created by first loading
-        the waypoints table in Excel from the AEAC rulebook, then saving it as a csv file
+        Load a .csv file that uses WKT format to represent AEAC waypoints_gps, this .csv file is created by first loading
+        the waypoints_gps table in Excel from the AEAC rulebook, then saving it as a csv file
 
         :param file_name: Path to the file
         :param encoding: Name of the encoding to decode the file
-        :return: A Mission instance that contains all the waypoints in the .csv file
+        :return: A Mission instance that contains all the waypoints_gps in the .csv file
         """
 
         waypoints = []
@@ -151,7 +151,7 @@ class Mission:
 
         :param file_name: Path to the file
         :param encoding: Name of the encoding to decode the file
-        :return:A mission instance that contains all the waypoints in the .waypoint file
+        :return:A mission instance that contains all the waypoints_gps in the .waypoint file
         """
 
         waypoints = []
@@ -185,12 +185,27 @@ def gps_to_cartesian(gps_coordinates: List[Tuple[float, float]], origin: Tuple[f
         x = -x if coordinate[1] < origin[1] else x
         y = -y if coordinate[0] < origin[0] else y
         xy.append((x, y))
-    return xy
+    return xy, tuple(origin)
+
+def cartesian_to_gps(cartesian_coordinnates: List[Tuple[float, float]], origin: Tuple[float, float] = None):
+    gps = []
+    for coords in cartesian_coordinnates:
+        dist = sqrt(power(coords[0], 2)+power(coords[1], 2))
+        bearing = arctan(coords[1]/coords[0])
+        if coords[0] < 0: bearing += pi
+        bearing *= 180/pi
+        bearing += 90
+        bearing = bearing%360
+        bearing = -bearing
+        bearing = (bearing+180)%360
+        (lat, long, alt) = distance(meters=dist).destination(origin, bearing)
+        gps.append((lat, long))
+    return gps
 
 
 if __name__ == '__main__':
     test = 3
-    if test == 1:  # Test loading from wkt and save to .waypoints
+    if test == 1:  # Test loading from wkt and save to .waypoints_gps
         test_mission = Mission.load_from_wkt('test_waypoints/2023_AEAC_Task_Waypoints.csv')
         test_mission.save()
 
@@ -201,9 +216,9 @@ if __name__ == '__main__':
 
     elif test == 3:  # Test converting from gps to cartesian
         import matplotlib.pyplot as plt
-        test_fence = Mission.load_from_waypoint('test_waypoints/mission_planner_example_fence.waypoints')
+        test_fence = Mission.load_from_waypoint('../tests/south_campus/south_campus_test_waypoints.waypoints')
         test_gps_coordinates = test_fence.xy[1:]
-        result_cartesian = gps_to_cartesian(test_gps_coordinates)
+        result_cartesian, origin_gps = gps_to_cartesian(test_gps_coordinates)
         draw_cartesian = result_cartesian + [result_cartesian[0]]
         plt.plot(*list(zip(*draw_cartesian)))
         plt.show()

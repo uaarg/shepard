@@ -23,7 +23,7 @@ def autopilot_main(new_images_queue, images_to_analyze, image_analysis_results, 
     This function is executed once and should never return
 
     This function handles saving GPS information for new images, forwarding
-    images for analysis if we are in a "searching" state, and sending waypoints
+    images for analysis if we are in a "searching" state, and sending waypoints_gps
     to the autopilot controller (PixHawk)
     """
 

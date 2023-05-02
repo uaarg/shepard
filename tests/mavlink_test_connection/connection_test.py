@@ -11,7 +11,8 @@ from time import sleep
 
 # Parse command-line arguments
 parser = argparse.ArgumentParser(description='Establish MAVLink Connection')
-parser.add_argument('--master', type=str, nargs='?', default='127.0.0.1:14550', help='port for MAVLink connection')
+parser.add_argument('--master', type=str, nargs='?', default='tcpout:192.168.4.1:5760', help='port for MAVLink connection')
+# parser.add_argument('--master', type=str, nargs='?', default='127.0.0.1:14550', help='port for MAVLink connection')
 parser.add_argument('--wait_ready', nargs='?', type=bool, default=False, const=True,
                     help='whether to wait for attribute download')
 args = parser.parse_args()
@@ -27,7 +28,7 @@ while True:
     print(roll)
 
     # Change mode based on vehicle status
-    if roll < 0 and mode != VehicleMode('MANUAL'):
+    if roll < 0 and mode != VehicleMode('STABALIZE'):
         vehicle.mode = VehicleMode('MANUAL')
     elif roll > 0 and mode != VehicleMode('RTL'):
         vehicle.mode = VehicleMode('RTL')
