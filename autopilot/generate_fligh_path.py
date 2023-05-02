@@ -102,6 +102,10 @@ def main(args):
     print(f"{path = }")
 
     #upload flight plan
+    print("Waiting for vehicle to be ready...")
+    vehicle.wait_ready(True, raise_exception=True, timeout=300)
+    print(f"{vehicle.parameters = }")
+    print("Vehicle ready. Uploading mission...")
     upload_waypoints(cmds, path, args)
 
 if __name__ == "__main__":

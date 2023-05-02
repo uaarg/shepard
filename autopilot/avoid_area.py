@@ -241,4 +241,5 @@ if __name__ == '__main__':
     # for waypoint in new_waypoints:
     #     cmds.next = 1
     #     cmds.add(Command(0, 0, 0, 3, 16, 0, 0, 0, 0, 0, 0, *waypoint, alt))
+    # vehicle.wait_ready(True, raise_exception=False)
     # cmds.upload()
