@@ -1,6 +1,6 @@
 #   UAARG - Autopilot 2022
 """
-This file contains functions to generate random waypoints in flight and upload them to onboard autopilot via MAVLink
+This file contains functions to generate random waypoints_gps in flight and upload them to onboard autopilot via MAVLink
 """
 
 import argparse
@@ -51,7 +51,7 @@ parser.add_argument('--master', type=str, nargs='?', default='127.0.0.1:14550', 
 parser.add_argument('--wait_ready', nargs='?', type=bool, default=False, const=True,
                     help='whether to wait for attribute download')
 parser.add_argument('--altitude', '--alt', nargs='?', type=float, default='10',
-                    help='default altitude of random generated waypoints')
+                    help='default altitude of random generated waypoints_gps')
 args = parser.parse_args()
 
 # Connect to vehicle
