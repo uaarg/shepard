@@ -16,12 +16,11 @@ from googleapiclient.errors import HttpError
 SCOPES = ["https://www.googleapis.com/auth/gmail.compose"]
 
 
-def get_message_txt_file_and_to_address():
-    if len(sys.argv) != 3:
+def get_parameters():
+    if len(sys.argv) != 4:
         print(
-            "ERROR: .txt file required for message text, as well as receiver email address."
+            "USAGE: python gcloudemail.py <message.txt> <receiver@email.com> <subject>"
         )
-        print("USAGE: python gcloudemail.py <message.txt> <receiver@email.com>")
         exit(3)
 
     with open(sys.argv[1], "r") as message_file:
@@ -29,7 +28,9 @@ def get_message_txt_file_and_to_address():
 
     to_address = sys.argv[2]
 
-    return message_text, to_address
+    email_subject = sys.argv[3]
+
+    return message_text, to_address, email_subject
 
 
 def send_email(service, message_text, to_address, email_subject):
@@ -60,11 +61,10 @@ def verify_details_and_send_email(service, message_text, to_address, email_subje
     print("VERIFY EMAIL TO BE SENT")
 
     print("=======================")
-    print(f"TO: \t{to_address}")
-    print(f"FROM: \tdev.uaarg@gmail.com")
+    print(f"TO: \t\t{to_address}")
+    print(f"FROM: \t\tdev.uaarg@gmail.com")
     print(f"SUBJECT: \t{email_subject}")
-    print("---")
-    print(f"MESSAGE: \n{message_text}")
+    print(f"MESSAGE: \n---\n{message_text}\n---")
     print("=======================")
 
     confirmation = input("Are these details correct (yes/no)? ")
@@ -103,8 +103,8 @@ def main():
         service = build("gmail", "v1", credentials=creds)
 
         # TODO: Compose a draft email, verify with user, send email.
-        message_text, to_address = get_message_txt_file_and_to_address()
-        verify_details_and_send_email(service, message_text, to_address, "Test Email")
+        message_text, to_address, email_subject = get_parameters()
+        verify_details_and_send_email(service, message_text, to_address, email_subject)
 
     except HttpError as error:
         # TODO(developer) - Handle errors from gmail API.
