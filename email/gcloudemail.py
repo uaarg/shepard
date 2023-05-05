@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import os.path
+import sys
 
 import base64
 from email.message import EmailMessage
@@ -15,36 +16,65 @@ from googleapiclient.errors import HttpError
 SCOPES = ["https://www.googleapis.com/auth/gmail.compose"]
 
 
-def create_draft_email(service, message_text):
+def get_message_txt_file_and_to_address():
+    if len(sys.argv) != 3:
+        print(
+            "ERROR: .txt file required for message text, as well as receiver email address."
+        )
+        print("USAGE: python gcloudemail.py <message.txt> <receiver@email.com>")
+        exit(3)
+
+    with open(sys.argv[1], "r") as message_file:
+        message_text = message_file.read()
+
+    to_address = sys.argv[2]
+
+    return message_text, to_address
+
+
+def send_email(service, message_text, to_address, email_subject):
     try:
         message = EmailMessage()
         message.set_content(message_text)
-        message["To"] = "umtariq@ualberta.ca"
+        message["To"] = to_address
         message["From"] = "dev.uaarg@gmail.com"
-        message["Subject"] = "Email API Test"
+        message["Subject"] = email_subject
 
         encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
 
-        create_message = {"message": {"raw": encoded_message}}
+        create_message = {"raw": encoded_message}
 
-        draft = (
-            service.users().drafts().create(userId="me", body=create_message).execute()
+        sent_message = (
+            service.users().messages().send(userId="me", body=create_message).execute()
         )
 
-        print(f'Draft id: {draft["id"]}\nDraft message: {draft["message"]}')
+        print(f'Message Id: {sent_message["id"]}')
     except HttpError as error:
         print(f"HTTP Error occurred: {error}")
         exit(2)
 
-    return draft
+    return sent_message
 
 
-def verify_email():
-    pass
+def verify_details_and_send_email(service, message_text, to_address, email_subject):
+    print("VERIFY EMAIL TO BE SENT")
 
+    print("=======================")
+    print(f"TO: \t{to_address}")
+    print(f"FROM: \tdev.uaarg@gmail.com")
+    print(f"SUBJECT: \t{email_subject}")
+    print("---")
+    print(f"MESSAGE: \n{message_text}")
+    print("=======================")
 
-def send_email():
-    pass
+    confirmation = input("Are these details correct (yes/no)? ")
+    if confirmation.lower() == "yes":
+        print(f"Sending email...")
+        send_email(service, message_text, to_address, email_subject)
+        print(f"Email sent successfully.")
+    else:
+        print(f"Email cancelled.")
+        exit()
 
 
 def main():
@@ -73,8 +103,8 @@ def main():
         service = build("gmail", "v1", credentials=creds)
 
         # TODO: Compose a draft email, verify with user, send email.
-        message_text = "This is text for a test message."
-        create_draft_email(service, message_text)
+        message_text, to_address = get_message_txt_file_and_to_address()
+        verify_details_and_send_email(service, message_text, to_address, "Test Email")
 
     except HttpError as error:
         # TODO(developer) - Handle errors from gmail API.
