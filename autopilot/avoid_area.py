@@ -1,10 +1,8 @@
 import argparse
 from dronekit import connect
 from mission import gps_to_cartesian, Mission
-from tree import (
-    set_start_waypoint, set_skipped_points, create_safe_waypoints,
-    find_valid_connections
-)
+from tree import (set_start_waypoint, set_skipped_points,
+                  create_safe_waypoints, find_valid_connections)
 import matplotlib.pyplot as plt
 import math
 import cv2

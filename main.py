@@ -63,8 +63,8 @@ def main(options):
     image_capture_process.start()
 
     # Check each second if all processes are alive. If one died, we should terminate all
-    while (analysis_process.is_alive() and autopilot_process.is_alive() and
-           image_capture_process.is_alive()):
+    while (analysis_process.is_alive() and autopilot_process.is_alive()
+           and image_capture_process.is_alive()):
         time.sleep(1)
 
     analysis_process.terminate()

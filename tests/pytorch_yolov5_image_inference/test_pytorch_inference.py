@@ -56,7 +56,8 @@ class TestPytorchInference(unittest.TestCase):
         self.assertEqual(
             result['type'],
             'blue landing pad',
-            msg=f"Inference Model Detected {result['type']} objects, expected blue landing pad"
+            msg=
+            f"Inference Model Detected {result['type']} objects, expected blue landing pad"
         )
 
     def test_orange_landing_pad(self):
@@ -89,7 +90,8 @@ class TestPytorchInference(unittest.TestCase):
         self.assertEqual(
             result['type'],
             'orange landing pad',
-            msg=f"Inference Model Detected {result['type']} objects, expected orange landing pad"
+            msg=
+            f"Inference Model Detected {result['type']} objects, expected orange landing pad"
         )
 
 

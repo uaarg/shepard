@@ -215,7 +215,8 @@ def transmit_image(vehicle: dronekit.Vehicle, image_path: str):
     with open(f"{image_path}_cmp.jpg", 'rb') as f:
         blob_data = bytearray(f.read())
 
-    vehicle.message_factory.camera_image_captured_send(time_boot_ms=int(time.time()),
+    vehicle.message_factory.camera_image_captured_send(time_boot_ms=int(
+        time.time()),
                                                        time_utc=0,
                                                        camera_id=0,
                                                        lat=0,
@@ -301,7 +302,8 @@ def autopilot_handle_inference_results(vehicle, new_img_results: dict):
     target = dronekit.LocationGlobalRelative(lat=best_landing_pad['lat'],
                                              lon=best_landing_pad['lon'])
     #distance = get_horizontal_dist_to_location(vehicle, target)  TODO: what did this compute?
-    get_horizontal_dist_to_location(vehicle, target)  # The above line, but without the assign
+    get_horizontal_dist_to_location(
+        vehicle, target)  # The above line, but without the assign
     target.alt = 30
 
     vehicle.simple_goto(target)

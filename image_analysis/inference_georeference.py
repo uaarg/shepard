@@ -80,14 +80,14 @@ def adjust_dir_vector_orientation(input_dir: np.array, pitch, roll,
 
 
 def calculate_object_offsets(
-        height,
-        pitch,
-        roll,
-        yaw,
-        x: float,
-        y: float,
-        fovh=radians(62.2),
-        fovv=radians(48.8)) -> np.array:
+    height,
+    pitch,
+    roll,
+    yaw,
+    x: float,
+    y: float,
+    fovh=radians(62.2),
+    fovv=radians(48.8)) -> np.array:
     """
     Calculates the Easting and Northing Offsets for a given point in an image
 
