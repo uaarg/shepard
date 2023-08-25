@@ -71,8 +71,10 @@ uaarg@raspberrypi:~/shepard $ sudo systemctl status shepard.service
 * Add new required packages to requirements.txt
 
 We have several tools setup, please use them. These are:
+
 - `./scripts/lint.sh` Run a linter over all python files
 - `./scripts/fmt.sh` Run a formatter over all python files
+
 Also, keep in mind that the tests and linter is run on every commit and/or PR in our CI.
 
 ### Who do I talk to? ###
