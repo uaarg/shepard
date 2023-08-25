@@ -19,7 +19,7 @@ def readQRCode(image):
 if __name__ == "__main__":
     IMAGE_PATH = "None"
 
-# get image path passed in as argument from cli
+    # get image path passed in as argument from cli
     if len(sys.argv) != 2:
         print("""
             INVALID USAGE. Specify a path to image of QR code.
@@ -28,4 +28,3 @@ if __name__ == "__main__":
         IMAGE_PATH = sys.argv[1]
 
     print(readQRCode(IMAGE_PATH))
-

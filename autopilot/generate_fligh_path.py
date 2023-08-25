@@ -1,11 +1,6 @@
 import argparse
-from dronekit import connect, Command, VehicleMode, CommandSequence
-from mission import gps_to_cartesian, cartesian_to_gps
-from tree import *
-import matplotlib.pyplot as plt
-import math
-from geopy.distance import distance as dt
-from random import choice
+from dronekit import connect, Command
+import csv
 import cv2
 import time
 from qr import qr, parse
@@ -13,17 +8,32 @@ from qr import qr, parse
 
 def parse_args():
     # Parse command-line arguments
-    parser = argparse.ArgumentParser(description='Establish MAVLink Connection')
-    parser.add_argument('--master', type=str, nargs='?', default='127.0.0.1:5762', help='port for MAVLink connection')
-    parser.add_argument('--wait_ready', nargs='?', type=bool, default=False, const=True,
+    parser = argparse.ArgumentParser(
+        description='Establish MAVLink Connection')
+    parser.add_argument('--master',
+                        type=str,
+                        nargs='?',
+                        default='127.0.0.1:5762',
+                        help='port for MAVLink connection')
+    parser.add_argument('--wait_ready',
+                        nargs='?',
+                        type=bool,
+                        default=False,
+                        const=True,
                         help='whether to wait for attribute download')
-    parser.add_argument('--altitude', '--alt', nargs='?', type=float, default='50',
+    parser.add_argument('--altitude',
+                        '--alt',
+                        nargs='?',
+                        type=float,
+                        default='50',
                         help='default altitude of generated gps waypoints')
     args = parser.parse_args()
     return args
 
 
-def load_waypoints(file_name: str = '../competition_waypoints/competition_waypoints.csv', encoding: str = 'UTF-8'):
+def load_waypoints(
+        file_name: str = '../competition_waypoints/competition_waypoints.csv',
+        encoding: str = 'UTF-8'):
     waypoints = dict()
     with open(file_name, encoding=encoding) as csv_file:
         csv_reader = csv.reader(csv_file)
@@ -42,7 +52,7 @@ def upload_waypoints(cmds: Command, path, args):
     cmds.upload()
 
 
-def parse_qr(args, file_name = '../competition_waypoints/task1_route.txt'):
+def parse_qr(args, file_name='../competition_waypoints/task1_route.txt'):
     cam = cv2.VideoCapture(0)
     cv2.namedWindow("view")
 
@@ -85,9 +95,9 @@ def main(args):
 
     # load all available waypoints
     waypoints = load_waypoints()
-    waypoints_list = list(waypoints.keys())
 
     # parse waypoint sequence (test)
+    # waypoints_list = list(waypoints.keys())
     # plan = [choice(waypoints_list) for i in range(27)]
     # print(f"{plan = }")
     # path = [waypoints[i] for i in plan]
@@ -107,6 +117,7 @@ def main(args):
     print(f"{vehicle.parameters = }")
     print("Vehicle ready. Uploading mission...")
     upload_waypoints(cmds, path, args)
+
 
 if __name__ == "__main__":
     args = parse_args()

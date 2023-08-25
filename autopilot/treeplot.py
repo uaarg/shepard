@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 
 import tree
 
-
 # CHANGE THESE TO CHANGE PARAMETERS OF PLOT
 DATA_SOURCE = "data2.csv"
 INTERSECT_SAFE = True
@@ -18,7 +17,8 @@ parsed_nodes = tree.parse_data(DATA_SOURCE)
 parsed_nodes, start_point = tree.set_start_waypoint(parsed_nodes)
 parsed_nodes, skipped_points = tree.set_skipped_points(parsed_nodes)
 print(f"{start_point = }")
-waypoints, nofly_region, margin_region = tree.create_safe_waypoints(parsed_nodes)
+waypoints, nofly_region, margin_region = tree.create_safe_waypoints(
+    parsed_nodes)
 
 for name, data in parsed_nodes.items():
     if data[2] == "waypoint":
@@ -65,8 +65,7 @@ for side in nofly_region.sides:
 # valid paths
 # Set intersect_safe to either True or False to see both options.
 connections, coords = tree.find_valid_connections(
-    waypoints, nofly_region, margin_region, intersect_safe=INTERSECT_SAFE
-)
+    waypoints, nofly_region, margin_region, intersect_safe=INTERSECT_SAFE)
 # print(f"{connections = }\n{coords = }")
 for c in coords:
     paths_x = []
@@ -78,7 +77,12 @@ for c in coords:
     plt.plot(paths_x, paths_y, linestyle=":", color="gray")
 
 # plot
-plt.plot(points_x, points_y, marker="o", mfc=res_col, mec=res_col, linestyle="None")
+plt.plot(points_x,
+         points_y,
+         marker="o",
+         mfc=res_col,
+         mec=res_col,
+         linestyle="None")
 plt.plot(start_x, start_y, marker="X", mfc=start_col, mec=start_col)
 plt.plot(target_x, target_y, marker="X", mfc=target_col, mec=target_col)
 plt.axis("square")

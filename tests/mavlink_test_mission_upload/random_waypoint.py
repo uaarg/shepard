@@ -12,7 +12,8 @@ from time import sleep
 
 
 def generate_random_waypoint(current: Tuple[float, float],
-                             bearing: Tuple[float, float] = (0, 360), distance: Tuple[float, float] = (50, 100)):
+                             bearing: Tuple[float, float] = (0, 360),
+                             distance: Tuple[float, float] = (50, 100)):
     """
     Generate a random waypoint near the given one
 
@@ -29,7 +30,10 @@ def generate_random_waypoint(current: Tuple[float, float],
     return lat, long
 
 
-def upload_waypoints(commands: CommandSequence, coordinate: Tuple[float, float], altitude: float, verbose: bool = True):
+def upload_waypoints(commands: CommandSequence,
+                     coordinate: Tuple[float, float],
+                     altitude: float,
+                     verbose: bool = True):
     """
     Generate a random waypoint and upload the MAVLink command
 
@@ -39,7 +43,8 @@ def upload_waypoints(commands: CommandSequence, coordinate: Tuple[float, float],
     :param verbose: Verbosity, when set to True, print the location of the newly generated waypoint
     """
 
-    commands.add(Command(0, 0, 0, 3, 16, 0, 0, 0, 0, 0, 0, *coordinate, altitude))
+    commands.add(
+        Command(0, 0, 0, 3, 16, 0, 0, 0, 0, 0, 0, *coordinate, altitude))
     commands.upload()
     if verbose:
         print(f'New waypoint generated at {waypoint}')
@@ -47,10 +52,22 @@ def upload_waypoints(commands: CommandSequence, coordinate: Tuple[float, float],
 
 # Parse command-line arguments
 parser = argparse.ArgumentParser(description='Establish MAVLink Connection')
-parser.add_argument('--master', type=str, nargs='?', default='127.0.0.1:14550', help='port for MAVLink connection')
-parser.add_argument('--wait_ready', nargs='?', type=bool, default=False, const=True,
+parser.add_argument('--master',
+                    type=str,
+                    nargs='?',
+                    default='127.0.0.1:14550',
+                    help='port for MAVLink connection')
+parser.add_argument('--wait_ready',
+                    nargs='?',
+                    type=bool,
+                    default=False,
+                    const=True,
                     help='whether to wait for attribute download')
-parser.add_argument('--altitude', '--alt', nargs='?', type=float, default='10',
+parser.add_argument('--altitude',
+                    '--alt',
+                    nargs='?',
+                    type=float,
+                    default='10',
                     help='default altitude of random generated waypoints_gps')
 args = parser.parse_args()
 

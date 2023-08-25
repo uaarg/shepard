@@ -8,12 +8,19 @@ from dronekit import connect, VehicleMode
 from math import pi
 from time import sleep
 
-
 # Parse command-line arguments
 parser = argparse.ArgumentParser(description='Establish MAVLink Connection')
-parser.add_argument('--master', type=str, nargs='?', default='tcpout:192.168.4.1:5760', help='port for MAVLink connection')
+parser.add_argument('--master',
+                    type=str,
+                    nargs='?',
+                    default='tcpout:192.168.4.1:5760',
+                    help='port for MAVLink connection')
 # parser.add_argument('--master', type=str, nargs='?', default='127.0.0.1:14550', help='port for MAVLink connection')
-parser.add_argument('--wait_ready', nargs='?', type=bool, default=False, const=True,
+parser.add_argument('--wait_ready',
+                    nargs='?',
+                    type=bool,
+                    default=False,
+                    const=True,
                     help='whether to wait for attribute download')
 args = parser.parse_args()
 
@@ -23,7 +30,7 @@ vehicle = connect(args.master, wait_ready=args.wait_ready)
 
 while True:
     # Retrieve status of vehicle
-    roll = vehicle.attitude.roll*180/pi
+    roll = vehicle.attitude.roll * 180 / pi
     mode = vehicle.mode
     print(roll)
 

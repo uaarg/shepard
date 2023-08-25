@@ -2,7 +2,6 @@ import cv2
 import time
 import qr
 
-
 cam = cv2.VideoCapture(0)
 cv2.namedWindow("view")
 
@@ -23,7 +22,5 @@ while True:
 
     time.sleep(1)
 
-
 cam.release()
 cv2.destroyAllWindows()
-

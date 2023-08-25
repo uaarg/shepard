@@ -33,7 +33,9 @@ def parse_task1_avoidance(qr_text: str):
 
 if __name__ == "__main__":
     task1_route = parse_task1_route("Follow route: Quebec; Lima; Alpha; Tango")
-    region, rejoin_point = parse_task1_avoidance("Avoid the area bounded by: Zulu; Bravo; Tango; Uniform.  Rejoin the route at Lima")
+    region, rejoin_point = parse_task1_avoidance(
+        "Avoid the area bounded by: Zulu; Bravo; Tango; Uniform.  Rejoin the route at Lima"
+    )
 
     print(f"{task1_route = }")
     print(f"{region = }")

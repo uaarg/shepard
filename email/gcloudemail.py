@@ -45,9 +45,8 @@ def send_email(service, message_text, to_address, email_subject):
 
         create_message = {"raw": encoded_message}
 
-        sent_message = (
-            service.users().messages().send(userId="me", body=create_message).execute()
-        )
+        sent_message = (service.users().messages().send(
+            userId="me", body=create_message).execute())
 
         print(f'Message Id: {sent_message["id"]}')
     except HttpError as error:
@@ -57,7 +56,8 @@ def send_email(service, message_text, to_address, email_subject):
     return sent_message
 
 
-def verify_details_and_send_email(service, message_text, to_address, email_subject):
+def verify_details_and_send_email(service, message_text, to_address,
+                                  email_subject):
     print("VERIFY EMAIL TO BE SENT")
 
     print("=======================")
@@ -92,7 +92,8 @@ def main():
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file("credentials.json", SCOPES)
+            flow = InstalledAppFlow.from_client_secrets_file(
+                "credentials.json", SCOPES)
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
         with open("token.json", "w") as token:
@@ -104,7 +105,8 @@ def main():
 
         # TODO: Compose a draft email, verify with user, send email.
         message_text, to_address, email_subject = get_parameters()
-        verify_details_and_send_email(service, message_text, to_address, email_subject)
+        verify_details_and_send_email(service, message_text, to_address,
+                                      email_subject)
 
     except HttpError as error:
         # TODO(developer) - Handle errors from gmail API.

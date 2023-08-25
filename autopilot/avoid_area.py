@@ -1,18 +1,19 @@
 import argparse
-from dronekit import connect, Command, VehicleMode, CommandSequence
-from mission import gps_to_cartesian, cartesian_to_gps, Mission
-from tree import *
+from dronekit import connect
+from mission import gps_to_cartesian, Mission
+from tree import (
+    set_start_waypoint, set_skipped_points, create_safe_waypoints,
+    find_valid_connections
+)
 import matplotlib.pyplot as plt
 import math
-from geopy.distance import distance as dt
 import cv2
 import time
-from qr import qr, parse
+import csv
+from qr import qr
 
 
 def dijkstra(conns, coords):
-    destinationNode = "T"
-    startNode = "S"
     visitedNodes = {}
     distances = {}
     camefrom = {}
@@ -28,16 +29,18 @@ def dijkstra(conns, coords):
             distances[i] = 999999
 
     currentNode = 'S'
-    while (visitedNodes['T'] == False):
+    while not visitedNodes['T']:
         print("new visitedNode")
         print(currentNode)
         for i in range(len(conns)):
             if conns[i][0] == currentNode:
-                if visitedNodes[conns[i][1]] == False:
+                if not visitedNodes[conns[i][1]]:
                     point1 = coords[i][0]
                     point2 = coords[i][1]
-                    dist = math.sqrt(((point1[0] - point2[0]) ** 2) + ((point1[1] - point2[1]) ** 2))
-                    print("updating distance between " + conns[i][0] + " and " + conns[i][1])
+                    dist = math.sqrt(((point1[0] - point2[0])**2) +
+                                     ((point1[1] - point2[1])**2))
+                    print("updating distance between " + conns[i][0] +
+                          " and " + conns[i][1])
                     if dist == min(dist, distances[conns[i][1]]):
                         distances[conns[i][1]] = dist
                         camefrom[conns[i][1]] = conns[i][0]
@@ -65,18 +68,32 @@ def dijkstra(conns, coords):
 
 def parse_args():
     # Parse command-line arguments
-    parser = argparse.ArgumentParser(description='Establish MAVLink Connection')
-    parser.add_argument('--master', type=str, nargs='?', default='127.0.0.1:5762',
+    parser = argparse.ArgumentParser(
+        description='Establish MAVLink Connection')
+    parser.add_argument('--master',
+                        type=str,
+                        nargs='?',
+                        default='127.0.0.1:5762',
                         help='port for MAVLink connection')
-    parser.add_argument('--wait_ready', nargs='?', type=bool, default=False, const=True,
+    parser.add_argument('--wait_ready',
+                        nargs='?',
+                        type=bool,
+                        default=False,
+                        const=True,
                         help='whether to wait for attribute download')
-    parser.add_argument('--altitude', '--alt', nargs='?', type=float, default='50',
+    parser.add_argument('--altitude',
+                        '--alt',
+                        nargs='?',
+                        type=float,
+                        default='50',
                         help='default altitude of generated gps waypoints')
     args = parser.parse_args()
     return args
 
 
-def load_waypoints(file_name: str = '../competition_waypoints/competition_waypoints.csv', encoding: str = 'UTF-8'):
+def load_waypoints(
+        file_name: str = '../competition_waypoints/competition_waypoints.csv',
+        encoding: str = 'UTF-8'):
     waypoints = dict()
     with open(file_name, encoding=encoding) as csv_file:
         csv_reader = csv.reader(csv_file)
@@ -86,7 +103,7 @@ def load_waypoints(file_name: str = '../competition_waypoints/competition_waypoi
     return waypoints
 
 
-def parse_qr(args, file_name = '../competition_waypoints/task1_avoidance.txt'):
+def parse_qr(args, file_name='../competition_waypoints/task1_avoidance.txt'):
     cam = cv2.VideoCapture(0)
     cv2.namedWindow("view")
 
@@ -132,7 +149,7 @@ if __name__ == '__main__':
     # download unfinished commands
     cmds.download()
     cmds.wait_ready()
-    next_waypoint_number = cmds.next-1 if cmds.next>0 else 1
+    next_waypoint_number = cmds.next - 1 if cmds.next > 0 else 1
     unfinished_commands = list(cmds)[next_waypoint_number:]
     waypoints_gps = [(cmd.x, cmd.y) for cmd in unfinished_commands]
     print('waypoints_gps:', waypoints_gps)
@@ -151,12 +168,14 @@ if __name__ == '__main__':
     # print(f"{obstacle_gps = }")
 
     # # load avoidance area (test)
-    with open('../tests/south_campus/south_campus_task1_avoidance_area.poly', encoding='UTF-8') as poly_file:
+    with open('../tests/south_campus/south_campus_task1_avoidance_area.poly',
+              encoding='UTF-8') as poly_file:
         poly_reader = csv.reader(poly_file, delimiter=' ')
         next(poly_reader, None)  # Skip header
         obstacle_gps = [tuple(map(float, coord)) for coord in poly_reader]
     print('obstacle_gps:', obstacle_gps)
-    test_waypoints = Mission.load_from_waypoint('../tests/south_campus/south_campus_task1_test_waypoints.waypoints')
+    test_waypoints = Mission.load_from_waypoint(
+        '../tests/south_campus/south_campus_task1_test_waypoints.waypoints')
     test_gps_coordinates = test_waypoints.xy[1:]
     print('test_gps_coordinates:', test_gps_coordinates)
 
@@ -168,15 +187,16 @@ if __name__ == '__main__':
     obstacle_cartesian = gps_to_cartesian(obstacle_gps, origin_gps)[0]
     print('obstacle_cartesian:', obstacle_cartesian)
     # rejoin_point_cartesian = gps_to_cartesian([waypoints[rejoin_point]], origin_gps)[0]
-    rejoin_point_cartesian = gps_to_cartesian([test_gps_coordinates[5]], origin_gps)[0] # Test
+    rejoin_point_cartesian = gps_to_cartesian([test_gps_coordinates[5]],
+                                              origin_gps)[0]  # Test
     print('rejoin_point_cartesian:', rejoin_point_cartesian)
 
     # generate node
     nodes['T'] = [*rejoin_point_cartesian[0], 'target']
     for iter, obstacle in enumerate(obstacle_cartesian):
-        nodes['obstacle_'+str(iter)] = [*obstacle, 'obstacle']
+        nodes['obstacle_' + str(iter)] = [*obstacle, 'obstacle']
     for iter, waypoint in enumerate(waypoints_cartesian):
-        nodes[str(iter+1)] = [*waypoint, 'waypoint']
+        nodes[str(iter + 1)] = [*waypoint, 'waypoint']
 
     print('nodes:', nodes)
 
@@ -204,26 +224,33 @@ if __name__ == '__main__':
             nodes_dijkstra['S'] = data
     print(f'{nodes_dijkstra = }')
 
-    waypoints, nofly_region, margin_region = create_safe_waypoints(nodes_dijkstra, margin=1.1)
-    connections, coords = find_valid_connections(waypoints, nofly_region, margin_region)
+    waypoints, nofly_region, margin_region = create_safe_waypoints(
+        nodes_dijkstra, margin=1.1)
+    connections, coords = find_valid_connections(waypoints, nofly_region,
+                                                 margin_region)
     print(f"{connections = }\n{coords = }")
 
     # find the shortest path
     distances = dijkstra(connections, coords)
-    new_waypoints_cartesian = [tuple(map(float, waypoints[waypoint])) for waypoint in list(distances)]
+    new_waypoints_cartesian = [
+        tuple(map(float, waypoints[waypoint])) for waypoint in list(distances)
+    ]
     print(f"{new_waypoints_cartesian = }")
 
     # complete flight path
-    unrouted1 = waypoints_cartesian[:waypoints_cartesian.index(tuple(nodes[start_point][:2]))]
+    unrouted1 = waypoints_cartesian[:waypoints_cartesian.
+                                    index(tuple(nodes[start_point][:2]))]
     print(f"{unrouted1 = }")
     if len(skipped_points) != 0:
         last_skipped = 0
         for point in skipped_points:
             if waypoints_cartesian.index(nodes[point]) > last_skipped:
                 last_skipped = waypoints_cartesian.index(nodes[point][:2])
-        unrouted2 = waypoints_cartesian[last_skipped+1:]
+        unrouted2 = waypoints_cartesian[last_skipped + 1:]
     else:
-        unrouted2 = waypoints_cartesian[waypoints_cartesian.index(tuple(nodes[start_point][:2]))+1:]
+        unrouted2 = waypoints_cartesian[waypoints_cartesian.
+                                        index(tuple(nodes[start_point][:2])) +
+                                        1:]
     print(f"{unrouted2 = }")
     new_waypoints_cartesian = unrouted1 + new_waypoints_cartesian + unrouted2
     print(f"{new_waypoints_cartesian = }")

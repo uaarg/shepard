@@ -15,9 +15,17 @@ class Command:
     A class that contains all the information contained in a typical MAVLink command
     """
 
-    def __init__(self, frame: int = 0, command_id: int = 16,
-                 param1: float = 0, param2: float = 0, param3: float = 0, param4: float = 0,
-                 latitude: float = 0, longitude: float = 0, altitude: float = 0, name: str = None):
+    def __init__(self,
+                 frame: int = 0,
+                 command_id: int = 16,
+                 param1: float = 0,
+                 param2: float = 0,
+                 param3: float = 0,
+                 param4: float = 0,
+                 latitude: float = 0,
+                 longitude: float = 0,
+                 altitude: float = 0,
+                 name: str = None):
         self.frame = frame
         self.command_id = command_id
         self.param1 = param1
@@ -27,7 +35,8 @@ class Command:
         self.latitude = latitude
         self.longitude = longitude
         self.altitude = altitude
-        self.attributes = (self.frame, self.command_id, self.param1, self.param2, self.param3, self.param4,
+        self.attributes = (self.frame, self.command_id, self.param1,
+                           self.param2, self.param3, self.param4,
                            self.latitude, self.longitude, self.altitude)
         self.xy = (self.latitude, self.longitude)
         self.xyz = (self.latitude, self.longitude, self.altitude)
@@ -42,10 +51,15 @@ class Command:
         :return: a string that can be added to the Mission Planner waypoint file
         """
 
-        return '\t'.join((str(sequence), str(int(is_home)), *map(str, self.attributes), '1'))
+        return '\t'.join((str(sequence), str(int(is_home)),
+                          *map(str, self.attributes), '1'))
 
-    def to_dronekit(self, target_system: int = 0, target_component: int = 0, sequence: int = 0,
-                    current: int = 0, autocontinue: int = 0):
+    def to_dronekit(self,
+                    target_system: int = 0,
+                    target_component: int = 0,
+                    sequence: int = 0,
+                    current: int = 0,
+                    autocontinue: int = 0):
         """
         Convert the command to the dronekit Command format
 
@@ -89,7 +103,9 @@ class Mission:
         self.commands.append(command)
         pass
 
-    def save(self, file_name: str = 'waypoints_gps', file_type: str = '.waypoints_gps'):
+    def save(self,
+             file_name: str = 'waypoints_gps',
+             file_type: str = '.waypoints_gps'):
         """
         Save the mission to a file, exact type and format varies
 
@@ -100,7 +116,9 @@ class Mission:
 
         mission_file = open(file_name + file_type, 'w')
         if file_type == '.waypoints_gps':
-            mission_file.write('QGC WPL 110\n')  # Meaning unclear as for now, needed for Mission Planner waypoints_gps file
+            mission_file.write(
+                'QGC WPL 110\n'
+            )  # Meaning unclear as for now, needed for Mission Planner waypoints_gps file
             for sequence, command in enumerate(self.commands):
                 is_home = False if sequence != 0 else True
                 line = command.to_mission_planner(sequence, is_home) + '\n'
@@ -138,10 +156,12 @@ class Mission:
             next(wkt_reader, None)  # Skip header
             for row in wkt_reader:
                 point = list(map(float, row[0][7:-1].split()))
-                point.reverse()  # Latitude and longitude is inverted in the AEAC rulebook because apparently the
+                point.reverse(
+                )  # Latitude and longitude is inverted in the AEAC rulebook because apparently the
                 # Aerial Evolutionary Association of Canada doesn't know how to list GPS coordinates
                 name = row[1]
-                waypoints.append(Command(0, 16, 0, 0, 0, 0, *point, 0, name=name))
+                waypoints.append(
+                    Command(0, 16, 0, 0, 0, 0, *point, 0, name=name))
             return Mission(waypoints)
 
     @classmethod
@@ -157,14 +177,16 @@ class Mission:
         waypoints = []
         with open(file_name, encoding=encoding) as waypoint_file:
             waypoint_reader = csv.reader(waypoint_file, delimiter='\t')
-            next(waypoint_reader, None)  # Skip the first line of .waypoint file
+            next(waypoint_reader,
+                 None)  # Skip the first line of .waypoint file
             for row in waypoint_reader:
                 command = list(map(float, row[2:10]))
                 waypoints.append(Command(*command))
             return Mission(waypoints)
 
 
-def gps_to_cartesian(gps_coordinates: List[Tuple[float, float]], origin: Tuple[float, float] = None):
+def gps_to_cartesian(gps_coordinates: List[Tuple[float, float]],
+                     origin: Tuple[float, float] = None):
     """
     Convert a series of GPS coordinates to cartesian coordinates
 
@@ -187,17 +209,20 @@ def gps_to_cartesian(gps_coordinates: List[Tuple[float, float]], origin: Tuple[f
         xy.append((x, y))
     return xy, tuple(origin)
 
-def cartesian_to_gps(cartesian_coordinnates: List[Tuple[float, float]], origin: Tuple[float, float] = None):
+
+def cartesian_to_gps(cartesian_coordinnates: List[Tuple[float, float]],
+                     origin: Tuple[float, float] = None):
     gps = []
     for coords in cartesian_coordinnates:
-        dist = sqrt(power(coords[0], 2)+power(coords[1], 2))
-        bearing = arctan(coords[1]/coords[0])
-        if coords[0] < 0: bearing += pi
-        bearing *= 180/pi
+        dist = sqrt(power(coords[0], 2) + power(coords[1], 2))
+        bearing = arctan(coords[1] / coords[0])
+        if coords[0] < 0:
+            bearing += pi
+        bearing *= 180 / pi
         bearing += 90
-        bearing = bearing%360
+        bearing = bearing % 360
         bearing = -bearing
-        bearing = (bearing+180)%360
+        bearing = (bearing + 180) % 360
         (lat, long, alt) = distance(meters=dist).destination(origin, bearing)
         gps.append((lat, long))
     return gps
@@ -206,17 +231,20 @@ def cartesian_to_gps(cartesian_coordinnates: List[Tuple[float, float]], origin: 
 if __name__ == '__main__':
     test = 3
     if test == 1:  # Test loading from wkt and save to .waypoints_gps
-        test_mission = Mission.load_from_wkt('test_waypoints/2023_AEAC_Task_Waypoints.csv')
+        test_mission = Mission.load_from_wkt(
+            'test_waypoints/2023_AEAC_Task_Waypoints.csv')
         test_mission.save()
 
     elif test == 2:  # Test loading from wkt and convert to dronekit command format
-        test_mission = Mission.load_from_wkt('test_waypoints/2023_AEAC_Task_Waypoints.csv')
+        test_mission = Mission.load_from_wkt(
+            'test_waypoints/2023_AEAC_Task_Waypoints.csv')
         mission_matrix = test_mission.to_dronekit()
         print(mission_matrix)
 
     elif test == 3:  # Test converting from gps to cartesian
         import matplotlib.pyplot as plt
-        test_fence = Mission.load_from_waypoint('../tests/south_campus/south_campus_test_waypoints.waypoints')
+        test_fence = Mission.load_from_waypoint(
+            '../tests/south_campus/south_campus_test_waypoints.waypoints')
         test_gps_coordinates = test_fence.xy[1:]
         result_cartesian, origin_gps = gps_to_cartesian(test_gps_coordinates)
         draw_cartesian = result_cartesian + [result_cartesian[0]]
