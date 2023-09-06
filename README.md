@@ -28,6 +28,15 @@ This script is designed to run on a system with a USB or UART connection to a Pi
 * Install the required dependancies via ```pip install -r requirements.txt```
 * You should now be able to run testing python scripts and launch the application
 
+## Deploying to the rpi
+
+Extra pi-specific dependencies need to be installed when deploying to an rpi.
+These can be done with:
+
+```sh
+pip install -r pi-requirements.txt
+```
+
 ## How to setup for auto-running on a rpi
 
 To setup a systemd service so that shepard will automatically start and

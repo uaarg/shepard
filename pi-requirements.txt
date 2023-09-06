@@ -1,0 +1,2 @@
+# Contains more dependencies to install only on the pi
+rpi-ws281x==5.0.0
