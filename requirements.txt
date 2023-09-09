@@ -3,7 +3,7 @@ PyYAML>=5.3.1
 flake8==6.1.0
 geopy>=2.2.0
 # Dronekit distributed by Pip has a bug with python 3.10, so install directly from github for fix
-git+https://github.com/dronekit/dronekit-python
+# git+https://github.com/dronekit/dronekit-python
 google-api-python-client==2.86.0
 google-auth-httplib2==0.1.0
 google-auth-oauthlib==1.0.0
