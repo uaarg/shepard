@@ -7,12 +7,10 @@ except ImportError:
     print("WARN: Failed to import rpi_ws281x, disabling related features")
     HAS_RPI_WS281X = False
 
-
     # stubs for typechecking
     class Color:
         def __init__(self, r: int, g: int, b: int):
             raise NotImplementedError()
-
 
     class PixelStrip:
         def __init__(self, led_count: int, led_pin: int):
