@@ -29,4 +29,4 @@ jobs:
     - name: Run tests
       run: python tests/test_all.py
     - name: Test image processing time
-      run: benchmarks.py
+      run: python benchmarks.py
