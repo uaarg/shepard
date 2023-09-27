@@ -13,7 +13,7 @@ while True:
         img_path = f"./tests/pytorch_yolov5_image_inference/image ({i}).jpeg"
     elif os.path.isfile(f"./tests/pytorch_yolov5_image_inference/image ({i}).png"):
         img_path = f"./tests/pytorch_yolov5_image_inference/image ({i}).png"
-    else: 
+    else:
         break
     # Start a timer for recording inference time
     t = time.time()
