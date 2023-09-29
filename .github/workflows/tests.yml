@@ -32,5 +32,5 @@ jobs:
       run: python tests/test_all.py
     - name: Test image processing time
       run: 
-        echo "Bencmarks for image processing time." >> $GITHUB_STEP_SUMMARY
+        #echo "Bencmarks for image processing time." >> $GITHUB_STEP_SUMMARY
         python benchmarks.py >> $GITHUB_STEP_SUMMARY
