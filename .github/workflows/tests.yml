@@ -16,6 +16,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        submodules: true
     - name: Set up Python 3.10
       uses: actions/setup-python@v3
       with:
@@ -28,3 +30,7 @@ jobs:
       run: pip install -r requirements.txt
     - name: Run tests
       run: python tests/test_all.py
+    - name: Summary Markdown
+      run: echo "Bencmarks for image processing time." >> $GITHUB_STEP_SUMMARY
+    - name: Test image processing time
+      run: python benchmarks.py >> $GITHUB_STEP_SUMMARY
