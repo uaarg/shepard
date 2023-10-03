@@ -25,6 +25,7 @@ class Simulator:
     def __init__(self):
         self.__sitl = dronekit_sitl.start_default()
         self.__conn_str = self.__sitl.connection_string()
+        # TODO: Find a way to set gcs_conn_str programmatically
         self.__gcs_conn_str = "127.0.0.1:5763"
 
     def __del__(self):
