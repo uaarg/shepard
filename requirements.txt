@@ -1,2 +1,4 @@
 dronekit~=2.9.2
 dronekit_sitl~=3.3.0
+flake8==6.1.0
+yapf==0.40.1
