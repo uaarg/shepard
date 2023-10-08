@@ -6,7 +6,7 @@ model, imgsz = setup_ml()
 
 try:
     filename = str(sys.argv[1])
-    inference = analyze_img(filename,model)
+    inference = analyze_img(filename, model)
     annotated_image = annotate_img(filename, inference)
     cv2.imwrite("result.png", annotated_image)
 except FileNotFoundError:
@@ -14,5 +14,4 @@ except FileNotFoundError:
     print("Use the tab key to ensure your filepath is correct")
 except IndexError:
     print()
-    print("Program must be run from command line in the form 'python3 command_line_annotator.py <filepath>'")
-
+    print("Program must be run from command line in the form 'python3 do_inference.py <filepath>'")
