@@ -15,3 +15,4 @@ except FileNotFoundError:
 except IndexError:
     print()
     print("Program must be run from command line in the form 'python3 do_inference.py <filepath>'")
+    
