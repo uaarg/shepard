@@ -26,7 +26,7 @@ from utils.plots import Annotator
 def setup_ml(
         weights='yolov5s.pt',
         imgsz=(640, 640),
-        device='cpu',
+        device='gpu',
         data='data/coco128.yaml',
         half=False,  # use FP16 half-precision inference
         dnn=False,  # use OpenCV DNN for ONNX inference

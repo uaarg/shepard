@@ -21,7 +21,7 @@ def inference_main(inference_img_queue, image_analysis_results, model, imgsz,
     """
 
     # One time required setup
-    model, imgsz = setup_ml(weights=model, imgsz=imgsz, device='cpu')
+    model, imgsz = setup_ml(weights=model, imgsz=imgsz, device='gpu')
 
     while True:
         # Block until a new image is available
