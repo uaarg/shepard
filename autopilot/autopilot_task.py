@@ -209,11 +209,6 @@ def transmit_image(vehicle: dronekit.Vehicle, image_path: str):
     Transmits the provided status string over the Mavlink Connection
     """
 
-<<<<<<< HEAD
-=======
-    print("sending image")
-    
->>>>>>> old-dev
     # Compress image
     im = Image.open(image_path)
     im = im.resize((200, 150), Image.ANTIALIAS)
