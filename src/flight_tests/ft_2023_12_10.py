@@ -17,8 +17,11 @@ lander = lander.Lander()
 
 nav.send_message("SHEPARD: status message functional.")
 
-while not (drone.armed and drone.mode == VehicleMode("GUIDED")):
+while not (drone.mode == VehicleMode("GUIDED")):
     pass
+
+time.sleep(3)
+drone.armed = True
 
 nav.takeoff(20)
 drone.groundspeed = 5  # m/s

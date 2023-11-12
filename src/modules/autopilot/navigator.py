@@ -20,6 +20,9 @@ class Navigator:
     def send_message(self, msg):
         self.__message(msg)
 
+    def send_status_message(self, message):
+        self.__message(message)
+
     def __message(self, msg):
         """
         Prints a message to the console.
