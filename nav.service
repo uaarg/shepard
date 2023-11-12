@@ -1,0 +1,10 @@
+[Unit]
+Description=Autopilot Nav Script
+After=login.target
+
+[Service]
+ExecStart=/home/uaarg/autopilot-scripts/run-nav.sh
+WorkingDirectory=/home/uaarg/autopilot-scripts
+
+[Install]
+WantedBy=multi-user.target
