@@ -17,6 +17,9 @@ class Navigator:
         self.vehicle = vehicle
         self.mavlink_messenger = Messenger(messenger_port)
 
+    def send_message(self, msg):
+        self.__message(msg)
+
     def __message(self, msg):
         """
         Prints a message to the console.
