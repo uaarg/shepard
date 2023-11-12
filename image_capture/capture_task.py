@@ -79,9 +79,10 @@ def image_capture_main(new_images_queue: Queue, camera_commands_queue: Queue,
                            ) + "/tests/pytorch_yolov5_image_inference/0.png"
         elif camera == 'rpicam2':
             frame = cap.capture_array()
-
-            img_path = f"{save_folder}/{current_img_index}.png"
-            cv2.imwrite(img_path, frame)
+            
+            img_path = f"{save_folder}/{current_img_index}.jpeg"
+            frame_small = cv2.resize(frame, (600, 400))
+            cv2.imwrite(img_path, frame_small)
             if display:
                 # Help debug by adding webcam display
                 cv2.imshow('Camera', frame)

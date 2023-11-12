@@ -1,0 +1,11 @@
+[Unit]
+Description=MAVProxy
+After=login.target
+
+[Service]
+ExecStart=/home/uaarg/shepard/run-mavproxy.sh
+WorkingDirectory=/home/uaarg/shepard
+User=uaarg
+
+[Install]
+WantedBy=multi-user.target

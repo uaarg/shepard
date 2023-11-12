@@ -65,14 +65,14 @@ def autopilot_main(new_images_queue: Queue, images_to_analyze: Queue,
         print(
             'No connection was specified for PixHawk, ignoring connection...')
         vehicle = None
-
-    led = setup_leds()
+    
+    #led = setup_leds()
     transmit_next_img = Ref(False)
     state_change = Ref(None)
     last_image = None
-
-    #last_image_send = time.time()
-
+    
+    last_image_send = time.time()
+    
     if vehicle:
 
         @vehicle.on_message('MAV_CMD_IMAGE_START_CAPTURE')
@@ -101,10 +101,12 @@ def autopilot_main(new_images_queue: Queue, images_to_analyze: Queue,
                 elif int(message.param1) == 2:  # Set Lights
                     print(f"Setting lights {message.param2}")
                     if int(message.param2) == 0:
-                        set_color(led, 255, 255, 255)
+                        #set_color(led, 255, 255, 255)
+                        pass
                     else:
-                        set_color(led, 0, 255, 0)
-                elif int(message.param1) == 3:  # Send Image
+                        #set_color(led, 0, 255, 0)
+                        pass
+                elif int(message.param1) == 3: # Send Image
                     print(f"Sending Image")
                     transmit_next_img.set(True)
 
@@ -141,11 +143,11 @@ def autopilot_main(new_images_queue: Queue, images_to_analyze: Queue,
                 autopilot_handle_inference_results(vehicle, new_img_results)
 
         # This works, but not used for flight test due to message delays
-        #should_send = time.time() - last_image_send > IMAGE_SEND_PERIOD
-        #if should_send and last_image is not None:
-        #    transmit_image(vehicle, last_image)
-        #    last_image_send = time.time()
-
+        should_send = time.time() - last_image_send > IMAGE_SEND_PERIOD
+        if should_send and last_image is not None:
+            transmit_image(vehicle, last_image)
+            last_image_send = time.time()
+        
         # Check for transmit_next_img
         if transmit_next_img.get() and last_image is not None:
             transmit_image(vehicle, last_image)
@@ -207,6 +209,11 @@ def transmit_image(vehicle: dronekit.Vehicle, image_path: str):
     Transmits the provided status string over the Mavlink Connection
     """
 
+<<<<<<< HEAD
+=======
+    print("sending image")
+    
+>>>>>>> old-dev
     # Compress image
     im = Image.open(image_path)
     im = im.resize((200, 150), Image.ANTIALIAS)
