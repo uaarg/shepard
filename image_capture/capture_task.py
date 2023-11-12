@@ -74,8 +74,9 @@ def image_capture_main(new_images_queue : Queue, camera_commands_queue : Queue, 
         elif camera == 'rpicam2':
             frame = cap.capture_array()
             
-            img_path = f"{save_folder}/{current_img_index}.png"
-            cv2.imwrite(img_path, frame)
+            img_path = f"{save_folder}/{current_img_index}.jpeg"
+            frame_small = cv2.resize(frame, (600, 400))
+            cv2.imwrite(img_path, frame_small)
             if display:
                 # Help debug by adding webcam display
                 cv2.imshow('Camera', frame)
@@ -90,8 +91,7 @@ def image_capture_main(new_images_queue : Queue, camera_commands_queue : Queue, 
                 time.sleep(max(0, (1 / capture_rate) + timestamp - time.time()))
                 continue
             
-            img_path = f"{save_folder}/{current_img_index}.png"
-            cv2.imwrite(img_path, frame)
+            img_path = f"{save_folder}/{current_img_index}.jpg"
             if display:
                 # Help debug by adding webcam display
                 cv2.imshow('Camera', frame)
