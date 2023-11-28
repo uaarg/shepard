@@ -25,7 +25,7 @@ class Navigation:
 
     def takeoff(self, target_alt):
         """
-        Takes off to a given altitude.
+        Takes off to a given altitude. *known working*
 
         :param target_alt: The target altitude in meters.
         :return: True if successful, False otherwise.
@@ -41,7 +41,7 @@ class Navigation:
 
     def set_position(self, lat, lon):
         """
-        Moves the vehicle to a given position.
+        Moves the vehicle to a given position. *might be working?*
 
         :param lat: The latitude of the target position.
         :param lon: The longitude of the target position.
@@ -62,7 +62,7 @@ class Navigation:
 
     def set_position_relative(self, d_north, d_east):
         """
-        Moves the vehicle to a given position relative to its current position.
+        Moves the vehicle to a given position relative to its current position. *known working*
 
         :param d_north: The distance to move north in meters.
         :param d_east: The distance to move east in meters.
@@ -94,7 +94,9 @@ class Navigation:
         """
 
         self.__message(f"Changing heading to {heading} degrees")
-        self.vehicle.simple_goto(self.vehicle.location.global_frame, heading)
+        #self.vehicle.simple_goto(self.vehicle.location.global_frame, heading)
+
+        self.vehicle.commands.condition_yaw(heading)
 
     def set_heading_relative(self, heading):
         """
@@ -105,7 +107,9 @@ class Navigation:
         """
 
         self.__message(f"Changing heading to {heading} degrees relative to current heading")
-        self.vehicle.simple_goto(self.vehicle.location.global_relative_frame, self.vehicle.heading + heading)
+        #self.vehicle.simple_goto(self.vehicle.location.global_relative_frame, self.vehicle.heading + heading)
+
+        self.vehicle.commands.condition_yaw(heading, relative=True)
 
     def set_altitude(self, altitude):
         """
@@ -116,7 +120,11 @@ class Navigation:
         """
 
         self.__message(f"Setting altitude to {altitude} m")
-        self.vehicle.simple_goto(self.vehicle.location.global_frame, self.vehicle.heading, altitude)
+        #self.vehicle.simple_goto(self.vehicle.location.global_frame, self.vehicle.heading, altitude)
+        
+        while self.vehicle.location.global_relative_frame.alt < altitude - 1:
+            self.vehicle.simple_takeoff(altitude)
+            time.sleep(1)
 
     def set_altitude_relative(self, altitude):
         """
@@ -127,12 +135,17 @@ class Navigation:
         """
 
         self.__message(f"Setting altitude to {altitude} m relative to current altitude")
-        self.vehicle.simple_goto(self.vehicle.location.global_frame, self.vehicle.heading,
-                                 self.vehicle.location.global_relative_frame.alt + altitude)
+        #self.vehicle.simple_goto(self.vehicle.location.global_frame, self.vehicle.heading,
+                                 #self.vehicle.location.global_relative_frame.alt + altitude)
+
+        target_altitude = self.vehicle.location.global_relative_frame.alt + altitude
+        while self.vehicle.location.global_relative_frame.alt < target_altitude - 1:
+            self.vehicle.simple_takeoff(target_altitude)
+            time.sleep(1)
 
     def land(self):
         """
-        Lands the vehicle.
+        Lands the vehicle. *known working*
 
         :return: None
         """
@@ -142,7 +155,7 @@ class Navigation:
 
     def return_to_launch(self):
         """
-        Returns the vehicle to its launch position.
+        Returns the vehicle to its launch position. *known working*
 
         :return: None
         """
@@ -155,7 +168,7 @@ class Navigation:
     def __get_location_metres(self, original_location, d_north, d_east):
         """
         Returns a `LocationGlobalRelative` object containing the latitude/longitude `d_north` and `d_east` metres from the
-        specified `original_location`. The returned `LocationGlobalRelative` has the same `alt` value as `original_location`.
+        specified `original_location`. The returned `LocationGlobalRelative` has the same `alt` value as `original_location`. *known working*
 
         :param original_location: The reference `LocationGlobal`.
         :param d_north: The distance to the north in meters.
@@ -182,7 +195,7 @@ class Navigation:
 
     def __get_distance_metres(self, location_1, location_2):
         """
-        Returns the ground distance in metres between two `LocationGlobal` or `LocationGlobalRelative` objects.
+        Returns the ground distance in metres between two `LocationGlobal` or `LocationGlobalRelative` objects. *known working*
 
         This method is an approximation, and will not be accurate over large distances and close to the earth's poles.
 
