@@ -32,6 +32,7 @@ class Navigator:
         """
 
         self.__message(f"Taking off to {target_alt} m")
+        
         self.vehicle.simple_takeoff(target_alt)
 
         while self.vehicle.location.global_relative_frame.alt < target_alt - 1:
@@ -47,6 +48,8 @@ class Navigator:
         :param lon: The longitude of the target position.
         :return: None
         """
+
+        self.__message(f"Moving to {lat}, {lon}")
 
         target_location = dronekit.LocationGlobalRelative(lat, lon, self.vehicle.location.global_relative_frame.alt)
         self.vehicle.simple_goto(target_location)
@@ -69,9 +72,12 @@ class Navigator:
         :return: None
         """
 
+        self.__message(f"Moving {d_north} m north and {d_east} m east")
+
         current_location = self.vehicle.location.global_relative_frame
         target_location = self.__get_location_metres(current_location, d_north, d_east)
         target_distance = self.__get_distance_metres(current_location, target_location)
+
         self.vehicle.simple_goto(target_location)
 
         while self.vehicle.mode.name == "GUIDED":
@@ -92,7 +98,6 @@ class Navigator:
         """
 
         self.__message(f"Changing heading to {heading} degrees")
-        #self.vehicle.simple_goto(self.vehicle.location.global_frame, heading)
 
         self.vehicle.commands.condition_yaw(heading)
 
@@ -105,8 +110,6 @@ class Navigator:
         """
 
         self.__message(f"Changing heading to {heading} degrees relative to current heading")
-        #self.vehicle.simple_goto(self.vehicle.location.global_relative_frame, self.vehicle.heading + heading)
-
         self.vehicle.commands.condition_yaw(heading, relative=True)
 
     def set_altitude(self, altitude):
@@ -118,8 +121,7 @@ class Navigator:
         """
 
         self.__message(f"Setting altitude to {altitude} m")
-        #self.vehicle.simple_goto(self.vehicle.location.global_frame, self.vehicle.heading, altitude)
-        
+
         while self.vehicle.location.global_relative_frame.alt < altitude - 1:
             self.vehicle.simple_takeoff(altitude)
             time.sleep(1)
@@ -133,8 +135,6 @@ class Navigator:
         """
 
         self.__message(f"Setting altitude to {altitude} m relative to current altitude")
-        #self.vehicle.simple_goto(self.vehicle.location.global_frame, self.vehicle.heading,
-                                 #self.vehicle.location.global_relative_frame.alt + altitude)
 
         target_altitude = self.vehicle.location.global_relative_frame.alt + altitude
         while self.vehicle.location.global_relative_frame.alt < target_altitude - 1:
