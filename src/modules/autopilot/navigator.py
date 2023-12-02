@@ -32,7 +32,7 @@ class Navigator:
         """
 
         self.__message(f"Taking off to {target_alt} m")
-        
+
         self.vehicle.simple_takeoff(target_alt)
 
         while self.vehicle.location.global_relative_frame.alt < target_alt - 1:
