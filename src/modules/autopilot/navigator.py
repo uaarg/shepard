@@ -4,7 +4,7 @@ import time
 import dronekit
 
 
-class Navigation:
+class Navigator:
     """
     A class to handle navigation.
     """
