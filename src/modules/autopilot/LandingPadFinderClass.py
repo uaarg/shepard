@@ -3,6 +3,9 @@ import time
 from Navigator import Navigator
 
 class LandingSpotFinder:
+    """
+    A class to find the landing spot by going in square spirals
+    """
 
     HORIZONTAL_ANGLE = math.radians(30)
     VERTICAL_ANGLE = math.radians(24)
@@ -16,6 +19,14 @@ class LandingSpotFinder:
         return self.__route
 
     def generateRoute(self, numberOfLoops=10):
+        """
+        Generate a landing route in a square spiral pattern. The generated route is to be multiplied by the current height in metres
+        to get the relative distance traveled in metres.
+
+        :param numberOfLoops: The number of loops to be made, with a default value of 10
+        :return: None
+        """
+        
         self.__route = []  # Clear the existing route
         self.y, self.x = 0, 0
 
@@ -44,6 +55,13 @@ class LandingSpotFinder:
                         self.__route.append([self.y, self.x])
                         
     def goNext(self,Navigator,route):
+        """
+        Move the drone to the next position in the landing route.
+
+        :param Navigator: An instance of the Navigator class.
+        :param route: A list of 2 elements representing the relative distance ratio to be specified as [north, east].
+        :return: None
+        """
         
         altitude= Navigator.vehicle.location.global_relative_frame.alt
         
