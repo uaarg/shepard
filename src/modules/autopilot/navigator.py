@@ -13,9 +13,9 @@ class Navigator:
 
     vehicle: dronekit.Vehicle = None
 
-    def __init__(self, vehicle, gcs_conn_str):
+    def __init__(self, vehicle, messenger_port):
         self.vehicle = vehicle
-        # self.mav_messenger = Messenger(gcs_conn_str)
+        self.mavlink_messenger = Messenger(messenger_port)
 
     def __message(self, msg):
         """
@@ -25,7 +25,7 @@ class Navigator:
         """
 
         print(f"SHEPARD_NAV: {msg}")
-        # self.mav_messenger.send(msg)
+        self.mavlink_messenger.send(msg)
 
     def takeoff(self, target_alt):
         """
