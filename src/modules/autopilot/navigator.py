@@ -3,6 +3,8 @@ import time
 
 import dronekit
 
+from src.modules.autopilot.messenger import Messenger
+
 
 class Navigator:
     """
@@ -11,8 +13,9 @@ class Navigator:
 
     vehicle: dronekit.Vehicle = None
 
-    def __init__(self, vehicle):
+    def __init__(self, vehicle, gcs_conn_str):
         self.vehicle = vehicle
+        # self.mav_messenger = Messenger(gcs_conn_str)
 
     def __message(self, msg):
         """
@@ -22,6 +25,7 @@ class Navigator:
         """
 
         print(f"SHEPARD_NAV: {msg}")
+        # self.mav_messenger.send(msg)
 
     def takeoff(self, target_alt):
         """
