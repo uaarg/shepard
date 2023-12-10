@@ -25,6 +25,11 @@ nav.set_position_relative(50, 0)
 nav.set_position_relative(0, 50)
 nav.set_position_relative(-50, 0)
 
+# Diagonal flight
+nav.set_position_relative(25, -25)
+nav.set_position_relative(25, 25)
+nav.set_position_relative(-50, 0)
+
 time.sleep(5)
 
 # Test altitude adjustments
@@ -47,5 +52,9 @@ time.sleep(5)
 lander.generateRoute()
 lander.goNext(nav, lander.route, drone.location.global_relative_frame.alt)
 
+time.sleep(5)
+
 # RTL
 nav.return_to_launch()
+
+drone.close()
