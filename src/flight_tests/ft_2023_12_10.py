@@ -7,10 +7,12 @@ from src.modules.autopilot import lander
 
 
 # TODO: Add connection string
-conn_str = ""
-drone = connect(conn_str, wait_ready=True)
+CONN_STR = ""
+MESSENGER_PORT = 14560
 
-nav = navigator.Navigator(drone, conn_str)
+drone = connect(CONN_STR, wait_ready=True)
+
+nav = navigator.Navigator(drone, MESSENGER_PORT)
 lander = lander.Lander()
 
 while not (drone.armed and drone.mode == VehicleMode("GUIDED")):
