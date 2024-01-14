@@ -15,14 +15,16 @@ class CameraProvider:
         """
         Set the pixel width and height of all images taken by this camera.
         """
-        raise NotImplementedError()  # Should be implemented by deriving classes.
+        # Should be implemented by deriving classes.
+        raise NotImplementedError()
 
     def capture(self) -> Image.Image:
         """
         Captures a single image from the camera. This image will be of the size
         set by `set_size`.
         """
-        raise NotImplementedError()  # Should be implemented by deriving classes.
+        # Should be implemented by deriving classes.
+        raise NotImplementedError()
 
     def caputure_to(self, path: str | os.PathLike):
         """
