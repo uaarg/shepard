@@ -66,6 +66,7 @@ class WebcamCamera(CameraProvider):
     """
     Debug camera source which uses the computer's webcam as the image source.
     """
+
     def __init__(self):
         self.cap = cv2.VideoCapture(0)  # 0 is typically the default webcam
         self.size = (640, 480)  # default size
@@ -84,6 +85,7 @@ class WebcamCamera(CameraProvider):
             return Image.fromarray(frame)
         else:
             raise RuntimeError("Failed to capture image from webcam")
+
 
 class RPiCamera(CameraProvider):
     """
