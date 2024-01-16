@@ -7,6 +7,8 @@ from src.modules.imaging.camera import WebcamCamera
 
 cam = WebcamCamera()
 
+cam.set_size((1000, 1000))
+
 print("Taking a picture in 3s.")
 
 for i in reversed(range(3)):
