@@ -3,6 +3,8 @@ from typing import Tuple
 import os
 from PIL import Image
 import numpy as np
+import cv2
+#import picamera
 
 
 class CameraProvider:
@@ -64,15 +66,24 @@ class WebcamCamera(CameraProvider):
     """
     Debug camera source which uses the computer's webcam as the image source.
     """
+    def __init__(self):
+        self.cap = cv2.VideoCapture(0)  # 0 is typically the default webcam
+        self.size = (640, 480)  # default size
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.size[0])
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.size[1])
 
     def set_size(self, size: Tuple[int, int]):
-        # TODO
-        raise NotImplementedError()
+        self.size = size
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, size[0])
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, size[1])
 
     def capture(self) -> Image.Image:
-        # TODO
-        raise NotImplementedError()
-
+        ret, frame = self.cap.read()
+        if ret:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            return Image.fromarray(frame)
+        else:
+            raise RuntimeError("Failed to capture image from webcam")
 
 class RPiCamera(CameraProvider):
     """
@@ -87,3 +98,25 @@ class RPiCamera(CameraProvider):
     def capture(self) -> Image.Image:
         # TODO
         raise NotImplementedError()
+
+
+# class RPiCamera(CameraProvider):
+#     """
+#     Production camera source which uses the raspberry pi camera as the image
+#     source.
+#     """
+
+#     def __init__(self):
+#         self.camera = PiCamera()
+#         self.size = (640, 480) # default size
+#         self.camera.resolution = self.size
+
+#     def set_size(self, size: Tuple[int, int]):
+#         self.size = size
+#         self.camera.resolution = size
+
+#     def capture(self) -> Image.Image:
+#         stream = BytesIO()
+#         self.camera.capture(stream, format='jpeg')
+#         stream.seek(0)
+#         return Image.open(stream)
