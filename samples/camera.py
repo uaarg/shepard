@@ -3,7 +3,7 @@
 import time
 import sys
 
-from src.modules.imaging.camera import WebcamCamera
+from src.modules.imaging.camera import RPiCamera
 
 cam = RPiCamera()
 
