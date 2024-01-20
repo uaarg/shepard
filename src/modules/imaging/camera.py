@@ -2,10 +2,10 @@ from typing import Tuple
 
 import os
 from PIL import Image
+from io import BytesIO
 import numpy as np
 import cv2
-#import picamera
-
+import picamera2
 
 class CameraProvider:
     """
@@ -102,23 +102,28 @@ class RPiCamera(CameraProvider):
         raise NotImplementedError()
 
 
-# class RPiCamera(CameraProvider):
-#     """
-#     Production camera source which uses the raspberry pi camera as the image
-#     source.
-#     """
+class RPiCamera(CameraProvider):
+    """
+    Production camera source which uses the raspberry pi camera as the image
+    source.
+    """
 
-#     def __init__(self):
-#         self.camera = PiCamera()
-#         self.size = (640, 480) # default size
-#         self.camera.resolution = self.size
+    def __init__(self):
+        self.camera = picamera2.PiCamera2()
+        self.size = (640, 480)
+        self.configure_camera()
 
-#     def set_size(self, size: Tuple[int, int]):
-#         self.size = size
-#         self.camera.resolution = size
+    def configure_camera(self):
+        # Configuring camera properties
+        config = self.camera.create_preview_configuration(main={"size": self.size})
+        self.camera.configure(config)
 
-#     def capture(self) -> Image.Image:
-#         stream = BytesIO()
-#         self.camera.capture(stream, format='jpeg')
-#         stream.seek(0)
-#         return Image.open(stream)
+    def set_size(self, size: Tuple[int, int]):
+        self.size = size
+        self.configure_camera()
+
+    def capture(self) -> Image.Image:
+        # Capture an image
+        capture_result = self.camera.capture_array()
+        image = Image.fromarray(capture_result)
+        return image
