@@ -109,7 +109,7 @@ class RPiCamera(CameraProvider):
     """
 
     def __init__(self):
-        self.camera = picamera2.PiCamera2()
+        self.camera = picamera2.Picamera2()
         self.size = (640, 480)
         self.configure_camera()
 
