@@ -5,7 +5,7 @@ import sys
 
 from src.modules.imaging.camera import WebcamCamera
 
-cam = WebcamCamera()
+cam = RPiCamera()
 
 cam.set_size((1000, 1000))
 
