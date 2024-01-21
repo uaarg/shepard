@@ -2,9 +2,9 @@ from typing import Tuple
 
 import os
 from PIL import Image
-from io import BytesIO
 import numpy as np
 import cv2
+
 
 class CameraProvider:
     """
@@ -116,7 +116,8 @@ class RPiCamera(CameraProvider):
 
     def configure_camera(self):
         # Configuring camera properties
-        config = self.camera.create_preview_configuration(main={"size": self.size})
+        config = self.camera.create_preview_configuration(
+            main={"size": self.size})
         self.camera.configure(config)
 
     def set_size(self, size: Tuple[int, int]):
