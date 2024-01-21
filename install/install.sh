@@ -3,7 +3,7 @@
 st -o errexit
 
 echo "Installing mavlink router"
-./mavlink-router.sh
+./install/mavlink-router.sh
 
 echo "Installing shepard"
-./shepard.sh
+./install/shepard.sh
