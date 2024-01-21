@@ -5,7 +5,7 @@ from PIL import Image
 from io import BytesIO
 import numpy as np
 import cv2
-import picamera2
+from picamera2 import Picamera2
 
 class CameraProvider:
     """
@@ -109,7 +109,7 @@ class RPiCamera(CameraProvider):
     """
 
     def __init__(self):
-        self.camera = picamera2.Picamera2()
+        self.camera = Picamera2()
         self.size = (640, 480)
         self.configure_camera()
 
@@ -124,6 +124,7 @@ class RPiCamera(CameraProvider):
 
     def capture(self) -> Image.Image:
         # Capture an image
+        self.camera.start()
         capture_result = self.camera.capture_array()
         image = Image.fromarray(capture_result)
         return image
