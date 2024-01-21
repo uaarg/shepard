@@ -3,9 +3,9 @@
 import time
 import sys
 
-from src.modules.imaging.camera import RPiCamera
+from src.modules.imaging.camera import WebcamCamera
 
-cam = RPiCamera()
+cam = WebcamCamera()
 
 cam.set_size((1000, 1000))
 
