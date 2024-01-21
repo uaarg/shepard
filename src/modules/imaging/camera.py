@@ -5,7 +5,6 @@ from PIL import Image
 from io import BytesIO
 import numpy as np
 import cv2
-from picamera2 import Picamera2
 
 class CameraProvider:
     """
@@ -69,7 +68,7 @@ class WebcamCamera(CameraProvider):
 
     def __init__(self):
         self.cap = cv2.VideoCapture(0)  # 0 is typically the default webcam
-        self.size = (640, 480)  # default size
+        self.size = (640, 480)
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.size[0])
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.size[1])
 
@@ -82,7 +81,7 @@ class WebcamCamera(CameraProvider):
         ret, frame = self.cap.read()
         if ret:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            return Image.fromarray(frame)
+            return Image.fromarray(frame).resize(self.size)
         else:
             raise RuntimeError("Failed to capture image from webcam")
 
@@ -104,11 +103,13 @@ class RPiCamera(CameraProvider):
 
 class RPiCamera(CameraProvider):
     """
+    Note: Need picamera2 installed on the raspberry pi for this to work.
     Production camera source which uses the raspberry pi camera as the image
     source.
     """
 
     def __init__(self):
+        from picamera2 import Picamera2
         self.camera = Picamera2()
         self.size = (640, 480)
         self.configure_camera()
