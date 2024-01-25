@@ -7,6 +7,8 @@ from src.modules.imaging.camera import WebcamCamera
 
 cam = WebcamCamera()
 
+cam.set_size((1000, 1000))
+
 print("Taking a picture in 3s.")
 
 for i in reversed(range(3)):
@@ -19,5 +21,5 @@ for i in reversed(range(3)):
 print("\rSay cheese!")
 time.sleep(1)
 
-cam.caputure_to("you.png")
-print("Image saved to you.png")
+cam.caputure_to("tmp/you.png")
+print("Image saved to tmp/you.png")
