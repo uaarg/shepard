@@ -4,36 +4,45 @@
 # function raises an error, the test fails. Otherwise, the test passes.
 # See test/test_camera.py for an example.
 
-from src.modules.imaging.location import DebugLocationProvider
+from src.modules.imaging.location import DebugLocationProvider, LatLng, Heading, Rotation
 
 
 def test_get_location():
-    # TODO
-    raise NotImplementedError()
+    loc = DebugLocationProvider()
+    loc.debug_change_location(lat=10.0, lng=20.0)
 
+    assert loc.location() == LatLng(10.0, 20.0), "Location did not match expected value"
 
 def test_get_heading():
-    # TODO
-    raise NotImplementedError()
+    loc = DebugLocationProvider()
+    loc.debug_change_location(heading=45.0)
+
+    assert loc.heading() == Heading(45.0), "Heading did not match expected value"
 
 
 def test_get_altitude():
-    # TODO
-    raise NotImplementedError()
+    loc = DebugLocationProvider()
+    loc.debug_change_location(altitude=100.0)
+
+    assert loc.altitude() == 100.0, "Altitude did not match expected value"
+
 
 
 def test_get_orientation():
-    # TODO
-    raise NotImplementedError()
+    loc = DebugLocationProvider()
+    loc.debug_change_location(pitch=10.0, roll=20.0, yaw=30.0)
+
+    assert loc.orientation() == Rotation(10.0, 20.0, 30.0), "Orientation did not match expected value"
+
 
 
 def test_position_changes():
-    initial_location = None  # TODO
-    loc = DebugLocationProvider(initial_location)
+    loc = DebugLocationProvider()
 
-    # ... assert location
+    # Initial change
+    loc.debug_change_location(lat=10.0, lng=20.0)
+    assert loc.location() == LatLng(10.0, 20.0), "Initial location did not match expected value"
 
-    new_location = None  # TODO
-    loc.debug_change_location(new_location)
-
-    # ... assert new location
+    # Change to new location
+    loc.debug_change_location(lat=40.0, lng=50.0)
+    assert loc.location() == LatLng(40.0, 50.0), "New location did not match expected value"

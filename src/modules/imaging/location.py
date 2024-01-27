@@ -67,28 +67,63 @@ class DebugLocationProvider:
     """
     Will return a series of given locations and orientations.
     """
-
-    # TODO: Implment the methods
     # TODO: Create tests (see test/test_location.py)
 
+    def __init__(self) -> None:
+        self._current_location = LatLng(0.0, 0.0)
+        self._current_heading = Heading(0.0)
+        self._current_altitude = 0.0
+        self._current_orientation = Rotation(0.0, 0.0, 0.0)
+
     def location(self) -> LatLng:
-        raise NotImplementedError()
+        return self._current_location
 
     def heading(self) -> Heading:
-        raise NotImplementedError()
+        return self._current_heading
 
     def altitude(self) -> float:
-        raise NotImplementedError()
+        return self._current_altitude
 
     def orientation(self) -> Rotation:
-        raise NotImplementedError()
+        return self._current_orientation
+    
+    def set_location(self, new_location):
+        self._current_location = new_location
 
-    # TODO: implement this as well, need a type for new_location
-    def debug_change_location(self, new_location):
+    def set_heading(self, new_heading):
+        self._current_heading = new_heading
+    
+    def set_altitude(self, new_altitude):
+        self._current_altitude = new_altitude
+
+    def set_orientation(self, new_orientation):
+        self._current_orientation = new_orientation
+
+    def debug_change_location(self, **kwargs):
         """
         Change the location reported by this DebugLocationProvider.
+
+        Keyword Arguments:
+        lat -- Latitude
+        lng -- Longitude
+        heading -- Heading direction
+        altitude -- Altitude
+        pitch -- Pitch angle
+        roll -- Roll angle
+        yaw -- Yaw angle
         """
-        raise NotImplementedError()
+        if 'lat' in kwargs and 'lng' in kwargs:
+            self._current_location = LatLng(kwargs['lat'], kwargs['lng'])
+
+        if 'heading' in kwargs:
+            self._current_heading = Heading(kwargs['heading'])
+
+        if 'altitude' in kwargs:
+            self._current_altitude = kwargs['altitude']
+
+        if all(k in kwargs for k in ['pitch', 'roll', 'yaw']):
+            self._current_orientation = Rotation(kwargs['pitch'], kwargs['roll'], kwargs['yaw'])
+
 
 
 class MAVLinkLocationProvider:
