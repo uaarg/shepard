@@ -1,6 +1,14 @@
 #!/usr/bin/bash
 
-st -o errexit
+set -o errexit
+
+sudo apt update
+sudo apt upgrade
+
+sudo apt instll python3-pyqrcode
+
+echo "Setting up ssh keys"
+./install/setup-ssh-keys.sh
 
 echo "Installing mavlink router"
 ./install/mavlink-router.sh
