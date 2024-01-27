@@ -15,19 +15,9 @@ ninja -C build
 echo "Installing mavlink-router"
 sudo ninja -C build install
 
-sudo mkdir /etc/mavlink-router
-sudo cat >/etc/mavlink-router/main.conf <<EOF
-[General]
-TcpServerPort=14550
-
-[UartEndpoint px4]
-Device = /dev/ttyS0
-Baud = 57600
-
-[UartEndpoint xbee]
-Device = /dev/ttyUSB0
-Baud = 57600
-EOF
+echo "Setting up system files"
+sudo cp -r system/etc/mavlink-router /etc
+sudo cp system/boot/config.txt /boot/config.txt
 
 sudo systemctl enable mavlink-router.service
 
