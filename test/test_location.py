@@ -11,13 +11,16 @@ def test_get_location():
     loc = DebugLocationProvider()
     loc.debug_change_location(lat=10.0, lng=20.0)
 
-    assert loc.location() == LatLng(10.0, 20.0), "Location did not match expected value"
+    assert loc.location() == LatLng(
+        10.0, 20.0), "Location did not match expected value"
+
 
 def test_get_heading():
     loc = DebugLocationProvider()
     loc.debug_change_location(heading=45.0)
 
-    assert loc.heading() == Heading(45.0), "Heading did not match expected value"
+    assert loc.heading() == Heading(
+        45.0), "Heading did not match expected value"
 
 
 def test_get_altitude():
@@ -27,13 +30,12 @@ def test_get_altitude():
     assert loc.altitude() == 100.0, "Altitude did not match expected value"
 
 
-
 def test_get_orientation():
     loc = DebugLocationProvider()
     loc.debug_change_location(pitch=10.0, roll=20.0, yaw=30.0)
 
-    assert loc.orientation() == Rotation(10.0, 20.0, 30.0), "Orientation did not match expected value"
-
+    assert loc.orientation() == Rotation(
+        10.0, 20.0, 30.0), "Orientation did not match expected value"
 
 
 def test_position_changes():
@@ -41,8 +43,10 @@ def test_position_changes():
 
     # Initial change
     loc.debug_change_location(lat=10.0, lng=20.0)
-    assert loc.location() == LatLng(10.0, 20.0), "Initial location did not match expected value"
+    assert loc.location() == LatLng(
+        10.0, 20.0), "Initial location did not match expected value"
 
     # Change to new location
     loc.debug_change_location(lat=40.0, lng=50.0)
-    assert loc.location() == LatLng(40.0, 50.0), "New location did not match expected value"
+    assert loc.location() == LatLng(
+        40.0, 50.0), "New location did not match expected value"

@@ -67,6 +67,7 @@ class DebugLocationProvider:
     """
     Will return a series of given locations and orientations.
     """
+
     # TODO: Create tests (see test/test_location.py)
 
     def __init__(self) -> None:
@@ -86,13 +87,13 @@ class DebugLocationProvider:
 
     def orientation(self) -> Rotation:
         return self._current_orientation
-    
+
     def set_location(self, new_location):
         self._current_location = new_location
 
     def set_heading(self, new_heading):
         self._current_heading = new_heading
-    
+
     def set_altitude(self, new_altitude):
         self._current_altitude = new_altitude
 
@@ -122,8 +123,8 @@ class DebugLocationProvider:
             self._current_altitude = kwargs['altitude']
 
         if all(k in kwargs for k in ['pitch', 'roll', 'yaw']):
-            self._current_orientation = Rotation(kwargs['pitch'], kwargs['roll'], kwargs['yaw'])
-
+            self._current_orientation = Rotation(kwargs['pitch'],
+                                                 kwargs['roll'], kwargs['yaw'])
 
 
 class MAVLinkLocationProvider:
@@ -146,4 +147,3 @@ class MAVLinkLocationProvider:
 
     def orientation(self) -> Rotation:
         raise NotImplementedError()
-
