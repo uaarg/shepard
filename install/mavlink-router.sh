@@ -7,13 +7,20 @@ echo "Installing dependencies"
 sudo apt install -y git meson ninja-build pkg-config gcc g++ systemd
 
 echo "Building mavlink-router"
-git clone --recursive https://github.com/mavlink-router/mavlink-router
-cd mavlink-router/
+if test -d mavlink-router; then
+  cd mavlink-router
+  git pull
+  git submodule update --init --recursive
+else
+  git clone --recursive https://github.com/mavlink-router/mavlink-router
+  cd mavlink-router/
+fi
 meson setup build .
 ninja -C build
 
 echo "Installing mavlink-router"
 sudo ninja -C build install
+cd ..
 
 echo "Setting up system files"
 sudo cp -r system/etc/mavlink-router /etc
