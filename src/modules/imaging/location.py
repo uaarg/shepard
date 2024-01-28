@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-
+from pymavlink import mavutil
+import math
 
 @dataclass
 class LatLng:
@@ -68,8 +69,6 @@ class DebugLocationProvider:
     Will return a series of given locations and orientations.
     """
 
-    # TODO: Create tests (see test/test_location.py)
-
     def __init__(self) -> None:
         self._current_location = LatLng(0.0, 0.0)
         self._current_heading = Heading(0.0)
@@ -132,18 +131,45 @@ class MAVLinkLocationProvider:
     Will provide location information based on information received as mavlink
     messages.
     """
+    def __init__(self, connection_string):
+        self.mavlink_connection = mavutil.mavlink_connection(connection_string)
+        self.current_message = None
 
-    # TODO: This one will be a little complex. Try working on it after
-    # DebugLocationProvider is complete.
+    def _update_data(self):
+        # Wait for a new message and update the current message
+        self.current_message = self.mavlink_connection.recv_match(blocking=True)
 
     def location(self) -> LatLng:
-        raise NotImplementedError()
+        self._update_data()
+        if self.current_message is not None and self.current_message.get_type() == 'GLOBAL_POSITION_INT':
+            # Convert lat and lon from 1E7 scaled integer to float
+            lat = self.current_message.lat / 1e7
+            lon = self.current_message.lon / 1e7
+            return LatLng(lat, lon)
+        else:
+            raise ValueError("No valid position data available")
 
     def heading(self) -> Heading:
-        raise NotImplementedError()
+        self._update_data()
+        if self.current_message is not None and self.current_message.get_type() == 'VFR_HUD':
+            return Heading(self.current_message.heading)
+        else:
+            raise ValueError("No valid heading data available")
 
     def altitude(self) -> float:
-        raise NotImplementedError()
+        self._update_data()
+        if self.current_message is not None and self.current_message.get_type() == 'GLOBAL_POSITION_INT':
+            # Convert altitude from millimeters to meters
+            return self.current_message.alt / 1000.0
+        else:
+            raise ValueError("No valid altitude data available")
 
     def orientation(self) -> Rotation:
-        raise NotImplementedError()
+        self._update_data()
+        if self.current_message is not None and self.current_message.get_type() == 'ATTITUDE':
+            pitch = math.degrees(self.current_message.pitch)
+            roll = math.degrees(self.current_message.roll)
+            yaw = math.degrees(self.current_message.yaw)
+            return Rotation(pitch, roll, yaw)
+        else:
+            raise ValueError("No valid orientation data available")
