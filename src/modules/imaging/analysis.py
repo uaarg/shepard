@@ -13,7 +13,8 @@ class ImageAnalysisDelegate:
     TODO: geolocate the landing pad using the drone's location.
     """
 
-    def __init__(self, camera_provider: CameraProvider, detector: LandingPadDetector):
+    def __init__(self, camera_provider: CameraProvider,
+                 detector: LandingPadDetector):
         self.camera_provider = camera_provider
         self.detector = detector
 

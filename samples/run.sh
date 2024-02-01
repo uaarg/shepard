@@ -9,7 +9,7 @@ if ! git status 2>&1 >/dev/null; then
   exit 1
 fi
 
-cd $(git worktree list | awk '{ print $1 }')
+#cd "$(git worktree list | awk '{ print $1 }')"
 
 if ! test -f "samples/$sample.py"; then
   echo "ERROR: Please pass a sample which is one of:"
