@@ -1,6 +1,5 @@
-from PIL import Image, ImageDraw
-import cv2 as cv
-import numpy as np
+from PIL import Image, ImageDraw, ImageTk
+import tkinter as tk
 from benchmarks.detector import BoundingBox
 
 
@@ -14,41 +13,46 @@ class ImageAnalysisDebugger:
     """
 
     def __init__(self):
-        pass
         self.image = None
-        self.temp_image = None
+        self.root = tk.Toplevel()
+        self.is_visible = False
 
     def show(self):
         """
         Start displaying the debugger window.
         """
-        cv.imshow("Image", np.array(self.temp_image))
-        cv.waitKey(1)
+        self.root.deiconify()
+        self.is_visible = True
+        img = ImageTk.PhotoImage(self.image)
+        label_image = tk.Label(self.root, image=img)
+        label_image.place(x=0,
+                          y=0,
+                          width=self.image.size[0],
+                          height=self.image.size[1])
+        self.root.update()
 
-    # def hide(self):
-    #     """
-    #     Stop displaying the debugger window.
-    #     """
-    #     pass
+    def hide(self):
+        """
+        Stop displaying the debugger window.
+        """
+        self.root.withdraw()
+        self.is_visible = False
 
-    # def visible(self) -> bool:
-    #     """
-    #     Returns True if the debug window is visible.
-    #     False if it is no longer visible because:
-    #     - show() has not been called
-    #     - hide() was called
-    #     - the user closed the window
-    #     """
-    #     # raise NotImplementedError()
-    #     return True
+    def visible(self) -> bool:
+        """
+        Returns True if the debug window is visible.
+        False if it is no longer visible because:
+        - show() has not been called
+        - hide() was called
+        - the user closed the window
+        """
+        return True
 
     def set_image(self, image: Image.Image):
         """
         Update the image currently being analysed. Will remove any old bounding boxes.
         """
-
-        self.image = image
-        self.temp_image = image.copy()
+        self.image = image.copy()
 
     def set_bounding_box(self, bb: BoundingBox):
         """
@@ -57,7 +61,7 @@ class ImageAnalysisDebugger:
         if not self.image:
             return  # return no image set error
 
-        image = self.temp_image
+        image = self.image
         top_left_corner = (bb.position.x, bb.position.y)
         bottom_right_corner = (bb.position.x + bb.size.x,
                                bb.position.y + bb.size.y)
