@@ -14,7 +14,7 @@ class ImageAnalysisDebugger:
 
     def __init__(self):
         self.image = None
-        self.root = tk.Toplevel()
+        self.root = tk.Tk()
         self.is_visible = False
 
     def show(self):
@@ -24,6 +24,7 @@ class ImageAnalysisDebugger:
         self.root.deiconify()
         self.is_visible = True
         img = ImageTk.PhotoImage(self.image)
+        self.root.geometry('%dx%d' % (self.image.size[0], self.image.size[1]))
         label_image = tk.Label(self.root, image=img)
         label_image.place(x=0,
                           y=0,
@@ -46,7 +47,7 @@ class ImageAnalysisDebugger:
         - hide() was called
         - the user closed the window
         """
-        return True
+        return self.is_visible
 
     def set_image(self, image: Image.Image):
         """
