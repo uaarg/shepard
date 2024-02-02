@@ -11,10 +11,9 @@ class MAVLinkDelegate:
     """
 
     def __init__(self, port: int = 14550):
-        self._conn = mavutil.mavlink_connection(
-            device=f"tcp:127.0.0.1:{port}",
-            source_system=1,
-            source_component=1)
+        self._conn = mavutil.mavlink_connection(device=f"tcp:127.0.0.1:{port}",
+                                                source_system=1,
+                                                source_component=1)
 
         self._listeners = []
 
@@ -44,13 +43,16 @@ class MAVLinkDelegate:
 
             time.sleep(0.0001)  # 100 us
 
+
 class MessagePrinter:
+
     def __init__(self, mavlink_delegate: MAVLinkDelegate):
         self.mavlink_delegate = mavlink_delegate
         self.mavlink_delegate.subscribe(self._process_message)
 
     def _process_message(self, message: dialect.MAVLink_message):
         print(message)
+
 
 if __name__ == "__main__":
     mavlink_delegate = MAVLinkDelegate()
