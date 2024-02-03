@@ -88,21 +88,6 @@ class WebcamCamera(CameraProvider):
 
 class RPiCamera(CameraProvider):
     """
-    Production camera source which uses the raspberry pi camera as the image
-    source.
-    """
-
-    def set_size(self, size: Tuple[int, int]):
-        # TODO
-        raise NotImplementedError()
-
-    def capture(self) -> Image.Image:
-        # TODO
-        raise NotImplementedError()
-
-
-class RPiCamera(CameraProvider):
-    """
     Note: Need picamera2 installed on the raspberry pi for this to work.
     Production camera source which uses the raspberry pi camera as the image
     source.
