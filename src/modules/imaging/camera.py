@@ -2,9 +2,13 @@ from typing import Tuple
 
 import os
 from PIL import Image
+from io import BytesIO
 import numpy as np
 import cv2
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 
 class CameraProvider:
     """
@@ -65,6 +69,11 @@ class WebcamCamera(CameraProvider):
     """
     Debug camera source which uses the computer's webcam as the image source.
     """
+    def __init__(self):
+        self.cap = cv2.VideoCapture(0)
+        self.size = (640, 480)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.size[0])
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.size[1])
 
     def __init__(self):
         self.cap = cv2.VideoCapture(0)  # 0 is typically the default webcam
@@ -99,11 +108,17 @@ class RPiCamera(CameraProvider):
     def capture(self) -> Image.Image:
         # TODO
         raise NotImplementedError()
+<<<<<<< Updated upstream
 
 
 class RPiCamera(CameraProvider):
     """
     Note: Need picamera2 installed on the raspberry pi for this to work.
+=======
+    
+class RPiCamera(CameraProvider):
+    """
+>>>>>>> Stashed changes
     Production camera source which uses the raspberry pi camera as the image
     source.
     """
@@ -116,8 +131,12 @@ class RPiCamera(CameraProvider):
 
     def configure_camera(self):
         # Configuring camera properties
+<<<<<<< Updated upstream
         config = self.camera.create_preview_configuration(
             main={"size": self.size})
+=======
+        config = self.camera.create_preview_configuration(main={"size": self.size})
+>>>>>>> Stashed changes
         self.camera.configure(config)
 
     def set_size(self, size: Tuple[int, int]):
