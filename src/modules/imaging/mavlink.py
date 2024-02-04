@@ -43,6 +43,27 @@ class MAVLinkDelegate:
 
             time.sleep(0.0001)  # 100 us
 
+class MAVLinkDelegateMock(MAVLinkDelegate):
+    """
+    Mock MAVLink connection delegate which forwards messages to subscribers.
+    """
+
+    def __init__(self):
+        self._listeners = []
+
+    def send(self, mav_message: dialect.MAVLink_message):
+        """
+        Sends a mavlink message.
+        """
+        for listener in self._listeners:
+            listener(mav_message)
+
+    def run(self):
+        """
+        Not implemented
+        """
+        raise AssertionError("Not implemented")
+
 
 class MessagePrinter:
 
