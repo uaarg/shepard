@@ -43,6 +43,7 @@ class MAVLinkDelegate:
 
             time.sleep(0.0001)  # 100 us
 
+
 class MAVLinkDelegateMock(MAVLinkDelegate):
     """
     Mock MAVLink connection delegate which forwards messages to subscribers.

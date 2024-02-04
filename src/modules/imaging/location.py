@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from pymavlink import mavutil
 import math
-from src.modules.imaging.mavlink import MAVLinkDelegate ,MAVLinkDelegateMock
+from src.modules.imaging.mavlink import MAVLinkDelegate, MAVLinkDelegateMock
+
 
 @dataclass
 class LatLng:
@@ -131,29 +132,27 @@ class MAVLinkLocationProvider:
     """
     Will provide location information based on information received as MAVLink messages.
     """
-    
+
     def __init__(self, mavlink_delegate: MAVLinkDelegate):
         self.mavlink_delegate = mavlink_delegate
         self._location = None
         self._heading = None
         self._altitude = None
         self._orientation = None
-        
+
         # Subscribe to the delegate's messages
         self.mavlink_delegate.subscribe(self._process_message)
-        
+
     def _process_message(self, message):
         # This callback processes incoming MAVLink messages and updates the internal state
         if message.get_type() == 'GLOBAL_POSITION_INT':
             self._location = LatLng(message.lat / 1e7, message.lon / 1e7)
             self._altitude = message.alt / 1000.0  # Altitude in meters
-            self._heading = Heading(message.hdg / 1e7) # Heading in degrees
+            self._heading = Heading(message.hdg / 1e7)  # Heading in degrees
         elif message.get_type() == 'ATTITUDE':
-            self._orientation = Rotation(
-                pitch=math.degrees(message.pitch),
-                roll=math.degrees(message.roll),
-                yaw=math.degrees(message.yaw)
-            )
+            self._orientation = Rotation(pitch=math.degrees(message.pitch),
+                                         roll=math.degrees(message.roll),
+                                         yaw=math.degrees(message.yaw))
 
     def location(self) -> LatLng:
         if self._location is not None:
