@@ -1,7 +1,6 @@
 from dataclasses import dataclass
-from pymavlink import mavutil
 import math
-from src.modules.imaging.mavlink import MAVLinkDelegate, MAVLinkDelegateMock
+from src.modules.imaging.mavlink import MAVLinkDelegate
 
 
 @dataclass
