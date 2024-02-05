@@ -129,6 +129,7 @@ class DebugLocationProvider:
 
             self._current_orientation = Rotation(pitch, roll, yaw)
 
+
 class MAVLinkLocationProvider:
     """
     Will provide location information based on information received as MAVLink messages.
