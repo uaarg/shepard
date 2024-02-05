@@ -1,3 +1,4 @@
+from typing import Optional, Tuple
 from PIL import Image, ImageDraw, ImageTk
 import tkinter as tk
 from benchmarks.detector import BoundingBox
@@ -13,7 +14,7 @@ class ImageAnalysisDebugger:
     """
 
     def __init__(self):
-        self.image = None
+        self.image: Optional[Image.Image] = None
         self.root = tk.Tk()
         self.is_visible = False
 
@@ -21,6 +22,9 @@ class ImageAnalysisDebugger:
         """
         Start displaying the debugger window.
         """
+        if not self.image:
+            raise RuntimeError("No image set. Cannot show without an image")
+
         self.root.deiconify()
         self.is_visible = True
         img = ImageTk.PhotoImage(self.image)
@@ -63,9 +67,9 @@ class ImageAnalysisDebugger:
             return  # return no image set error
 
         image = self.image
-        top_left_corner = (bb.position.x, bb.position.y)
-        bottom_right_corner = (bb.position.x + bb.size.x,
-                               bb.position.y + bb.size.y)
+        top_left_corner: Tuple[float, float] = (bb.position.x, bb.position.y)
+        bottom_right_corner: Tuple[float, float] = (bb.position.x + bb.size.x,
+                                                    bb.position.y + bb.size.y)
 
         draw = ImageDraw.Draw(image)
-        draw.rectangle([top_left_corner, bottom_right_corner])
+        draw.rectangle((top_left_corner, bottom_right_corner))

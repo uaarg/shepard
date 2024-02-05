@@ -1,6 +1,6 @@
 from typing import Tuple
 
-import os
+import pathlib
 from PIL import Image
 import numpy as np
 import cv2
@@ -27,7 +27,7 @@ class CameraProvider:
         # Should be implemented by deriving classes.
         raise NotImplementedError()
 
-    def caputure_to(self, path: str | os.PathLike):
+    def caputure_to(self, path: str | pathlib.Path):
         """
         Captures a single image and saves it to `path`.
         """
@@ -47,7 +47,7 @@ class DebugCamera(CameraProvider):
     `dummy_image_path`.
     """
 
-    def __init__(self, dummy_image_path: str | os.PathLike):
+    def __init__(self, dummy_image_path: str | pathlib.Path):
         self.og_im = Image.open(dummy_image_path)
         self.im = self.og_im  # Keep a copy of the original image for resizing.
         self.size = (self.im.width, self.im.height)

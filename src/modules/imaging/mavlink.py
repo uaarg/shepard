@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import List, Callable
 
 from pymavlink import mavutil
 import pymavlink.dialects.v20.all as dialect
@@ -15,7 +15,7 @@ class MAVLinkDelegate:
                                                 source_system=1,
                                                 source_component=1)
 
-        self._listeners = []
+        self._listeners: List[Callable] = []
 
     def subscribe(self, listener: Callable):
         """
