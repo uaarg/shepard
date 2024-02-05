@@ -122,10 +122,12 @@ class DebugLocationProvider:
         if 'altitude' in kwargs:
             self._current_altitude = kwargs['altitude']
 
-        if all(k in kwargs for k in ['pitch', 'roll', 'yaw']):
-            self._current_orientation = Rotation(kwargs['pitch'],
-                                                 kwargs['roll'], kwargs['yaw'])
+        if any(k in kwargs for k in ['pitch', 'roll', 'yaw']):
+            pitch = kwargs.get('pitch', self._current_orientation.pitch)
+            roll = kwargs.get('roll', self._current_orientation.roll)
+            yaw = kwargs.get('yaw', self._current_orientation.yaw)
 
+            self._current_orientation = Rotation(pitch, roll, yaw)
 
 class MAVLinkLocationProvider:
     """
