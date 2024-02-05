@@ -202,3 +202,25 @@ def test_get_MAVLink_position_changes():
         45.0), "New heading did not match expected value"
     assert loc_mavlink.altitude(
     ) == 2.0, "New altitude did not match expected value in meters"
+
+
+def test_get_MAVLink_position_not_init():
+    mavlink = MAVLinkDelegateMock()
+    loc_mavlink = MAVLinkLocationProvider(mavlink)
+
+    def assert_raises(f):
+        try:
+            f()
+        except ValueError:
+            pass
+        else:
+            assert False, "Did not raise when accessing an uninitialized value"
+
+    methods = [
+        loc_mavlink.altitude,
+        loc_mavlink.location,
+        loc_mavlink.heading,
+        loc_mavlink.orientation,
+    ]
+    for method in methods:
+        assert_raises(method)
