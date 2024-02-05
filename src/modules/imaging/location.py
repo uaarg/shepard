@@ -113,8 +113,11 @@ class DebugLocationProvider:
         roll -- Roll angle
         yaw -- Yaw angle
         """
-        if 'lat' in kwargs and 'lng' in kwargs:
-            self._current_location = LatLng(kwargs['lat'], kwargs['lng'])
+        if 'lat' in kwargs or 'lng' in kwargs:
+            lat = kwargs.get('lat', self._current_location.lat)
+            lng = kwargs.get('lng', self._current_location.lng)
+
+            self._current_location = LatLng(lat, lng)
 
         if 'heading' in kwargs:
             self._current_heading = Heading(kwargs['heading'])

@@ -17,6 +17,15 @@ def test_get_location():
         10.0, 20.0), "Location did not match expected value"
 
 
+def test_get_location_partial():
+    loc = DebugLocationProvider()
+    loc.debug_change_location(lat=10.0, lng=20.0)
+    loc.debug_change_location(lat=15.0)  # Missing lng
+
+    assert loc.location() == LatLng(
+        15.0, 20.0), "Location did not match expected value"
+
+
 def test_get_heading():
     loc = DebugLocationProvider()
     loc.debug_change_location(heading=45.0)
@@ -38,6 +47,15 @@ def test_get_orientation():
 
     assert loc.orientation() == Rotation(
         10.0, 20.0, 30.0), "Orientation did not match expected value"
+
+
+def test_get_orientation_partial():
+    loc = DebugLocationProvider()
+    loc.debug_change_location(pitch=10.0, roll=20.0, yaw=30.0)
+    loc.debug_change_location(pitch=12.0)
+
+    assert loc.orientation() == Rotation(
+        12.0, 20.0, 30.0), "Orientation did not match expected value"
 
 
 def test_position_changes():
