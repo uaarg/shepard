@@ -1,3 +1,4 @@
+from typing import Optional
 from dataclasses import dataclass
 import math
 from src.modules.imaging.mavlink import MAVLinkDelegate
@@ -140,10 +141,10 @@ class MAVLinkLocationProvider:
 
     def __init__(self, mavlink_delegate: MAVLinkDelegate):
         self.mavlink_delegate = mavlink_delegate
-        self._location = None
-        self._heading = None
-        self._altitude = None
-        self._orientation = None
+        self._location: Optional[LatLng] = None
+        self._heading: Optional[Heading] = None
+        self._altitude: Optional[float] = None
+        self._orientation: Optional[Rotation] = None
 
         # Subscribe to the delegate's messages
         self.mavlink_delegate.subscribe(self._process_message)
