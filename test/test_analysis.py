@@ -1,3 +1,9 @@
+# Tests can be run with ./scripts/test.sh
+# They will run all files in the test/ directory starting with 'test_'.
+# Then, all functions starting with 'test_' will be run in that file. If the
+# function raises an error, the test fails. Otherwise, the test passes.
+# See test/test_camera.py for an example.
+
 from typing import Optional
 
 from PIL import Image
@@ -10,6 +16,7 @@ from dep.labeller.loader.label import Vec2
 
 
 class DebugLandingPadDetector(LandingPadDetector):
+
     def __init__(self, bounding_box: Optional[BoundingBox] = None):
         self.bounding_box = bounding_box
 
@@ -36,6 +43,7 @@ def test_analysis_subscriber():
 
 
 class MockImageAnlaysisDebugger(ImageAnalysisDebugger):
+
     def __init__(self):
         self.image: Optional[Image.Image] = None
         self.bounding_box: Optional[BoundingBox] = None

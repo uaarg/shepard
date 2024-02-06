@@ -22,8 +22,7 @@ class ImageAnalysisDelegate:
     TODO: geolocate the landing pad using the drone's location.
     """
 
-    def __init__(self,
-                 detector: LandingPadDetector, camera: CameraProvider,
+    def __init__(self, detector: LandingPadDetector, camera: CameraProvider,
                  debugger: Optional[ImageAnalysisDebugger]):
         self.detector = detector
         self.camera = camera
@@ -70,4 +69,3 @@ class ImageAnalysisDelegate:
             imaging_process.subscribe(myhandler)
         """
         self.subscribers.append(callback)
-
