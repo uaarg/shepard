@@ -22,7 +22,8 @@ class ImageAnalysisDelegate:
     TODO: geolocate the landing pad using the drone's location.
     """
 
-    def __init__(self, detector: LandingPadDetector, camera: CameraProvider,
+    def __init__(self,
+                 detector: LandingPadDetector, camera: CameraProvider,
                  debugger: Optional[ImageAnalysisDebugger]):
         self.detector = detector
         self.camera = camera
@@ -36,17 +37,24 @@ class ImageAnalysisDelegate:
         # Use `threading` to start `self._analysis_loop` in another thread.
         raise NotImplementedError()
 
+    def _analyze_image(self):
+        """
+        Actually performs the image analysis once. Only useful for testing,
+        should otherwise we run by `start()` which then starts
+        `_analysis_loop()` in another thread.
+        """
+        # TODO:
+        # Get image from camera
+        # Run the landing pad detector
+        # Update the ImageAnalysisDebugger if present/enabled
+        # Call all subscribed callbacks (see subscribe)
+
     def _analysis_loop(self):
         """
-        Actually preforms the image analysis indefinitely. This should be run
-        in another thread; use `start()` to do so.
+        Indefinitely run image analysis. This should be run in another thread;
+        use `start()` to do so.
         """
         while True:
-            # TODO:
-            # Get image from camera
-            # Run the landing pad detector
-            # Update the ImageAnalysisDebugger if present/enabled
-            # Call all subscribed callbacks (see subscribe)
             pass
 
     def subscribe(self, callback: Callable):
@@ -62,3 +70,4 @@ class ImageAnalysisDelegate:
             imaging_process.subscribe(myhandler)
         """
         self.subscribers.append(callback)
+
