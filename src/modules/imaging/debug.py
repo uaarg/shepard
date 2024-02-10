@@ -17,6 +17,8 @@ class ImageAnalysisDebugger:
         self.image: Optional[Image.Image] = None
         self.root = tk.Tk()
         self.is_visible = False
+        self.hide_button = tk.Button(text ='Hide Window',command = self.hide)
+        self.hide_button.place(x=10,y=10)
 
     def show(self):
         """
@@ -34,6 +36,7 @@ class ImageAnalysisDebugger:
                           y=0,
                           width=self.image.size[0],
                           height=self.image.size[1])
+        self.hide_button.lift()
         self.root.update()
 
     def hide(self):
