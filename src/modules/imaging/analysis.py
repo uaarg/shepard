@@ -1,6 +1,6 @@
 from typing import Callable, Optional
 
-#import threading
+import threading
 
 from dep.labeller.benchmarks.detector import LandingPadDetector
 from .camera import CameraProvider
@@ -33,8 +33,9 @@ class ImageAnalysisDelegate:
         """
         Will start the image analysis process in another thread.
         """
+        thread = threading.Thread(target = self._analysis_loop())
+        thread.start()
         # Use `threading` to start `self._analysis_loop` in another thread.
-        raise NotImplementedError()
 
     def _analyze_image(self):
         """
@@ -42,6 +43,13 @@ class ImageAnalysisDelegate:
         should otherwise we run by `start()` which then starts
         `_analysis_loop()` in another thread.
         """
+        im = self.camera.capture()
+        bounding_box = self.detector.predict(im)
+        for subscribers in self.subscribers:
+            if bounding_box is None: 
+                pass 
+            else:    
+                subscribers(im, bounding_box)
         # TODO:
         # Get image from camera
         # Run the landing pad detector
@@ -54,7 +62,7 @@ class ImageAnalysisDelegate:
         use `start()` to do so.
         """
         while True:
-            pass
+            self._analyze_image()
 
     def subscribe(self, callback: Callable):
         """
