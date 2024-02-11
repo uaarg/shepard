@@ -23,7 +23,7 @@ class ImageAnalysisDelegate:
     """
 
     def __init__(self, detector: LandingPadDetector, camera: CameraProvider,
-                 debugger: Optional[ImageAnalysisDebugger]):
+                 debugger: Optional[ImageAnalysisDebugger] = None):
         self.detector = detector
         self.camera = camera
         self.debugger = debugger
@@ -63,7 +63,7 @@ class ImageAnalysisDelegate:
         while True:
             self._analyze_image()
 
-    def subscribe(self, callback: Callable, bounding_box: Optional[BoundingBox]):
+    def subscribe(self, callback: Callable):
         """
         Subscribe to image analysis updates. For example:
 
