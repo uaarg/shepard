@@ -45,6 +45,10 @@ class ImageAnalysisDelegate:
         """
         im = self.camera.capture()
         bounding_box = self.detector.predict(im)
+        print(self.debugger)
+        if self.debugger is not None:
+            self.debugger.set_image(im)
+            self.debugger.set_bounding_box(bounding_box)
         for subscribers in self.subscribers:
             if bounding_box is None:
                 pass
