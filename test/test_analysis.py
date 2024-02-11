@@ -31,6 +31,7 @@ def test_analysis_subscriber():
     global detected
     detected = None
     # TODO: make this work?
+    
     def _callback(_image, bounding_box):
         global detected
         detected = bounding_box
@@ -54,7 +55,7 @@ class MockImageAnlaysisDebugger(ImageAnalysisDebugger):
 
     def show(self):
         #if not self.image:
-            #raise RuntimeError("No image set. Cannot show without an image")
+        #raise RuntimeError("No image set. Cannot show without an image")
         self.is_visible = True
 
     def hide(self):
