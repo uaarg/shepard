@@ -31,7 +31,10 @@ def test_analysis_subscriber():
 
     detected = None
     # TODO: make this work?
-    analysis.subscribe(lambda _image, bounding_box: detected = bounding_box)
+    def _callback(_image, bounding_box):
+        global detected
+        detected = bounding_box
+    analysis.subscribe(_callback)
 
     detector.bounding_box = BoundingBox(Vec2(0, 0), Vec2(100, 100))
     analysis._analyze_image()
