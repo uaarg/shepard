@@ -2,7 +2,7 @@ from typing import Callable, Optional
 
 import threading
 
-from dep.labeller.benchmarks.detector import LandingPadDetector
+from dep.labeller.benchmarks.detector import LandingPadDetector, BoundingBox
 from .camera import CameraProvider
 from .debug import ImageAnalysisDebugger
 
@@ -63,7 +63,7 @@ class ImageAnalysisDelegate:
         while True:
             self._analyze_image()
 
-    def subscribe(self, callback: Callable):
+    def subscribe(self, callback: Callable, bounding_box: Optional[BoundingBox]):
         """
         Subscribe to image analysis updates. For example:
 
