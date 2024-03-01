@@ -12,7 +12,7 @@ class AnalysisView:
     """
 
     def __init__(self, mavlinkDelegate: MAVLinkDelegate) -> None:
-  
+
         self.mavlink = mavlinkDelegate
 
     def send_BoundingBox(self, bbox: BoundingBox) -> None:
@@ -20,7 +20,7 @@ class AnalysisView:
         position = bbox.position
         size = bbox.size
         values = [position.x, position.y, size.x, size.y]
-        for i in range(4, 58): 
+        for i in range(4, 58):
             values[i] = 0.0
         dbg_box = dialect.MAVLink_debug_float_array_message(name=bytes("dbg_box", 'utf-8'),
                                                             time_usec=0,  # timestamp
