@@ -1,6 +1,6 @@
 from typing import Optional
 
-from deps.labeller.benchmarks.detector import LandingPadDetector, BoundingBox
+from dep.labeller.benchmarks.detector import LandingPadDetector, BoundingBox
 from .camera import CameraProvider
 
 
