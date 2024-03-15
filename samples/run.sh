@@ -17,4 +17,4 @@ if ! test -f "samples/$sample.py"; then
   exit 1
 fi
 
-PYTHONPATH=".:dep/labeller" python3 "samples/$sample.py"
+PYTHONPATH=".:dep/labeller:dep/labeller/third_party/yolov5" python3 "samples/$sample.py"

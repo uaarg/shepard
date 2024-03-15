@@ -47,12 +47,11 @@ class ImageAnalysisDelegate:
         bounding_box = self.detector.predict(im)
         print(self.debugger)
         if self.debugger is not None:
-            self.debugger.set_image(im)
-            self.debugger.set_bounding_box(bounding_box)
+            if bounding_box is not None:
+                self.debugger.set_image(im)
+                self.debugger.set_bounding_box(bounding_box)
         for subscribers in self.subscribers:
-            if bounding_box is None:
-                pass
-            else:
+            if bounding_box:
                 subscribers(im, bounding_box)
         # Get image from camera
         # Run the landing pad detector
