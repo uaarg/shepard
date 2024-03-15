@@ -1,7 +1,6 @@
 from typing import Callable, Optional
 
 import threading
-
 from dep.labeller.benchmarks.detector import LandingPadDetector
 from .camera import CameraProvider
 from .debug import ImageAnalysisDebugger
