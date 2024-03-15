@@ -21,7 +21,9 @@ class ImageAnalysisDelegate:
     TODO: geolocate the landing pad using the drone's location.
     """
 
-    def __init__(self, detector: LandingPadDetector, camera: CameraProvider,
+    def __init__(self,
+                 detector: LandingPadDetector,
+                 camera: CameraProvider,
                  debugger: Optional[ImageAnalysisDebugger] = None):
         self.detector = detector
         self.camera = camera
@@ -32,7 +34,7 @@ class ImageAnalysisDelegate:
         """
         Will start the image analysis process in another thread.
         """
-        thread = threading.Thread(target = self._analysis_loop)
+        thread = threading.Thread(target=self._analysis_loop)
         thread.start()
         # Use `threading` to start `self._analysis_loop` in another thread.
 
