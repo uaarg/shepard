@@ -2,6 +2,7 @@ import math
 import time
 
 import dronekit
+from pymavlink import mavutil
 
 from src.modules.autopilot.messenger import Messenger
 
@@ -31,7 +32,7 @@ class Navigator:
         """
 
         print(f"SHEPARD_NAV: {msg}")
-        self.mavlink_messenger.send(msg)
+        self.mavlink_messenger.send(msg, "SHEPARD_NAV")
 
     def takeoff(self, target_alt):
         """
@@ -97,7 +98,7 @@ class Navigator:
             remaining_distance = self.__get_distance_metres(
                 self.vehicle.location.global_relative_frame, target_location)
             self.__message(f"Distance to target: {remaining_distance} m")
-            if remaining_distance <= target_distance * 0.01:
+            if remaining_distance <= target_distance * 0.1:
                 self.__message("Reached target")
                 break
             time.sleep(2)
@@ -110,9 +111,9 @@ class Navigator:
         :return: None
         """
 
-        self.__message(f"Changing heading to {heading} degrees")
+        self.__message(f"Setting heading to {heading} degrees")
 
-        self.vehicle.commands.condition_yaw(heading)
+        self.__condition_yaw(heading)
 
     def set_heading_relative(self, heading):
         """
@@ -122,10 +123,9 @@ class Navigator:
         :return: None
         """
 
-        self.__message(
-            f"Changing heading to {heading} degrees relative to current heading"
-        )
-        self.vehicle.commands.condition_yaw(heading, relative=True)
+        self.__message(f"Changing heading by {heading} degrees relative")
+
+        self.__condition_yaw(heading, relative=True)
 
     def set_altitude(self, altitude):
         """
@@ -137,25 +137,58 @@ class Navigator:
 
         self.__message(f"Setting altitude to {altitude} m")
 
-        while self.vehicle.location.global_relative_frame.alt < altitude - 1:
-            self.vehicle.simple_takeoff(altitude)
-            time.sleep(1)
+        target_altitude = dronekit.LocationGlobalRelative(self.vehicle.location.global_relative_frame.lat,
+                                                          self.vehicle.location.global_relative_frame.lon,
+                                                          altitude)
+        self.vehicle.simple_goto(target_altitude)
 
     def set_altitude_relative(self, altitude):
         """
         Sets the altitude of the vehicle relative to its current altitude.
 
-        :param altitude: The altitude in meters.
+        :param altitude: The altitude relative to current altitude in meters, positive value to ascend and negative to descend.
         :return: None
         """
 
-        self.__message(
-            f"Setting altitude to {altitude} m relative to current altitude")
+        self.__message(f"Changing altitude to {altitude} m relative")
 
-        target_altitude = self.vehicle.location.global_relative_frame.alt + altitude
-        while self.vehicle.location.global_relative_frame.alt < target_altitude - 1:
-            self.vehicle.simple_takeoff(target_altitude)
-            time.sleep(1)
+        target_altitude = dronekit.LocationGlobalRelative(self.vehicle.location.global_relative_frame.lat,
+                                                          self.vehicle.location.global_relative_frame.lon,
+                                                          self.vehicle.location.global_relative_frame.alt + altitude)
+        self.vehicle.simple_goto(target_altitude)
+
+    def set_altitude_position(self, lat, lon, alt):
+        """
+        Sets the altitude and the position in absolute terms
+
+        :param lat: The latitude of the target position.
+        :param lon: The longitude of the target position.
+        :param alt: The target altitude in metres
+        :return: None
+        """
+        self.__message(f"Moving to lat: {lat} lon: {lon} alt: {alt}")
+
+        target_altitude_position = dronekit.LocationGlobalRelative(lat, lon, alt)
+
+        self.vehicle.simple_goto(target_altitude_position)
+
+    def set_altitude_position_relative(self, d_north, d_east, alt):
+        """
+        Sets the altitude and the position relative to current position
+
+        :param d_north: The distance to be moved north.
+        :param d_east: The distance to be moved east.
+        :param alt: Altitude to be moved in metres.
+        :return: None
+        """
+
+        self.__message(f"Moving {d_north} m north and {d_east} m east and {alt} m in altitude")
+
+        current_location = self.vehicle.location.global_relative_frame
+        target_location = self.__get_location_metres(current_location, d_north, d_east)
+        target_location.alt += alt
+
+        self.vehicle.simple_goto(target_location)
 
     def land(self):
         """
@@ -176,8 +209,6 @@ class Navigator:
 
         self.__message("Returning to launch")
         self.vehicle.mode = dronekit.VehicleMode("RTL")
-
-    # END_TODO
 
     def __get_location_metres(self, original_location, d_north, d_east):
         """
@@ -225,3 +256,21 @@ class Navigator:
         d_lon = location_2.lon - location_1.lon
 
         return math.sqrt((d_lat * d_lat) + (d_lon * d_lon)) * 1.113195e5
+
+    def __condition_yaw(self, heading, relative=False):
+        if relative:
+            is_relative = 1  # yaw relative to direction of travel
+        else:
+            is_relative = 0  # yaw is an absolute angle
+        # create the CONDITION_YAW command using command_long_encode()
+        msg = self.vehicle.message_factory.command_long_encode(
+            0, 0,  # target system, target component
+            mavutil.mavlink.MAV_CMD_CONDITION_YAW,  # command
+            0,  # confirmation
+            heading,  # param 1, yaw in degrees
+            0,  # param 2, yaw speed deg/s
+            1,  # param 3, direction -1 ccw, 1 cw
+            is_relative,  # param 4, relative offset 1, absolute angle 0
+            0, 0, 0)  # param 5 ~ 7 not used
+        # send command to vehicle
+        self.vehicle.send_mavlink(msg)
