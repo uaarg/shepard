@@ -11,7 +11,7 @@ class Messenger:
     """
 
     def __init__(self, port):
-        self.__master = mavutil.mavlink_connection(device=f"tcp:`127.0.0.1:{port}",
+        self.__master = mavutil.mavlink_connection(device=f"tcp:127.0.0.1:{port}",
                                                    source_system=1,
                                                    source_component=1)
 
