@@ -18,6 +18,9 @@ class Navigator:
         self.vehicle = vehicle
         self.mavlink_messenger = Messenger(messenger_port)
 
+    def send_message(self, msg):
+        self.__message(msg)
+
     def send_status_message(self, message):
         self.__message(message)
 
@@ -59,12 +62,13 @@ class Navigator:
 
         self.__message(f"Moving to {lat}, {lon}")
 
-        target_location = dronekit.LocationGlobalRelative(lat, lon, self.vehicle.location.global_relative_frame.alt)
+        target_location = dronekit.LocationGlobalRelative(
+            lat, lon, self.vehicle.location.global_relative_frame.alt)
         self.vehicle.simple_goto(target_location)
 
         while self.vehicle.mode.name == "GUIDED":
-            remaining_distance = self.__get_distance_metres(self.vehicle.location.global_relative_frame,
-                                                            target_location)
+            remaining_distance = self.__get_distance_metres(
+                self.vehicle.location.global_relative_frame, target_location)
             self.__message(f"Distance to target: {remaining_distance} m")
             if remaining_distance <= 0.1:
                 self.__message("Reached target")
@@ -83,14 +87,16 @@ class Navigator:
         self.__message(f"Moving {d_north} m north and {d_east} m east")
 
         current_location = self.vehicle.location.global_relative_frame
-        target_location = self.__get_location_metres(current_location, d_north, d_east)
-        target_distance = self.__get_distance_metres(current_location, target_location)
+        target_location = self.__get_location_metres(current_location, d_north,
+                                                     d_east)
+        target_distance = self.__get_distance_metres(current_location,
+                                                     target_location)
 
         self.vehicle.simple_goto(target_location)
 
         while self.vehicle.mode.name == "GUIDED":
-            remaining_distance = self.__get_distance_metres(self.vehicle.location.global_relative_frame,
-                                                            target_location)
+            remaining_distance = self.__get_distance_metres(
+                self.vehicle.location.global_relative_frame, target_location)
             self.__message(f"Distance to target: {remaining_distance} m")
             if remaining_distance <= target_distance * 0.1:
                 self.__message("Reached target")
@@ -218,15 +224,18 @@ class Navigator:
         earth_radius = 6378137.0  # Radius of "spherical" earth
         # Coordinate offsets in radians
         d_lat = d_north / earth_radius
-        d_lon = d_east / (earth_radius * math.cos(math.pi * original_location.lat / 180))
+        d_lon = d_east / (earth_radius *
+                          math.cos(math.pi * original_location.lat / 180))
 
         # New position in decimal degrees
         new_lat = original_location.lat + (d_lat * 180 / math.pi)
         new_lon = original_location.lon + (d_lon * 180 / math.pi)
         if type(original_location) is dronekit.LocationGlobal:
-            target_location = dronekit.LocationGlobal(new_lat, new_lon, original_location.alt)
+            target_location = dronekit.LocationGlobal(new_lat, new_lon,
+                                                      original_location.alt)
         elif type(original_location) is dronekit.LocationGlobalRelative:
-            target_location = dronekit.LocationGlobalRelative(new_lat, new_lon, original_location.alt)
+            target_location = dronekit.LocationGlobalRelative(
+                new_lat, new_lon, original_location.alt)
         else:
             raise Exception("Invalid Location object passed")
 

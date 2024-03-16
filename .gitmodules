@@ -1,3 +1,6 @@
 [submodule "third_party/yolov5"]
 	path = third_party/yolov5
 	url = https://github.com/ultralytics/yolov5
+[submodule "dep/labeller"]
+	path = dep/labeller
+	url = git@github.com:uaarg/labeller.git

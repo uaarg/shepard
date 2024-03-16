@@ -66,7 +66,8 @@ class Lander:
         """
 
         Navigator.set_heading(0)  # to make sure drone is facing
-        Navigator.set_position_relative(route[0] * altitude, route[1] * altitude)
+        Navigator.set_position_relative(route[0] * altitude,
+                                        route[1] * altitude)
 
 
 def main():
