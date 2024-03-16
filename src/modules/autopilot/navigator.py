@@ -2,6 +2,7 @@ import math
 import time
 
 import dronekit
+from pymavlink import mavutil
 
 from src.modules.autopilot.messenger import Messenger
 
@@ -28,7 +29,7 @@ class Navigator:
         """
 
         print(f"SHEPARD_NAV: {msg}")
-        self.mavlink_messenger.send(msg)
+        self.mavlink_messenger.send(msg, "SHEPARD_NAV")
 
     def takeoff(self, target_alt):
         """
@@ -91,7 +92,7 @@ class Navigator:
             remaining_distance = self.__get_distance_metres(self.vehicle.location.global_relative_frame,
                                                             target_location)
             self.__message(f"Distance to target: {remaining_distance} m")
-            if remaining_distance <= target_distance * 0.01:
+            if remaining_distance <= target_distance * 0.1:
                 self.__message("Reached target")
                 break
             time.sleep(2)
@@ -145,7 +146,7 @@ class Navigator:
         :return: None
         """
 
-        self.__message(f"Setting altitude to {altitude} m relative to current altitude")
+        self.__message(f"Changing altitude by {altitude} m")
 
         target_altitude = dronekit.LocationGlobalRelative(self.vehicle.location.global_relative_frame.lat,
                                                           self.vehicle.location.global_relative_frame.lon,
