@@ -31,7 +31,7 @@
 
 
 # landingspot(1, 15)
-
+import math
 
 def process_imaging_data(imaging_data):
     # Process imaging data to extract relevant information
@@ -86,6 +86,22 @@ def landingspot(a, imaging_data, number_of_loops=20):
 
 landingspot(1,15)
 
+def calculate_distance(current_coordinates, landing_spot):
+    x1, y1 = current_coordinates
+    x2, y2 = landing_spot
+    return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+
+def calculate_landing_speed(distance, final_velocity=0, acceleration=-9.8):
+    # Assuming acceleration due to gravity, negative because it's downwards
+    return math.sqrt(final_velocity**2 - 2*acceleration*distance)
+
+# In your main function, after finding a safe landing spot:
+current_coordinates = (0, 0)  # Replace with actual current coordinates
+distance = calculate_distance(current_coordinates, spot)
+landing_speed = calculate_landing_speed(distance)
+
+print("Distance to landing spot:", distance)
+print("Required landing speed:", landing_speed)
 
 
 
