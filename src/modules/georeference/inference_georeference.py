@@ -77,25 +77,6 @@ def get_camera_dir_vector(focal_length, camera_angle, altitude, fovh, fovv, x, y
 
     return direction_vector
 
-#not needed?
-def adjust_dir_vector_orientation(input_dir: np.array, pitch, roll,
-                                  yaw) -> np.array:
-    """
-    Rotates the direction vector using the camera pitch, roll and yaw
-
-    All inputs are in radians
-    """
-    # Construct the rotation matrices for pitch, roll, and yaw
-    Rx = np.array([[1, 0, 0], [0, cos(pitch), -sin(pitch)],
-                   [0, sin(pitch), cos(pitch)]])
-
-    Ry = np.array([[cos(roll), 0, sin(roll)], [0, 1, 0],
-                   [-sin(roll), 0, cos(roll)]])
-
-    Rz = np.array([[cos(yaw), sin(yaw), 0], [-sin(yaw), cos(yaw), 0],
-                   [0, 0, 1]])
-
-    return Rz @ Ry @ Rx @ input_dir
 
 #TODO get measurements to calculate offset due to shifted position of camera from the gps
 def calculate_object_offsets(
@@ -113,25 +94,7 @@ def calculate_object_offsets(
     fovh, fovv is the field of view of the camera
     x and y are the normalized pixel coordinates between 0 and 1
     """
-    
-
-    # Calculate the absolute unit vector
-    #absolute_unit_vector = adjust_dir_vector_orientation(
-    #   camera_unit_vector, pitch, roll, yaw)
-
-    # Calculate the scaling factor from the height
-    #old code
-    #scale = -height / absolute_unit_vector[2]
-
-    #if (scale < 0):
-        # detection is above horizon, this is an error
-    #    print("Object was detected above horizon, ignoring...")
-    #    return np.array([None, None])
-
-    # Finally calculate the overall offsets
-    #offsets = scale * absolute_unit_vector[:2]
-
-    #return dir_vector
+    pass
 
 
 def get_object_location(camera_attributes: dict, inference: dict) -> tuple:
@@ -149,4 +112,4 @@ def get_object_location(camera_attributes: dict, inference: dict) -> tuple:
 
     lon, lat = XY_To_LonLat(dir_vector[0], dir_vector[1])
 
-    return lon, lat
+    return (lon, lat)
