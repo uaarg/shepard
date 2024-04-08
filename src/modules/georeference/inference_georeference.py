@@ -39,7 +39,7 @@ def XY_To_LonLat(x, y, zone=12):
     return P(x, y, inverse=True)
 
 
-def get_camera_dir_vector(focal_length, camera_angle, altitude, fovh, fovv, x, y) -> np.array:
+def pixel_to_rel_position(focal_length, camera_angle, altitude, fovh, fovv, x, y) -> np.array:
     """
     Calculates the unit vector from an angled camera to an object at x, y pixel coordinates
     x and y are the normalized pixel coordinates between 0 and 1
@@ -106,7 +106,7 @@ def get_object_location(camera_attributes: dict, inference: dict) -> tuple:
     H_FOV = radians(62.2)
     V_FOV = radians(48.8)
 
-    dir_vector = get_camera_dir_vector(camera_attributes["focal length"], camera_attributes["angle"],
+    dir_vector = pixel_to_rel_position(camera_attributes["focal length"], camera_attributes["angle"],
                                        inference['relative_alt'], inference['x'], inference['y'],
                                        H_FOV, V_FOV,)
 
