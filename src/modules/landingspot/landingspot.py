@@ -1,9 +1,9 @@
-#let the present location be (0,0)
-#we pass in the length of the side of the square cam area
-#we pass in the number of loops around the origin, and has a default value of 20
+# let the present location be (0,0)
+# we pass in the length of the side of the square cam area
+# we pass in the number of loops around the origin, and has a default value of 20
 
 
-def landingspot(a, number_of_loops=20):
+def landing_spot(a, number_of_loops=20):
     route = []
     x, y = 0, 0
     for i in range(2, number_of_loops, 2):
@@ -30,4 +30,4 @@ def landingspot(a, number_of_loops=20):
     print(route)
 
 
-landingspot(1, 15)
+landing_spot(1, 15)

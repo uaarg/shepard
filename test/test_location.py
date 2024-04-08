@@ -1,10 +1,7 @@
-# Tests can be run with ./scripts/test.sh
-# They will run all files in the test/ directory starting with 'test_'.
-# Then, all functions starting with 'test_' will be run in that file. If the
-# function raises an error, the test fails. Otherwise, the test passes.
-# See test/test_camera.py for an example.
 import math
-from src.modules.imaging.location import DebugLocationProvider, MAVLinkLocationProvider, LatLng, Heading, Rotation
+from src.modules.imaging.location import (DebugLocationProvider,
+                                          MAVLinkLocationProvider, LatLng,
+                                          Heading, Rotation)
 from src.modules.imaging.mavlink import MAVLinkDelegateMock
 from pymavlink.dialects.v20 import all as dialect
 
