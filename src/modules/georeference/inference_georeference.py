@@ -39,14 +39,14 @@ def XY_To_LonLat(x, y, zone=12):
     return P(x, y, inverse=True)
 
 
-def pixel_to_rel_position(focal_length, camera_angle, altitude, fovh, fovv, x, y) -> np.array:
+def pixel_to_rel_position(focal_length, camera_angle, altitude, x, y, fovh, fovv) -> np.array:
     """
     Calculates the unit vector from an angled camera to an object at x, y pixel coordinates
     x and y are the normalized pixel coordinates between 0 and 1
     both fovs' are in radians.
     """
 
-    direction_vector = np.zeros(3)
+    direction_vector = np.zeros(2)
 
     #calculating image height and width in meters
     height = 2*focal_length*tan(fovv/2)
@@ -71,29 +71,17 @@ def pixel_to_rel_position(focal_length, camera_angle, altitude, fovh, fovv, x, y
     y_comp = altitude*tan(theta_y)
     x_comp = (altitude/cos(camera_angle))*tan(theta_x)
     
-    direction_vector[0] = x_comp
-    direction_vector[1] = y_comp
-    direction_vector[2] = altitude
+    offset = calculate_object_offsets()
+    
+    direction_vector[0] = x_comp + offset[0]
+    direction_vector[1] = y_comp + offset[1]
 
     return direction_vector
 
 
 #TODO get measurements to calculate offset due to shifted position of camera from the gps
-def calculate_object_offsets(
-    height,
-    x: float,
-    y: float,
-    focal_length,
-    camera_angle,
-    fovh,
-    fovv) -> np.array:
-    """
-    Calculates the Easting and Northing Offsets for a given point in an image
-    camera_angle is the angle between height and focal length of the camera
-    Height is the posistion of the camera above ground level
-    fovh, fovv is the field of view of the camera
-    x and y are the normalized pixel coordinates between 0 and 1
-    """
+def calculate_object_offsets() -> np.array:
+    
     pass
 
 
