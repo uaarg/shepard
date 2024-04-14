@@ -17,11 +17,12 @@ from dep.labeller.loader.label import Vec2
 
 class DebugLandingPadDetector(LandingPadDetector):
 
-    def __init__(self, bounding_box: Optional[BoundingBox] = None):
-        self.bounding_box = bounding_box
+    def __init__(self, vector: Optional[Vec2] = None, bb: Optional[BoundingBox] = None):
+        self.vector = vector
+        self.bounding_box = bb
 
-    def predict(self, _image: Image.Image) -> BoundingBox:
-        return self.bounding_box
+    def predict(self, _image: Image.Image) -> Vec2:
+        return self.vector
 
 
 def test_analysis_subscriber():
@@ -33,19 +34,19 @@ def test_analysis_subscriber():
 
     # TODO: make this work?
 
-    def _callback(_image, bounding_box):
+    def _callback(_image, lon, lat):
         global detected
-        detected = bounding_box
+        detected = Vec2(lon, lat)
 
     analysis.subscribe(_callback)
 
-    detector.bounding_box = BoundingBox(Vec2(0, 0), Vec2(100, 100))
+    detector.vector = Vec2(0, 0)
     analysis._analyze_image()
-    assert detected == detector.bounding_box
-    old_bounding_box = detected
-    detector.bounding_box = old_bounding_box
+    assert detected == detector.vector 
+    old_vector = detected
+    detector.vector = old_vector
     analysis._analyze_image()
-    assert detected == detector.bounding_box
+    assert detected == detector.vector
 
 
 class MockImageAnlaysisDebugger(ImageAnalysisDebugger):

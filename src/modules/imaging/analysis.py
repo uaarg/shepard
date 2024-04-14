@@ -1,9 +1,10 @@
 from typing import Callable, Optional
 
 import threading
-from dep.labeller.benchmarks.detector import LandingPadDetector
+from dep.labeller.benchmarks.detector import LandingPadDetector, BoundingBox
 from .camera import CameraProvider
 from .debug import ImageAnalysisDebugger
+from georeference.inference_georeference import get_object_location
 
 
 class ImageAnalysisDelegate:
@@ -29,7 +30,23 @@ class ImageAnalysisDelegate:
         self.camera = camera
         self.debugger = debugger
         self.subscribers = []
+        #constant
+        self.camera_attributes = {
+            "focal lenght" : 0,
+            "angle" : 0, #in radians
+            "resolution" : [0,0]
+        }
+    
+    def get_inference(self, bounding_box: BoundingBox) -> dict: #variable
+        position = bounding_box.position
+        inference = {
+            "x" : position.x/self.camera_attributes["resolution"][0],
+            "y" : position.y/self.camera_attributes["resolution"][1],
+            "relative_alt" : 0
+        }
+        return inference
 
+    
     def start(self):
         """
         Will start the image analysis process in another thread.
@@ -45,7 +62,7 @@ class ImageAnalysisDelegate:
         `_analysis_loop()` in another thread.
         """
         im = self.camera.capture()
-        bounding_box = self.detector.predict(im)
+        bounding_box: BoundingBox = self.detector.predict(im)
         print(self.debugger)
         if self.debugger is not None:
             if bounding_box is not None:
@@ -53,7 +70,9 @@ class ImageAnalysisDelegate:
                 self.debugger.set_bounding_box(bounding_box)
         for subscribers in self.subscribers:
             if bounding_box:
-                subscribers(im, bounding_box)
+                inference = self.get_inference(bounding_box)
+                lon, lat = get_object_location(self.camera_attributes, inference)
+                subscribers(im, lon, lat)
         # Get image from camera
         # Run the landing pad detector
         # Update the ImageAnalysisDebugger if present/enabled
