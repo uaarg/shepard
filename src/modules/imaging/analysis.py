@@ -5,6 +5,7 @@ from dep.labeller.benchmarks.detector import LandingPadDetector, BoundingBox
 from .camera import CameraProvider
 from .debug import ImageAnalysisDebugger
 from georeference.inference_georeference import get_object_location
+from .location import LocationProvider 
 
 
 class ImageAnalysisDelegate:
@@ -29,6 +30,7 @@ class ImageAnalysisDelegate:
         self.detector = detector
         self.camera = camera
         self.debugger = debugger
+        self.location_provider: LocationProvider
         self.subscribers = []
         #constant
         self.camera_attributes = {
@@ -42,7 +44,7 @@ class ImageAnalysisDelegate:
         inference = {
             "x" : position.x/self.camera_attributes["resolution"][0],
             "y" : position.y/self.camera_attributes["resolution"][1],
-            "relative_alt" : 0
+            "relative_alt" : self.location_provider.altitude()
         }
         return inference
 
