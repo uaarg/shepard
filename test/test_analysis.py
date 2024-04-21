@@ -21,8 +21,8 @@ class DebugLandingPadDetector(LandingPadDetector):
         self.vector = vector
         self.bounding_box = bb
 
-    def predict(self, _image: Image.Image) -> Vec2:
-        return self.vector
+    def predict(self, _image: Image.Image) -> BoundingBox:
+        return self.bounding_box
 
 
 def test_analysis_subscriber():

@@ -7,6 +7,23 @@ from .debug import ImageAnalysisDebugger
 from georeference.inference_georeference import get_object_location
 from .location import LocationProvider 
 
+class CameraAttributes:
+
+    def __init__(self):
+        self.focal_length = 0
+        self.angle = 0 #in radians
+        self.resolution = (0,0)
+
+class Inference:
+
+    def __init__(self, bounding_box: BoundingBox, relative_alt):
+        camera_attributes = CameraAttributes
+        position = bounding_box.position
+        size = bounding_box.size
+        self.x = (position.x + size.x/2)/camera_attributes.resolution[0]
+        self.y = position.y + size.y/2/camera_attributes.resolution[1]
+        self.relative_alt = relative_alt
+
 
 class ImageAnalysisDelegate:
     """
@@ -26,26 +43,20 @@ class ImageAnalysisDelegate:
     def __init__(self,
                  detector: LandingPadDetector,
                  camera: CameraProvider,
+                 location_provider: LocationProvider,
                  debugger: Optional[ImageAnalysisDebugger] = None):
         self.detector = detector
         self.camera = camera
         self.debugger = debugger
-        self.location_provider: LocationProvider
+        self.location_provider = location_provider
         self.subscribers = []
-        #constant
-        self.camera_attributes = {
-            "focal lenght" : 0,
-            "angle" : 0, #in radians
-            "resolution" : [0,0]
-        }
+        self.camera_attributes = CameraAttributes()
     
-    def get_inference(self, bounding_box: BoundingBox) -> dict: #variable
-        position = bounding_box.position
-        inference = {
-            "x" : position.x/self.camera_attributes["resolution"][0],
-            "y" : position.y/self.camera_attributes["resolution"][1],
-            "relative_alt" : self.location_provider.altitude()
-        }
+    def get_inference(self, bounding_box: BoundingBox) -> Inference: #variable
+        inference = Inference(bounding_box, self.location_provider.altitude())   
+        if inference.x > 1 or inference.y > 1: 
+            print("Bounding Box out of bounds")
+            inference = None
         return inference
 
     
@@ -73,8 +84,9 @@ class ImageAnalysisDelegate:
         for subscribers in self.subscribers:
             if bounding_box:
                 inference = self.get_inference(bounding_box)
-                lon, lat = get_object_location(self.camera_attributes, inference)
-                subscribers(im, lon, lat)
+                if inference:
+                    lon, lat = get_object_location(self.camera_attributes, inference)
+                    subscribers(im, lon, lat)
         # Get image from camera
         # Run the landing pad detector
         # Update the ImageAnalysisDebugger if present/enabled
