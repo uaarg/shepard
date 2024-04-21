@@ -21,7 +21,7 @@ class Inference:
         position = bounding_box.position
         size = bounding_box.size
         self.x = (position.x + size.x/2)/camera_attributes.resolution[0]
-        self.y = position.y + size.y/2/camera_attributes.resolution[1]
+        self.y = (position.y + size.y/2)/camera_attributes.resolution[1]
         self.relative_alt = relative_alt
 
 
