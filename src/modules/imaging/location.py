@@ -13,6 +13,9 @@ class LatLng:
     lat: float
     lng: float
 
+    def to_json(self):
+        return {"lat": self.lat, "lng": self.lng}
+
 
 @dataclass
 class Heading:
@@ -22,6 +25,9 @@ class Heading:
     """
 
     heading: float
+
+    def to_json(self):
+        return self.heading
 
 
 @dataclass
@@ -33,6 +39,13 @@ class Rotation:
     pitch: float
     roll: float
     yaw: float
+
+    def to_json(self):
+        return {
+            "pitch": self.pitch,
+            "roll": self.roll,
+            "yaw": self.yaw,
+        }
 
 
 class LocationProvider:
@@ -65,8 +78,22 @@ class LocationProvider:
         """
         raise NotImplementedError()
 
+    def dump_to(self, path: str):
+        try:
+            dump = {
+                "location": self.location().to_json(),
+                "heading": self.heading().to_json(),
+                "altitude": self.altitude(),
+                "orientation": self.orientation().to_json(),
+            }
 
-class DebugLocationProvider:
+            with open(path, "w") as f:
+                json.dump(dump, f)
+        except ValueError:
+            pass  # Raised if we cannot get any location data
+
+
+class DebugLocationProvider(LocationProvider):
     """
     Will return a series of given locations and orientations.
     """
@@ -134,7 +161,7 @@ class DebugLocationProvider:
             self._current_orientation = Rotation(pitch, roll, yaw)
 
 
-class MAVLinkLocationProvider:
+class MAVLinkLocationProvider(LocationProvider):
     """
     Will provide location information based on information received as MAVLink messages.
     """
