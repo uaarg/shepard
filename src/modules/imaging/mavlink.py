@@ -33,16 +33,20 @@ class MAVLinkDelegate:
         """
         Start the mavlink delegate. Will never return.
         """
+        last_heartbeat = time.time()
         while True:
             msg = self._conn.recv_match(blocking=False)
             if msg:
-                print(msg)
+                #print(msg)
                 for listener in self._listeners:
                     listener(msg)
 
                 continue  # Check for more messages immediately
 
-            time.sleep(0.0001)  # 100 us
+            now = time.time()
+            if now - last_heartbeat > 1:
+                last_heartbeat = now
+                self.send(dialect.MAVLink_heartbeat_message(0, 0, 0, 0, 0, 0))
 
 
 class MAVLinkDelegateMock(MAVLinkDelegate):
