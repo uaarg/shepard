@@ -12,8 +12,8 @@ class MAVLinkDelegate:
 
     def __init__(self, port: int = 14550):
         self._conn = mavutil.mavlink_connection(device=f"tcp:127.0.0.1:{port}",
-                                                source_system=1,
-                                                source_component=1)
+                                                source_system=255,
+                                                source_component=10)
 
         self._listeners: List[Callable] = []
 
@@ -36,6 +36,7 @@ class MAVLinkDelegate:
         while True:
             msg = self._conn.recv_match(blocking=False)
             if msg:
+                print(msg)
                 for listener in self._listeners:
                     listener(msg)
 
