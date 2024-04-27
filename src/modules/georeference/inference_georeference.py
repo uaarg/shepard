@@ -9,7 +9,8 @@ Note for this analysis, we use UTM coordinates.
 This maps traditional Latitude and Longitude into an X Y coordinate grid
 where X, Y are in meters
 """
-from imaging.analysis import CameraAttributes, Inference
+# TODO: Requires a circular-import... but we only need these for type annotations
+# from ..imaging.analysis import 'CameraAttributes', 'Inference'
 import numpy as np
 from math import sin, cos, tan, atan, radians, sqrt
 import pyproj
@@ -39,7 +40,7 @@ def XY_To_LonLat(x, y, zone=12):
     return P(x, y, inverse=True)
 
 
-def pixel_to_rel_position(camera_attributes: CameraAttributes, inference: Inference, fovh, fovv) -> np.array:
+def pixel_to_rel_position(camera_attributes: 'CameraAttributes', inference: 'Inference', fovh, fovv) -> np.array:
     """
     Calculates the unit vector from an angled camera to an object at x, y pixel coordinates
     x and y are the normalized pixel coordinates between 0 and 1
@@ -81,11 +82,10 @@ def pixel_to_rel_position(camera_attributes: CameraAttributes, inference: Infere
 
 #TODO get measurements to calculate offset due to shifted position of camera from the gps
 def calculate_object_offsets() -> np.array:
-    
-    pass
+    return np.array([0, 0])
 
 
-def get_object_location(camera_attributes: CameraAttributes, inference: Inference) -> tuple:
+def get_object_location(camera_attributes: 'CameraAttributes', inference: 'Inference') -> tuple:
     """
     This calculates the location of the inference provided
     and returns the longitude, latitude in degrees
@@ -95,6 +95,7 @@ def get_object_location(camera_attributes: CameraAttributes, inference: Inferenc
     V_FOV = radians(48.8)
 
     dir_vector = pixel_to_rel_position(camera_attributes, inference, H_FOV, V_FOV,)
+    print("dir_vector", dir_vector)
 
     lon, lat = XY_To_LonLat(dir_vector[0], dir_vector[1])
 

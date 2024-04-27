@@ -4,20 +4,20 @@ import threading
 from dep.labeller.benchmarks.detector import LandingPadDetector, BoundingBox
 from .camera import CameraProvider
 from .debug import ImageAnalysisDebugger
-from georeference.inference_georeference import get_object_location
+from ..georeference.inference_georeference import get_object_location
 from .location import LocationProvider 
 
 class CameraAttributes:
 
     def __init__(self):
-        self.focal_length = 0
-        self.angle = 0 #in radians
-        self.resolution = (0,0)
+        self.focal_length = 0.01
+        self.angle = 10/180*3.14159 #in radians
+        self.resolution = (640,640)
 
 class Inference:
 
     def __init__(self, bounding_box: BoundingBox, relative_alt):
-        camera_attributes = CameraAttributes
+        camera_attributes = CameraAttributes()
         position = bounding_box.position
         size = bounding_box.size
         self.x = (position.x + size.x/2)/camera_attributes.resolution[0]
@@ -78,8 +78,8 @@ class ImageAnalysisDelegate:
         bounding_box: BoundingBox = self.detector.predict(im)
         print(self.debugger)
         if self.debugger is not None:
+            self.debugger.set_image(im)
             if bounding_box is not None:
-                self.debugger.set_image(im)
                 self.debugger.set_bounding_box(bounding_box)
         for subscribers in self.subscribers:
             if bounding_box:
