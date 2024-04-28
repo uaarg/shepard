@@ -14,9 +14,13 @@ class Navigator:
 
     vehicle: dronekit.Vehicle = None
 
-    def __init__(self, vehicle, messenger_port):
+    def __init__(self, vehicle, messenger_port, camera_fov, camera_res):
         self.vehicle = vehicle
         self.mavlink_messenger = Messenger(messenger_port)
+
+        """Pass camera_fov and camera_res as tuple"""
+        self.camera_fov = camera_fov 
+        self.camera_res = camera_res 
 
     def send_message(self, msg):
         self.__message(msg)
@@ -274,3 +278,29 @@ class Navigator:
             0, 0, 0)  # param 5 ~ 7 not used
         # send command to vehicle
         self.vehicle.send_mavlink(msg)
+
+
+    def send_land_message(x, y):
+
+        """Sends a precision landing message to MAVlink
+        
+        :param x: The x offset from the landing zone
+        :param y: the y offset from the landing zone"""
+        
+        horizontal_fov = self.camera_fov[0]
+        vertical_fov = self.camera_fov[1]
+
+        horizontal_resolution = self.camera_res[0]
+        vertical_resolution = self.camera_res[1]
+
+
+        msg = self.vehicle.message_factory.landing_target_encode(
+        0,       # time_boot_ms (not used)
+        0,       # target num
+        0,       # frame
+        (x-horizontal_resolution/2)*horizontal_fov/horizontal_resolution,
+        (y-vertical_resolution/2)*vertical_fov/vertical_resolution,
+        0,       # altitude.  Not supported.
+        0,0)     # size of target in radians
+        self.vehicle.send_mavlink(msg)
+        self.vehicle.flush()
