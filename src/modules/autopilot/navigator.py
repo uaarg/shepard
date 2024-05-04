@@ -268,3 +268,30 @@ class Navigator:
             0, 0, 0)    # param 5 ~ 7 not used
         # send command to vehicle
         self.vehicle.send_mavlink(msg)
+        
+        
+    def optimum_speed(self, time_left, waypoints):
+        """
+        Finds the optimum horizontal speed required to go from current position to all waypoints and land within the given time
+
+        :param time_left: The time left to land in [seconds], initially the land time minus the takeoff time.
+        :param waypoints: List of all remaining way points to go to.
+        :return: required ground speed in [m/s].
+        """
+        
+        self.__message("Calculating optimum horizontal speed")
+        
+        total_distance = self.__get_distance_metres(self.vehicle.location.global_relative_frame,
+                                                    waypoints[0])
+        for i in range(1, len(waypoints)):
+            total_distance += self.__get_distance_metres(waypoints[i-1],waypoints[i])
+         
+        speed_required = total_distance/time_left   
+        self.__message(f"Speed required to travel {total_distance} m in {time_left} s is {speed_required} m/s")
+        return speed_required
+            
+        
+        
+        
+        
+        
