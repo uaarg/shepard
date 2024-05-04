@@ -6,6 +6,7 @@ import threading
 mavlink = MAVLinkDelegate()
 battery = MAVLinkBatteryStatusProvider(mavlink)
 
+
 def wait_for_voltage():
     while True:
         try:
@@ -15,6 +16,7 @@ def wait_for_voltage():
             pass
             #print("no data yet")
         time.sleep(0.5)
+
 
 threading.Thread(target=wait_for_voltage).start()
 mavlink.run()
