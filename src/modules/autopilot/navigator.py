@@ -59,12 +59,13 @@ class Navigator:
 
         self.__message(f"Moving to {lat}, {lon}")
 
-        target_location = dronekit.LocationGlobalRelative(lat, lon, self.vehicle.location.global_relative_frame.alt)
+        target_location = dronekit.LocationGlobalRelative(
+            lat, lon, self.vehicle.location.global_relative_frame.alt)
         self.vehicle.simple_goto(target_location)
 
         while self.vehicle.mode.name == "GUIDED":
-            remaining_distance = self.__get_distance_metres(self.vehicle.location.global_relative_frame,
-                                                            target_location)
+            remaining_distance = self.__get_distance_metres(
+                self.vehicle.location.global_relative_frame, target_location)
             self.__message(f"Distance to target: {remaining_distance} m")
             if remaining_distance <= 0.1:
                 self.__message("Reached target")
@@ -83,14 +84,16 @@ class Navigator:
         self.__message(f"Moving {d_north} m north and {d_east} m east")
 
         current_location = self.vehicle.location.global_relative_frame
-        target_location = self.__get_location_metres(current_location, d_north, d_east)
-        target_distance = self.__get_distance_metres(current_location, target_location)
+        target_location = self.__get_location_metres(current_location, d_north,
+                                                     d_east)
+        target_distance = self.__get_distance_metres(current_location,
+                                                     target_location)
 
         self.vehicle.simple_goto(target_location)
 
         while self.vehicle.mode.name == "GUIDED":
-            remaining_distance = self.__get_distance_metres(self.vehicle.location.global_relative_frame,
-                                                            target_location)
+            remaining_distance = self.__get_distance_metres(
+                self.vehicle.location.global_relative_frame, target_location)
             self.__message(f"Distance to target: {remaining_distance} m")
             if remaining_distance <= target_distance * 0.1:
                 self.__message("Reached target")
@@ -131,9 +134,9 @@ class Navigator:
 
         self.__message(f"Setting altitude to {altitude} m")
 
-        target_altitude = dronekit.LocationGlobalRelative(self.vehicle.location.global_relative_frame.lat,
-                                                          self.vehicle.location.global_relative_frame.lon,
-                                                          altitude)
+        target_altitude = dronekit.LocationGlobalRelative(
+            self.vehicle.location.global_relative_frame.lat,
+            self.vehicle.location.global_relative_frame.lon, altitude)
         self.vehicle.simple_goto(target_altitude)
 
     def set_altitude_relative(self, altitude):
@@ -146,9 +149,10 @@ class Navigator:
 
         self.__message(f"Changing altitude to {altitude} m relative")
 
-        target_altitude = dronekit.LocationGlobalRelative(self.vehicle.location.global_relative_frame.lat,
-                                                          self.vehicle.location.global_relative_frame.lon,
-                                                          self.vehicle.location.global_relative_frame.alt + altitude)
+        target_altitude = dronekit.LocationGlobalRelative(
+            self.vehicle.location.global_relative_frame.lat,
+            self.vehicle.location.global_relative_frame.lon,
+            self.vehicle.location.global_relative_frame.alt + altitude)
         self.vehicle.simple_goto(target_altitude)
 
     def set_altitude_position(self, lat, lon, alt):
@@ -162,7 +166,8 @@ class Navigator:
         """
         self.__message(f"Moving to lat: {lat} lon: {lon} alt: {alt}")
 
-        target_altitude_position = dronekit.LocationGlobalRelative(lat, lon, alt)
+        target_altitude_position = dronekit.LocationGlobalRelative(
+            lat, lon, alt)
 
         self.vehicle.simple_goto(target_altitude_position)
 
@@ -176,10 +181,13 @@ class Navigator:
         :return: None
         """
 
-        self.__message(f"Moving {d_north} m north and {d_east} m east and {alt} m in altitude")
+        self.__message(
+            f"Moving {d_north} m north and {d_east} m east and {alt} m in altitude"
+        )
 
         current_location = self.vehicle.location.global_relative_frame
-        target_location = self.__get_location_metres(current_location, d_north, d_east)
+        target_location = self.__get_location_metres(current_location, d_north,
+                                                     d_east)
         target_location.alt += alt
 
         self.vehicle.simple_goto(target_location)
@@ -218,15 +226,18 @@ class Navigator:
         earth_radius = 6378137.0  # Radius of "spherical" earth
         # Coordinate offsets in radians
         d_lat = d_north / earth_radius
-        d_lon = d_east / (earth_radius * math.cos(math.pi * original_location.lat / 180))
+        d_lon = d_east / (earth_radius *
+                          math.cos(math.pi * original_location.lat / 180))
 
         # New position in decimal degrees
         new_lat = original_location.lat + (d_lat * 180 / math.pi)
         new_lon = original_location.lon + (d_lon * 180 / math.pi)
         if type(original_location) is dronekit.LocationGlobal:
-            target_location = dronekit.LocationGlobal(new_lat, new_lon, original_location.alt)
+            target_location = dronekit.LocationGlobal(new_lat, new_lon,
+                                                      original_location.alt)
         elif type(original_location) is dronekit.LocationGlobalRelative:
-            target_location = dronekit.LocationGlobalRelative(new_lat, new_lon, original_location.alt)
+            target_location = dronekit.LocationGlobalRelative(
+                new_lat, new_lon, original_location.alt)
         else:
             raise Exception("Invalid Location object passed")
 
@@ -255,18 +266,20 @@ class Navigator:
             is_relative = 0  # yaw is an absolute angle
         # create the CONDITION_YAW command using command_long_encode()
         msg = self.vehicle.message_factory.command_long_encode(
-            0, 0,  # target system, target component
+            0,
+            0,  # target system, target component
             mavutil.mavlink.MAV_CMD_CONDITION_YAW,  # command
             0,  # confirmation
             heading,  # param 1, yaw in degrees
             0,  # param 2, yaw speed deg/s
             1,  # param 3, direction -1 ccw, 1 cw
             is_relative,  # param 4, relative offset 1, absolute angle 0
-            0, 0, 0)  # param 5 ~ 7 not used
+            0,
+            0,
+            0)  # param 5 ~ 7 not used
         # send command to vehicle
         self.vehicle.send_mavlink(msg)
-        
-        
+
     def optimum_speed(self, time_left, waypoints):
         """
         Finds the optimum horizontal speed required to go from current position to all waypoints and land within the given time
@@ -275,20 +288,17 @@ class Navigator:
         :param waypoints: List of all remaining way points to go to.
         :return: required ground speed in [m/s].
         """
-        
+
         self.__message("Calculating optimum horizontal speed")
-        
-        total_distance = self.__get_distance_metres(self.vehicle.location.global_relative_frame,
-                                                    waypoints[0])
+
+        total_distance = self.__get_distance_metres(
+            self.vehicle.location.global_relative_frame, waypoints[0])
         for i in range(1, len(waypoints)):
-            total_distance += self.__get_distance_metres(waypoints[i-1],waypoints[i])
-         
-        speed_required = total_distance/time_left   
-        self.__message(f"Speed required to travel {total_distance} m in {time_left} s is {speed_required} m/s")
+            total_distance += self.__get_distance_metres(
+                waypoints[i - 1], waypoints[i])
+
+        speed_required = total_distance / time_left
+        self.__message(
+            f"Speed required to travel {total_distance} m in {time_left} s is {speed_required} m/s"
+        )
         return speed_required
-            
-        
-        
-        
-        
-        

@@ -5,7 +5,6 @@ from dronekit import connect, VehicleMode
 from src.modules.autopilot import navigator
 from src.modules.autopilot import lander
 
-
 # TODO: Add connection string
 CONN_STR = ""
 MESSENGER_PORT = 14560
