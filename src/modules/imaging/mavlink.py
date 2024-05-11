@@ -37,7 +37,6 @@ class MAVLinkDelegate:
         while True:
             msg = self._conn.recv_match(blocking=False)
             if msg:
-                print(msg)
                 for listener in self._listeners:
                     listener(msg)
 

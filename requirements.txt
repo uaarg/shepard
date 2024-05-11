@@ -20,6 +20,7 @@ psutil==5.9.7
 pycodestyle==2.11.1
 pyflakes==3.1.0
 pymavlink==2.4.41
+pyproj==3.6.1
 pytest==7.4.4
 six==1.16.0
 tomli==2.0.1

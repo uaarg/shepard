@@ -1,9 +1,31 @@
-from typing import Callable, Optional
+from typing import Callable, Optional, List, Callable, Any
 
 import threading
-from dep.labeller.benchmarks.detector import LandingPadDetector
+from dep.labeller.benchmarks.detector import LandingPadDetector, BoundingBox
 from .camera import CameraProvider
 from .debug import ImageAnalysisDebugger
+from ..georeference.inference_georeference import get_object_location
+from .location import LocationProvider
+from PIL import Image
+
+
+class CameraAttributes:
+
+    def __init__(self):
+        self.focal_length = 0.01
+        self.angle = 10 / 180 * 3.14159  # in radians
+        self.resolution = (640, 640)
+
+
+class Inference:
+
+    def __init__(self, bounding_box: BoundingBox, relative_alt):
+        camera_attributes = CameraAttributes()
+        position = bounding_box.position
+        size = bounding_box.size
+        self.x = (position.x + size.x / 2) / camera_attributes.resolution[0]
+        self.y = (position.y + size.y / 2) / camera_attributes.resolution[1]
+        self.relative_alt = relative_alt
 
 
 class ImageAnalysisDelegate:
@@ -24,11 +46,21 @@ class ImageAnalysisDelegate:
     def __init__(self,
                  detector: LandingPadDetector,
                  camera: CameraProvider,
+                 location_provider: LocationProvider,
                  debugger: Optional[ImageAnalysisDebugger] = None):
         self.detector = detector
         self.camera = camera
         self.debugger = debugger
-        self.subscribers = []
+        self.location_provider = location_provider
+        self.subscribers: List[Callable[[Image.Image, float, float], Any]] = []
+        self.camera_attributes = CameraAttributes()
+
+    def get_inference(self, bounding_box: BoundingBox) -> Optional[Inference]:
+        inference = Inference(bounding_box, self.location_provider.altitude())
+        if inference.x > 1 or inference.y > 1:
+            print("Bounding Box out of bounds")
+            return None
+        return inference
 
     def start(self):
         """
@@ -46,20 +78,18 @@ class ImageAnalysisDelegate:
         """
         im = self.camera.capture()
         bounding_box = self.detector.predict(im)
-        print(self.debugger)
         if self.debugger is not None:
+            self.debugger.set_image(im)
             if bounding_box is not None:
-                self.debugger.set_image(im)
                 self.debugger.set_bounding_box(bounding_box)
+
         for subscribers in self.subscribers:
             if bounding_box:
-                subscribers(im, bounding_box)
-            else:
-                print("no bb")
-        # Get image from camera
-        # Run the landing pad detector
-        # Update the ImageAnalysisDebugger if present/enabled
-        # Call all subscribed callbacks (see subscribe)
+                inference = self.get_inference(bounding_box)
+                if inference:
+                    lon, lat = get_object_location(self.camera_attributes,
+                                                   inference)
+                    subscribers(im, lon, lat)
 
     def _analysis_loop(self):
         """

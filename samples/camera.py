@@ -7,7 +7,7 @@ from src.modules.imaging.camera import RPiCamera
 
 cam = RPiCamera()
 
-cam.set_size((1000, 1000))
+#cam.set_size((1000, 1000))
 
 print("Taking a picture in 3s.")
 
