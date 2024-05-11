@@ -137,9 +137,9 @@ class Navigator:
 
         self.__message(f"Setting altitude to {altitude} m")
 
-        target_altitude = dronekit.LocationGlobalRelative(self.vehicle.location.global_relative_frame.lat,
-                                                          self.vehicle.location.global_relative_frame.lon,
-                                                          altitude)
+        target_altitude = dronekit.LocationGlobalRelative(
+            self.vehicle.location.global_relative_frame.lat,
+            self.vehicle.location.global_relative_frame.lon, altitude)
         self.vehicle.simple_goto(target_altitude)
 
     def set_altitude_relative(self, altitude):
@@ -152,9 +152,10 @@ class Navigator:
 
         self.__message(f"Changing altitude to {altitude} m relative")
 
-        target_altitude = dronekit.LocationGlobalRelative(self.vehicle.location.global_relative_frame.lat,
-                                                          self.vehicle.location.global_relative_frame.lon,
-                                                          self.vehicle.location.global_relative_frame.alt + altitude)
+        target_altitude = dronekit.LocationGlobalRelative(
+            self.vehicle.location.global_relative_frame.lat,
+            self.vehicle.location.global_relative_frame.lon,
+            self.vehicle.location.global_relative_frame.alt + altitude)
         self.vehicle.simple_goto(target_altitude)
 
     def set_altitude_position(self, lat, lon, alt):
@@ -168,7 +169,8 @@ class Navigator:
         """
         self.__message(f"Moving to lat: {lat} lon: {lon} alt: {alt}")
 
-        target_altitude_position = dronekit.LocationGlobalRelative(lat, lon, alt)
+        target_altitude_position = dronekit.LocationGlobalRelative(
+            lat, lon, alt)
 
         self.vehicle.simple_goto(target_altitude_position)
 
@@ -182,10 +184,13 @@ class Navigator:
         :return: None
         """
 
-        self.__message(f"Moving {d_north} m north and {d_east} m east and {alt} m in altitude")
+        self.__message(
+            f"Moving {d_north} m north and {d_east} m east and {alt} m in altitude"
+        )
 
         current_location = self.vehicle.location.global_relative_frame
-        target_location = self.__get_location_metres(current_location, d_north, d_east)
+        target_location = self.__get_location_metres(current_location, d_north,
+                                                     d_east)
         target_location.alt += alt
 
         self.vehicle.simple_goto(target_location)
@@ -264,13 +269,16 @@ class Navigator:
             is_relative = 0  # yaw is an absolute angle
         # create the CONDITION_YAW command using command_long_encode()
         msg = self.vehicle.message_factory.command_long_encode(
-            0, 0,  # target system, target component
+            0,
+            0,  # target system, target component
             mavutil.mavlink.MAV_CMD_CONDITION_YAW,  # command
             0,  # confirmation
             heading,  # param 1, yaw in degrees
             0,  # param 2, yaw speed deg/s
             1,  # param 3, direction -1 ccw, 1 cw
             is_relative,  # param 4, relative offset 1, absolute angle 0
-            0, 0, 0)  # param 5 ~ 7 not used
+            0,
+            0,
+            0)  # param 5 ~ 7 not used
         # send command to vehicle
         self.vehicle.send_mavlink(msg)

@@ -13,9 +13,7 @@ detector = yolo.YoloDetector(weights="landing_nano.pt")
 cam = camera.RPiCamera()
 debugger = debug.ImageAnalysisDebugger()
 debugger = None
-img_analysis = analysis.ImageAnalysisDelegate(detector,
-                                              cam,
-                                              location_provider,
+img_analysis = analysis.ImageAnalysisDelegate(detector, cam, location_provider,
                                               debugger)
 
 #img_analysis.subscribe(lambda _, __, ___: debugger.show())

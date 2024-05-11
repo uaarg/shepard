@@ -17,11 +17,13 @@ from dep.labeller.loader.label import Vec2
 
 class DebugLandingPadDetector(LandingPadDetector):
 
-    def __init__(self, vector: Optional[Vec2] = None, bb: Optional[BoundingBox] = None):
+    def __init__(self,
+                 vector: Optional[Vec2] = None,
+                 bb: Optional[BoundingBox] = None):
         self.vector = vector
         self.bounding_box = bb
 
-    def predict(self, _image: Image.Image) -> BoundingBox:
+    def predict(self, _image: Image.Image) -> Optional[BoundingBox]:
         return self.bounding_box
 
 
@@ -42,7 +44,7 @@ def test_analysis_subscriber():
 
     detector.vector = Vec2(0, 0)
     analysis._analyze_image()
-    assert detected == detector.vector 
+    assert detected == detector.vector
     old_vector = detected
     detector.vector = old_vector
     analysis._analyze_image()
