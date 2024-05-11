@@ -44,8 +44,8 @@ def XY_To_LonLat(x, y, zone=12):
     return P(x, y, inverse=True)
 
 
-def pixel_to_rel_position(camera_attributes: CameraAttributes,
-                          inference: Inference, fovh, fovv) -> np.array:
+def pixel_to_rel_position(camera_attributes: 'CameraAttributes',
+                          inference: 'Inference', fovh, fovv) -> np.array:
     """
     Calculates the unit vector from an angled camera to an object at x, y pixel coordinates
     x and y are the normalized pixel coordinates between 0 and 1
@@ -95,8 +95,8 @@ def calculate_object_offsets() -> np.array:
     return np.array([0, 0])
 
 
-def get_object_location(camera_attributes: CameraAttributes,
-                        inference: Inference) -> tuple:
+def get_object_location(camera_attributes: 'CameraAttributes',
+                        inference: 'Inference') -> tuple:
     """
     This calculates the location of the inference provided
     and returns the longitude, latitude in degrees

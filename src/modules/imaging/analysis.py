@@ -78,11 +78,11 @@ class ImageAnalysisDelegate:
         """
         im = self.camera.capture()
         bounding_box = self.detector.predict(im)
-        print(self.debugger)
         if self.debugger is not None:
             self.debugger.set_image(im)
             if bounding_box is not None:
                 self.debugger.set_bounding_box(bounding_box)
+
         for subscribers in self.subscribers:
             if bounding_box:
                 inference = self.get_inference(bounding_box)
@@ -90,10 +90,6 @@ class ImageAnalysisDelegate:
                     lon, lat = get_object_location(self.camera_attributes,
                                                    inference)
                     subscribers(im, lon, lat)
-        # Get image from camera
-        # Run the landing pad detector
-        # Update the ImageAnalysisDebugger if present/enabled
-        # Call all subscribed callbacks (see subscribe)
 
     def _analysis_loop(self):
         """
