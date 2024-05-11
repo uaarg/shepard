@@ -48,5 +48,3 @@ nav.return_to_launch()
 drone.close()
 
 nav.send_status_message("Flight test script execution terminated")
-
-

@@ -90,8 +90,6 @@ class Navigator:
         current_location = self.vehicle.location.global_relative_frame
         target_location = self.__get_location_metres(current_location, d_north,
                                                      d_east)
-        target_distance = self.__get_distance_metres(current_location,
-                                                     target_location)
 
         self.vehicle.simple_goto(target_location)
 
@@ -193,7 +191,6 @@ class Navigator:
         target_location = self.__get_location_metres(current_location, d_north,
                                                      d_east)
         target_location.alt += alt
-        target_distance = self.__get_distance_metres(current_location, target_location)
 
         self.vehicle.simple_goto(target_location)
 
