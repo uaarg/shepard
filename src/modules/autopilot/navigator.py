@@ -13,6 +13,7 @@ class Navigator:
     """
 
     vehicle: dronekit.Vehicle = None
+    POSITION_TOLERANCE = 1.0  # m
 
     def __init__(self, vehicle, messenger_port):
         self.vehicle = vehicle
@@ -70,7 +71,7 @@ class Navigator:
             remaining_distance = self.__get_distance_metres(
                 self.vehicle.location.global_relative_frame, target_location)
             self.__message(f"Distance to target: {remaining_distance} m")
-            if remaining_distance <= 0.1:
+            if remaining_distance <= self.POSITION_TOLERANCE:
                 self.__message("Reached target")
                 break
             time.sleep(2)
@@ -98,7 +99,7 @@ class Navigator:
             remaining_distance = self.__get_distance_metres(
                 self.vehicle.location.global_relative_frame, target_location)
             self.__message(f"Distance to target: {remaining_distance} m")
-            if remaining_distance <= target_distance * 0.1:
+            if remaining_distance <= self.POSITION_TOLERANCE:
                 self.__message("Reached target")
                 break
             time.sleep(2)
@@ -192,8 +193,18 @@ class Navigator:
         target_location = self.__get_location_metres(current_location, d_north,
                                                      d_east)
         target_location.alt += alt
+        target_distance = self.__get_distance_metres(current_location, target_location)
 
         self.vehicle.simple_goto(target_location)
+
+        while self.vehicle.mode.name == "GUIDED":
+            remaining_distance = self.__get_distance_metres(
+                self.vehicle.location.global_relative_frame, target_location)
+            self.__message(f"Distance to target: {remaining_distance} m")
+            if remaining_distance <= self.POSITION_TOLERANCE:
+                self.__message("Reached target")
+                break
+            time.sleep(2)
 
     def land(self):
         """
