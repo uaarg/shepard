@@ -29,14 +29,14 @@ time.sleep(2)
 MAX_GROUND_SPEED = 20
 TIME = 180  #3 minutes
 ALTITUDE = 15
-WAY_POINT1 = [53.496500, -113.551900]
-WAY_POINT2 = [53.497400, -113.551900]
+WAY_POINT1 = [53.497200, -113.548800]
+WAY_POINT2 = [53.497200, -113.551600]
 #WAY_POINT3 = [53.496588, -113.548689]
 
 #Hard coded position which is 5m away from the waypoint
 
-MOVE_MARK1 = [53.496450, -113.551850]
-MOVE_MARK2 = [53.497450, -113.551850]
+MOVE_MARK1 = [53.497200, -113.548750]
+MOVE_MARK2 = [53.497200, -113.551650]
 
 waypoint1_location_global = LocationGlobal(WAY_POINT1[0], WAY_POINT1[1], ALTITUDE)
 waypoint2_location_global = LocationGlobal(WAY_POINT2[0], WAY_POINT2[1], ALTITUDE)
@@ -65,7 +65,7 @@ time.sleep(1)
 
 # Predecided number of laps for the drone to complete (This will later be adjusted based on battery consumption)
 
-laps = 2
+laps = 5
 
 for i in range(laps):
     nav.send_status_message("Moving Around Waypoint 1")
