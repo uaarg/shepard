@@ -81,10 +81,6 @@ for i in range(laps)
     nav.set_altitude_position_relative(5, -5, ALTITUDE)
     nav.set_altitude_position_relative(-5, -5, ALTITUDE)
 
-    nav.send_status_message("Returning To Waypoint 1")
-    nav.set_altitude_position(movemark1_location_global.lat,movemark1_location_global.lon,movemark1_location_global.alt)
-    nav.set_altitude_position_relative(-5, 5, ALTITUDE)
-    nav.set_altitude_position_relative(5, 5, ALTITUDE)
 
     nav.send_status_message("Completed Lap " + str(i) + "out of " + str(i) + " laps")
 
