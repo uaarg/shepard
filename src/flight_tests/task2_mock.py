@@ -5,8 +5,8 @@ from dronekit import connect, VehicleMode, LocationGlobal
 from src.modules.autopilot import navigator
 from src.modules.autopilot import lander
 
-CONN_STR = "tcp:127.0.0.1:14550"
-MESSENGER_PORT = 14550
+CONN_STR = "udp:127.0.0.1:14551"
+MESSENGER_PORT = 14552
 
 drone = connect(CONN_STR, wait_ready=False)
 
@@ -44,7 +44,15 @@ speed = nav.optimum_speed(TIME,[location_global1,location_global2,location_globa
 assert speed > 0
 assert speed < MAX_GROUND_SPEED
 
-drone.groundspeed = speed
+#drone.groundspeed = speed
+#nav.send_status_message(f"Ground speed set to {speed} m/s")
+
+# workaround to get the speed to set properly for the actual waypoints
+nav.set_position_relative(0, 0)
+
+time.sleep(1)
+nav.set_speed(speed)
+time.sleep(1)
 
 nav.send_status_message("Moving to Location 1")
 nav.set_altitude_position(location_global1.lat,location_global1.lon,location_global1.alt)
