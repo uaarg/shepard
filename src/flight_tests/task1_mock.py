@@ -40,15 +40,13 @@ MOVE_MARK2 = [53.497450, -113.551850]
 
 waypoint1_location_global = LocationGlobal(WAY_POINT1[0], WAY_POINT1[1], ALTITUDE)
 waypoint2_location_global = LocationGlobal(WAY_POINT2[0], WAY_POINT2[1], ALTITUDE)
-waypoint3_location_global = LocationGlobal(WAY_POINT3[0], WAY_POINT3[1], ALTITUDE)
+#waypoint3_location_global = LocationGlobal(WAY_POINT3[0], WAY_POINT3[1], ALTITUDE)
 
 
 movemark1_location_global = LocationGlobal(MOVE_MARK1[0], MOVE_MARK1[1], ALTITUDE)
 movemark2_location_global = LocationGlobal(MOVE_MARK2[0], MOVE_MARK2[1], ALTITUDE)
 
-
-
-speed = nav.optimum_speed(TIME,[location_global1,location_global2,location_global3])
+speed = 10
 
 #checking to ensure ground speed is safe
 assert speed > 0
@@ -69,7 +67,7 @@ time.sleep(1)
 
 laps = 2
 
-for i in range(laps)
+for i in range(laps):
     nav.send_status_message("Moving Around Waypoint 1")
     nav.set_altitude_position(movemark1_location_global.lat,movemark1_location_global.lon,movemark1_location_global.alt)
     nav.set_altitude_position_relative(-5, 5, ALTITUDE)
@@ -81,9 +79,7 @@ for i in range(laps)
     nav.set_altitude_position_relative(5, -5, ALTITUDE)
     nav.set_altitude_position_relative(-5, -5, ALTITUDE)
 
-
-    nav.send_status_message("Completed Lap " + str(i) + "out of " + str(i) + " laps")
-
+    nav.send_status_message(f"Completed Lap {i} out of {laps} laps")
 
 nav.return_to_launch()
 
