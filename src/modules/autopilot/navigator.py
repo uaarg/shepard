@@ -150,7 +150,6 @@ class Navigator:
                 break
             time.sleep(2)
 
-
     def set_altitude_relative(self, altitude):
         """
         Sets the altitude of the vehicle relative to its current altitude.
@@ -176,7 +175,6 @@ class Navigator:
                 break
             time.sleep(2)
 
-
     def set_altitude_position(self, lat, lon, alt):
         """
         Sets the altitude and the position in absolute terms
@@ -195,13 +193,13 @@ class Navigator:
 
         while self.vehicle.mode.name == "GUIDED":
             remaining_distance = self.__get_distance_metres(
-                self.vehicle.location.global_relative_frame, target_altitude_position)
+                self.vehicle.location.global_relative_frame,
+                target_altitude_position)
             self.__message(f"Distance to target: {remaining_distance} m")
             if remaining_distance <= self.POSITION_TOLERANCE:
                 self.__message("Reached target")
                 break
             time.sleep(2)
-
 
     def set_altitude_position_relative(self, d_north, d_east, alt):
         """
@@ -263,13 +261,18 @@ class Navigator:
 
         self.__message(f"Setting speed to {speed} m/s")
         msg = self.vehicle.message_factory.command_long_encode(
-                0, 0,  # target system, target component
-                mavutil.mavlink.MAV_CMD_DO_CHANGE_SPEED,  # command
-                0,  # confirmation
-                0,  # speed type, ignored in Copter
-                speed,  # speed
-                0, 0, 0, 0, 0  # ignore other parameters
-                )
+            0,
+            0,  # target system, target component
+            mavutil.mavlink.MAV_CMD_DO_CHANGE_SPEED,  # command
+            0,  # confirmation
+            0,  # speed type, ignored in Copter
+            speed,  # speed
+            0,
+            0,
+            0,
+            0,
+            0  # ignore other parameters
+        )
 
         self.vehicle.send_mavlink(msg)
         self.vehicle.flush()
@@ -354,13 +357,14 @@ class Navigator:
         self.__message("Calculating optimum horizontal speed")
 
         total_distance = self.__get_distance_metres(
-                self.vehicle.location.global_relative_frame, waypoints[0])
+            self.vehicle.location.global_relative_frame, waypoints[0])
         for i in range(1, len(waypoints)):
             total_distance += self.__get_distance_metres(
-                    waypoints[i-1], waypoints[i])
+                waypoints[i - 1], waypoints[i])
 
         speed_required = total_distance / time_left
         self.__message(
-                f"Speed required to travel {total_distance} m in {time_left} s is {speed_required} m/s")
+            f"Speed required to travel {total_distance} m in {time_left} s is {speed_required} m/s"
+        )
 
         return speed_required

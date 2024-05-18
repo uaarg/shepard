@@ -20,15 +20,17 @@ lander = lander.Lander()
 # mavlink = MAVLinkDelegate()
 # battery = MAVLinkBatteryStatusProvider(mavlink)
 
+
 def wait_for_voltage():
-	while True:
-		try:
-			voltage = battery.voltage()
-			nav.send_status_message(f"Battery voltage: {voltage} V")
-		except ValueError:
-			pass
-		time.sleep(5)
-		
+    while True:
+        try:
+            voltage = battery.voltage()
+            nav.send_status_message(f"Battery voltage: {voltage} V")
+        except ValueError:
+            pass
+        time.sleep(5)
+
+
 # threading.Thread(daemon=True, target=wait_for_voltage).start()
 # threading.Thread(daemon=True, target=mavlink.run).start()
 
@@ -52,10 +54,9 @@ WAYPOINT_1 = [53.497200, -113.548800]
 WAYPOINT_2 = [53.497200, -113.551600]
 
 waypoints = [[WAYPOINT_1[0] - 0.000100, WAYPOINT_1[1] + 0.000050],
-			 [WAYPOINT_1[0] - 0.000050, WAYPOINT_1[1] + 0.000200],
-			 [WAYPOINT_1[0] + 0.000050, WAYPOINT_1[1] + 0.000200],
+             [WAYPOINT_1[0] - 0.000050, WAYPOINT_1[1] + 0.000200],
+             [WAYPOINT_1[0] + 0.000050, WAYPOINT_1[1] + 0.000200],
              [WAYPOINT_1[0] + 0.000100, WAYPOINT_1[1] + 0.000050],
-             
              [WAYPOINT_2[0] + 0.000100, WAYPOINT_2[1] - 0.000050],
              [WAYPOINT_2[0] + 0.000050, WAYPOINT_2[1] - 0.000200],
              [WAYPOINT_2[0] - 0.000050, WAYPOINT_2[1] - 0.000200],

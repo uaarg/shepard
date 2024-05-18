@@ -38,13 +38,16 @@ WAY_POINT2 = [53.497200, -113.551600]
 MOVE_MARK1 = [53.497200, -113.548750]
 MOVE_MARK2 = [53.497200, -113.551650]
 
-waypoint1_location_global = LocationGlobal(WAY_POINT1[0], WAY_POINT1[1], ALTITUDE)
-waypoint2_location_global = LocationGlobal(WAY_POINT2[0], WAY_POINT2[1], ALTITUDE)
+waypoint1_location_global = LocationGlobal(WAY_POINT1[0], WAY_POINT1[1],
+                                           ALTITUDE)
+waypoint2_location_global = LocationGlobal(WAY_POINT2[0], WAY_POINT2[1],
+                                           ALTITUDE)
 #waypoint3_location_global = LocationGlobal(WAY_POINT3[0], WAY_POINT3[1], ALTITUDE)
 
-
-movemark1_location_global = LocationGlobal(MOVE_MARK1[0], MOVE_MARK1[1], ALTITUDE)
-movemark2_location_global = LocationGlobal(MOVE_MARK2[0], MOVE_MARK2[1], ALTITUDE)
+movemark1_location_global = LocationGlobal(MOVE_MARK1[0], MOVE_MARK1[1],
+                                           ALTITUDE)
+movemark2_location_global = LocationGlobal(MOVE_MARK2[0], MOVE_MARK2[1],
+                                           ALTITUDE)
 
 speed = 10
 
@@ -62,20 +65,22 @@ time.sleep(1)
 nav.set_speed(speed)
 time.sleep(1)
 
-
 # Predecided number of laps for the drone to complete (This will later be adjusted based on battery consumption)
 
 laps = 5
 
 for i in range(laps):
     nav.send_status_message("Moving Around Waypoint 1")
-    nav.set_altitude_position(movemark1_location_global.lat,movemark1_location_global.lon,movemark1_location_global.alt)
+    nav.set_altitude_position(movemark1_location_global.lat,
+                              movemark1_location_global.lon,
+                              movemark1_location_global.alt)
     nav.set_altitude_position_relative(-5, 5, ALTITUDE)
     nav.set_altitude_position_relative(5, 5, ALTITUDE)
 
-
     nav.send_status_message("Moving Around Waypoint 2")
-    nav.set_altitude_position(movemark2_location_global.lat,movemark2_location_global.lon,movemark2_location_global.alt)
+    nav.set_altitude_position(movemark2_location_global.lat,
+                              movemark2_location_global.lon,
+                              movemark2_location_global.alt)
     nav.set_altitude_position_relative(5, -5, ALTITUDE)
     nav.set_altitude_position_relative(-5, -5, ALTITUDE)
 
