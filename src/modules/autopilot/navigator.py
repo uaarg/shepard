@@ -233,6 +233,41 @@ class Navigator:
                 break
             time.sleep(2)
 
+    def send_ned_velocity(self, x, y):
+        """
+        Controlling Vehicle movement via velocity control. The distances are relative to the vehicle
+        NOTE: All lengths are in meters
+
+        :param x: Distance to be moved North
+        :param y: Distance to be moved East
+        """
+        
+        #https://mavlink.io/en/messages/common.html#SET_POSITION_TARGET_LOCAL_NED
+
+        distance = (x**2 + y**2 + z**2)**1/2
+        
+        self.__message(f"Moving drone {distance}m ")
+        msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
+                0, 0, 0,  #  timestamp, target system, target component
+                7,  # MAV_FRAME_LOCAL_OFFSET_NED frame (Sets coordinates relative to the drone)
+                0b0000111111111100 ,  # typemask to state that only x and y positions are necessary and the rest are ignored
+                x,  # x position
+                y,  # y position
+                0,  # z position
+                0,  # x velocity  (ignored)
+                0,  # y velocity  (ignored)
+                0,  # z velocity  (ignored)
+                0,  # x acceleration (ignored for now)
+                0,  # y acceleration (ignored for now)
+                0,  # z acceleration (ignored for now)
+                0,  #yaw (ignored)
+                0   #yaw rate (ignored)
+                )
+
+        self.vehicle.send_mavlink(msg)
+        self.vehicle.flush()
+
+
     def land(self):
         """
         Lands the vehicle.
@@ -321,6 +356,28 @@ class Navigator:
 
         return math.sqrt((d_lat * d_lat) + (d_lon * d_lon)) * 1.113195e5
 
+    def __get_vector_distance(self, location_1, location_2, altitude):
+        """
+        Returns the x and y components of the distance between two `LocationGlobal` objects.'
+        
+        :param location_1: The first `LocationGlobal` or `LocationGlobalRelative` object.
+        :param location_2: The second `LocationGlobal` or `LocationGlobalRelative` object.
+        :param altiutude: The current altitude
+        :return: The x and y components of the distance between the two points. 
+        """
+
+        # Draws a rectangle on the earth's surface and finds the base and the height of this rectangle as the vector components
+        
+        p1 = LocationGlobal(location_1.lat, location_2.lon, altitude)
+        p2 = LocationGlobal(location_2.lat, location_1.lon, altitude)
+
+        x = self.__get_distance_metres(location_1, p1)
+        y = self.__get_distance_metres(location_2, p2)
+
+        return (x, y)
+
+        
+
     def __condition_yaw(self, heading, relative=False):
         if relative:
             is_relative = 1  # yaw relative to direction of travel
@@ -364,3 +421,6 @@ class Navigator:
                 f"Speed required to travel {total_distance} m in {time_left} s is {speed_required} m/s")
 
         return speed_required
+
+
+    
