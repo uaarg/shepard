@@ -290,3 +290,5 @@ class Navigator:
             0)  # param 5 ~ 7 not used
         # send command to vehicle
         self.vehicle.send_mavlink(msg)
+
+    
