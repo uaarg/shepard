@@ -4,6 +4,10 @@ from dronekit import connect, VehicleMode, LocationGlobal
 
 from src.modules.autopilot import navigator
 from src.modules.autopilot import lander
+from src.modules.autopilot import precision_landing
+
+from src.modules import imaging
+from dep.labeller.benchmarks.colorfilter import ColorFilterDetector
 
 CONN_STR = "udp:127.0.0.1:14551"
 MESSENGER_PORT = 14552
@@ -12,6 +16,17 @@ drone = connect(CONN_STR, wait_ready=False)
 
 nav = navigator.Navigator(drone, MESSENGER_PORT)
 lander = lander.Lander()
+
+ALTITUDE = 15
+landing_pad = (5, 5) # Dimesnions of the landing pad in meters
+
+detector = ColorFilterDetector()
+camera = imaging.camera.RPiCamera()
+debugger = imaging.debug.ImageAnalysisDebugger()
+analysis = imaging.analysis.ImageAnalysisDelegate(detector, camera, debugger)
+landing = precision_landing.PrecisionLanding(drone, ALTITUDE, landing_pad)
+
+analysis.subscribe(landing.send)
 
 nav.send_status_message("Shepard is online")
 
@@ -27,7 +42,6 @@ time.sleep(2)
 
 MAX_GROUND_SPEED = 20
 TIME = 5 * 60  # 5 minutes
-ALTITUDE = 15
 
 waypoints = [
                 [53.497332, -113.550619, 30],
@@ -60,12 +74,31 @@ time.sleep(1)
 nav.set_speed(speed)
 time.sleep(1)
 
+hold_time = 5
+accept_radius = 5
+pass_radius = 10
+yaw = 0
+
+
+
 for i, location in enumerate(locations):
     nav.send_status_message(f"Moving to waypoint {i + 1} of {len(locations)}")
-    nav.set_altitude_position(location.lat, location.lon, location.alt, battery=None, hard_cutoff_enable=False)
+    #nav.set_altitude_position(location.lat, location.lon, location.alt, battery=None, hard_cutoff_enable=False)
+    nav.circular_waypoint(hold_time, accept_radius, pass_radius, yaw, location.lat, location.lon, location.alt)
+
+
+nav.send_status_message("Executing landing pad search")
+lander.generateRoute(4)
+
+for route in lander.route:
+    land = analysis.start() # Execute precision landing whenever landing is started
+    if land:
+        break
+    lander.goNext(nav, route, 10)
+    time.sleep(3)
+    
 
 nav.land()
 
 drone.close()
-
 nav.send_status_message("Flight test script execution terminated")
