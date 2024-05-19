@@ -291,4 +291,3 @@ class Navigator:
         # send command to vehicle
         self.vehicle.send_mavlink(msg)
 
-    

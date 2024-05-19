@@ -52,19 +52,16 @@ nav.send_status_message("Executing landing pad search")
 lander.generateRoute(4)
 
 for route in lander.route:
+    land = analysis.start() # Execute precision landing whenever landing is started
+    if land:
+        break
     lander.goNext(nav, route, 10)
     time.sleep(3)
+    
 
-analysis.start() # Execute precision landing whenever landing is started
-
-# nav.set_position(start_coords.lat, start_coords.lon)
-# time.sleep(1)
-# nav.land()
-
-nav.return_to_launch()
+nav.land()
 
 drone.close()
-
 nav.send_status_message("Flight test script execution terminated")
 
 
