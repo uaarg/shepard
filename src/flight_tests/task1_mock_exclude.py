@@ -43,8 +43,31 @@ waypoint2_location_global = LocationGlobal(WAY_POINT2[0], WAY_POINT2[1], ALTITUD
 #waypoint3_location_global = LocationGlobal(WAY_POINT3[0], WAY_POINT3[1], ALTITUDE)
 
 
-movemark1_location_global = LocationGlobal(MOVE_MARK1[0], MOVE_MARK1[1], ALTITUDE)
-movemark2_location_global = LocationGlobal(MOVE_MARK2[0], MOVE_MARK2[1], ALTITUDE)
+# Create radius of excluision around both waypoints
+
+msg = drone.message_factory.mav_cmd_fence_circle_exclusion_encode(
+5, # Radius of Exclusion
+0,0,0, # Reserved
+waypoint1_location_global.lat, # Waypoint1 latitude
+waypoint1_location_global.lon, # Waypoint1 Longitude
+0 # Reserved
+)
+
+
+msg2 = drone.message_factory.mav_cmd_fence_circle_exclusion_encode(
+5, # Radius of Exclusion
+0,0,0, # Reserved
+waypoint2_location_global.lat, # Waypoint2 latitude
+waypoint2_location_global.lon, # Waypoint2 Longitude
+0 # Reserved
+)
+
+drone.send_mavlink(msg)
+drone.send_mavlink(msg2)
+
+
+#movemark1_location_global = LocationGlobal(MOVE_MARK1[0], MOVE_MARK1[1], ALTITUDE)
+#movemark2_location_global = LocationGlobal(MOVE_MARK2[0], MOVE_MARK2[1], ALTITUDE)
 
 speed = 10
 
@@ -63,24 +86,16 @@ nav.set_speed(speed)
 time.sleep(1)
 
 
-# https://mavlink.io/en/messages/common.html#SET_POSITION_TARGET_LOCAL_NED
-
-
 # Predecided number of laps for the drone to complete (This will later be adjusted based on battery consumption)
 
 laps = 2
 
 for i in range(laps):
     nav.send_status_message("Moving Around Waypoint 1")
-    nav.set_altitude_position(movemark1_location_global.lat,movemark1_location_global.lon,movemark1_location_global.alt)
-    nav.set_altitude_position_relative(-5, 5, ALTITUDE)
-    nav.set_altitude_position_relative(5, 5, ALTITUDE)
-
+    nav.set_altitude_position(waypoint1_location_global.lat, waypoint1_location_global.lon, waypoint1_location_global.alt)
 
     nav.send_status_message("Moving Around Waypoint 2")
-    nav.set_altitude_position(movemark2_location_global.lat,movemark2_location_global.lon,movemark2_location_global.alt)
-    nav.set_altitude_position_relative(5, -5, ALTITUDE)
-    nav.set_altitude_position_relative(-5, -5, ALTITUDE)
+    nav.set_altitude_position(waypoint2_location_global.lat, waypoint2_location_global.lon, waypoint2_location_global.alt)
 
     nav.send_status_message(f"Completed Lap {i} out of {laps} laps")
 
