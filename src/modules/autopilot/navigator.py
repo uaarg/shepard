@@ -2,6 +2,7 @@ import math
 import time
 
 import dronekit
+from pymavlink import mavutil
 
 from src.modules.autopilot.messenger import Messenger
 

@@ -22,23 +22,29 @@ nav.send_status_message("Executing mission")
 time.sleep(2)
 
 nav.takeoff(10)
-#drone.groundspeed = 2  # m/s
-# start_coords = drone.location.global_relative_frame
+start_coords = drone.location.global_relative_frame
 time.sleep(2)
 
 MAX_GROUND_SPEED = 20
-TIME = 180  #3 minutes
+TIME = 5 * 60  # 5 minutes
 ALTITUDE = 15
-WAY_POINT1 = [53.497385, -113.551907]
-WAY_POINT2 = [53.496030, -113.551961]
-WAY_POINT3 = [53.496588, -113.548689]
 
-location_global1 = LocationGlobal(WAY_POINT1[0], WAY_POINT1[1], ALTITUDE)
-location_global2 = LocationGlobal(WAY_POINT2[0], WAY_POINT2[1], ALTITUDE)
-location_global3 = LocationGlobal(WAY_POINT3[0], WAY_POINT3[1], ALTITUDE)
+waypoints = [
+                [53.497332, -113.550619, 30],
+                [53.496801, -113.550650, 25],
+                [53.496801, -113.549702, 20],
+                [53.496917, -113.549702, 19],
+                [53.496975, -113.549616, 18],
+                [53.497028, -113.549499, 17],
+                [53.497061, -113.549299, 16],
+                [53.497056, -113.549003, 15],
+                [53.497302, -113.548999, 12.5],
+                [start_coords.lat, start_coords.lon, 10]
+            ]
 
-speed = nav.optimum_speed(
-    TIME, [location_global1, location_global2, location_global3])
+locations = [LocationGlobal(wp[0], wp[1], wp[2]) for wp in waypoints]
+
+speed = nav.optimum_speed(TIME, locations)
 
 #checking to ensure ground speed is safe
 assert speed > 0
@@ -54,19 +60,11 @@ time.sleep(1)
 nav.set_speed(speed)
 time.sleep(1)
 
-nav.send_status_message("Moving to Location 1")
-nav.set_altitude_position(location_global1.lat, location_global1.lon,
-                          location_global1.alt)
+for i, location in enumerate(locations):
+    nav.send_status_message(f"Moving to waypoint {i + 1} of {len(locations)}")
+    nav.set_altitude_position(location.lat, location.lon, location.alt)
 
-nav.send_status_message("Moving to Location 2")
-nav.set_altitude_position(location_global2.lat, location_global2.lon,
-                          location_global2.alt)
-
-nav.send_status_message("Moving to Location 3")
-nav.set_altitude_position(location_global3.lat, location_global3.lon,
-                          location_global3.alt)
-
-nav.return_to_launch()
+nav.land()
 
 drone.close()
 
