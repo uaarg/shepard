@@ -171,18 +171,26 @@ class Navigator:
                 break
             time.sleep(2)
 
-    def set_altitude_position(self, lat, lon, alt):
+    def set_altitude_position(self, lat, lon, alt, battery, voltage_hard_cutoff = 22.4, hard_cutoff_enable = True):
         """
         Sets the altitude and the position in absolute terms
 
         :param lat: The latitude of the target position.
         :param lon: The longitude of the target position.
         :param alt: The target altitude in metres
+        :param battery: MAVLinkBatteryStatusProvider object
         :return: None
         """
         self.__message(f"Moving to lat: {lat} lon: {lon} alt: {alt}")
 
         target_altitude_position = dronekit.LocationGlobalRelative(lat, lon, alt)
+
+        if hard_cutoff_enable == True:
+            if self.sufficient_battery(battery, voltage_hard_cutoff):
+                self.__message("--------Hard Cutoff reached----------")
+                self.__message("--------Returning to Launch----------")
+                self.return_to_launch()
+                return
 
         self.vehicle.simple_goto(target_altitude_position)
 
@@ -376,7 +384,7 @@ class Navigator:
                 break
             except ValueError:
                 pass
-            time.sleep(0.2)
+            time.sleep(0.1)
 
         self.__message(f"Current battery voltage is {voltage} V")
 
