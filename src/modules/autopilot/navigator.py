@@ -290,4 +290,31 @@ class Navigator:
             0)  # param 5 ~ 7 not used
         # send command to vehicle
         self.vehicle.send_mavlink(msg)
+    
+    def circular_waypoint(self, hold_time, accept_radius, pass_radius, yaw, lat, lon, alt):
+
+        """
+            Method for making the vehicle maintain a circular orbit around the waypoint to ensure a smooth and uniform movement around the waypoint. 
+            With this method, the drone can navigate itself to the waypoint and the parameters determine how far the vehicle orbits from the waypoint.
+
+            :param hold_time: The amount of time that the vehicle spends orbiting the waypoint (seconds)
+            :param accept_radius: The radius around the waypoint which the drone will consider that it hit (m)
+            :param pass_radius: The radius that the drone will orbit around the waypoint (m)
+            :param yaw: The desired yaw angle of the vehicle (set it to 0 lol) (degrees)
+            :param lat: The latitude of the waypoint
+            :param lon: The longitude of the waypoint
+            :param alt: The altitude of the waypoint
+        """
+
+        msg = self.vehicle.message_factory.mav_cmd_nav_waypoint_encode(
+            hold_time, # Time that the vehicle spends orbiting the waypoint
+            accept_radius, # Radius around the waypoint that the drone considers to have hit
+            pass_radius, # Creates a circular trajectory around the waypoint. 0 to pass thru the waypoint, + for CW, - for CCW
+            yaw, # Desired yaw angle 
+            lat, # Latitude of waypoint
+            lon, # Longitude of waypoint
+            alt # Altitude of waypoint
+        )
+
+        self.vehicle.send_mavlink(msg)
 
