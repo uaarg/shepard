@@ -12,6 +12,7 @@ class Navigator:
     """
 
     vehicle: dronekit.Vehicle = None
+    POSITION_TOLERANCE = 1
 
     def __init__(self, vehicle, messenger_port):
         self.vehicle = vehicle
@@ -65,7 +66,7 @@ class Navigator:
             remaining_distance = self.__get_distance_metres(self.vehicle.location.global_relative_frame,
                                                             target_location)
             self.__message(f"Distance to target: {remaining_distance} m")
-            if remaining_distance <= 0.1:
+            if remaining_distance <= self.POSITION_TOLERANCE:
                 self.__message("Reached target")
                 break
             time.sleep(2)
@@ -91,7 +92,7 @@ class Navigator:
             remaining_distance = self.__get_distance_metres(self.vehicle.location.global_relative_frame,
                                                             target_location)
             self.__message(f"Distance to target: {remaining_distance} m")
-            if remaining_distance <= target_distance * 0.01:
+            if remaining_distance <= self.POSITION_TOLERANCE:
                 self.__message("Reached target")
                 break
             time.sleep(2)
@@ -137,7 +138,6 @@ class Navigator:
                                                           altitude)
         self.vehicle.simple_goto(target_altitude)
 
-<<<<<<< HEAD
         while self.vehicle.mode.name == "GUIDED":
             remaining_distance = self.__get_distance_metres(
                 self.vehicle.location.global_relative_frame, target_altitude)
@@ -147,8 +147,6 @@ class Navigator:
                 break
             time.sleep(2)
 
-=======
->>>>>>> flight/task2-mock
     def set_altitude_relative(self, altitude):
         """
         Sets the altitude of the vehicle relative to its current altitude.
@@ -164,7 +162,6 @@ class Navigator:
                                                           self.vehicle.location.global_relative_frame.alt + altitude )
         self.vehicle.simple_goto(target_altitude)
 
-<<<<<<< HEAD
         while self.vehicle.mode.name == "GUIDED":
             remaining_distance = self.__get_distance_metres(
                 self.vehicle.location.global_relative_frame, target_altitude)
@@ -174,8 +171,6 @@ class Navigator:
                 break
             time.sleep(2)
 
-=======
->>>>>>> flight/task2-mock
     def set_altitude_position(self, lat, lon, alt):
         """
         Sets the altitude and the position in absolute terms
@@ -190,7 +185,6 @@ class Navigator:
         target_altitude_position = dronekit.LocationGlobalRelative(lat, lon, alt)
 
         self.vehicle.simple_goto(target_altitude_position)
-<<<<<<< HEAD
 
         while self.vehicle.mode.name == "GUIDED":
             remaining_distance = self.__get_distance_metres(
@@ -202,9 +196,6 @@ class Navigator:
                 break
             time.sleep(2)
 
-=======
-
->>>>>>> flight/task2-mock
     def set_altitude_position_relative(self, d_north, d_east, alt):
         """
         Sets the altitude and the position relative to current position
@@ -222,6 +213,16 @@ class Navigator:
         target_location.alt += alt
 
         self.vehicle.simple_goto(target_location)
+
+        while self.vehicle.mode.name == "GUIDED":
+            remaining_distance = self.__get_distance_metres(
+                self.vehicle.location.global_relative_frame,
+                target_altitude_position)
+            self.__message(f"Distance to target: {remaining_distance} m")
+            if remaining_distance <= self.POSITION_TOLERANCE:
+                self.__message("Reached target")
+                break
+            time.sleep(2)
 
     def land(self):
         """
