@@ -68,7 +68,7 @@ class WebcamCamera(CameraProvider):
 
     def __init__(self):
         self.cap = cv2.VideoCapture(0)  # 0 is typically the default webcam
-        self.size = (640, 480)
+        self.size = (1280, 720)
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.size[0])
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.size[1])
 
@@ -95,6 +95,9 @@ class RPiCamera(CameraProvider):
 
     def __init__(self):
         from picamera2 import Picamera2
+        
+        # Camera FOV 62.2x48.8 degrees
+
         self.camera = Picamera2()
         self.size = (640, 480)
         self.configure_camera()

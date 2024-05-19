@@ -25,7 +25,7 @@ detector = ColorFilterDetector()
 camera = imaging.camera.RPiCamera()
 debugger = imaging.debug.ImageAnalysisDebugger()
 analysis = imaging.analysis.ImageAnalysisDelegate(detector, camera, debugger)
-landing = precision_landing.PrecisionLanding(drone, altitude, landing_pad)
+landing = precision_landing.PrecisionLanding(drone, landing_pad)
 
 analysis.subscribe(landing.send)
 

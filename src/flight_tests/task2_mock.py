@@ -24,7 +24,7 @@ detector = ColorFilterDetector()
 camera = imaging.camera.RPiCamera()
 debugger = imaging.debug.ImageAnalysisDebugger()
 analysis = imaging.analysis.ImageAnalysisDelegate(detector, camera, debugger)
-landing = precision_landing.PrecisionLanding(drone, ALTITUDE, landing_pad)
+landing = precision_landing.PrecisionLanding(drone, landing_pad)
 
 analysis.subscribe(landing.send)
 
@@ -90,15 +90,19 @@ for i, location in enumerate(locations):
 nav.send_status_message("Executing landing pad search")
 lander.generateRoute(4)
 
+land = analysis.start() # Execute precision landing whenever landing is started
 for route in lander.route:
-    land = analysis.start() # Execute precision landing whenever landing is started
+    
     if land:
         break
     lander.goNext(nav, route, 10)
     time.sleep(3)
-    
+
 
 nav.land()
+
+while drone.armed:
+    pass
 
 drone.close()
 nav.send_status_message("Flight test script execution terminated")
