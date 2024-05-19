@@ -10,9 +10,6 @@ from src.modules.autopilot import precision_landing
 from src.modules import imaging
 from dep.labeller.benchmarks.colorfilter import ColorFilterDetector
 
-
-
-
 CONN_STR = "tcp:127.0.0.1:14550"
 MESSENGER_PORT = 14550
 

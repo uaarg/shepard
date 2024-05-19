@@ -13,7 +13,7 @@ class PrecisionLanding:
         self.altitude = altitude
         self.landing_pad = landing_pad
 
-    def __send_land_message(angle_x, angle_y, distance, size_x, size_y):
+    def __send_land_message(self, angle_x, angle_y, distance, size_x, size_y):
 
         """Sends a precision landing message to MAVlink
         
@@ -51,9 +51,16 @@ class PrecisionLanding:
         land_x = self.landing_pad[0]
         land_y = self.landing_pad[1]
 
-        size_x = math.atan((land_x/self.altitude))
-        size_y = math.atan((land_y/self.altitude))
+        size_x = (math.atan(((land_x/2)/self.altitude)))*2
+        size_y = math.atan(((land_y/2)/self.altitude))*2
 
-        distance = math.cos((lon*180/math.pi))*self.altitude
+        #Converting Latitudes and Longitudes to radians
+
+        lon = lon*180/math.pi
+        lat = lat*180/math.pi
+
+        distance = math.cos((lon))*self.altitude
+
+
 
         self.__send_land_message(lat, lon, distance, size_x, size_y)
