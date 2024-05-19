@@ -63,7 +63,7 @@ nav.set_position_relative(0, 0)
 drone.groundspeed = SPEED
 
 # TODO: Set WPNAV_SPEEDUP param
-nav.set_altitude_position(location_top.lat, location_top.lon, location_top.alt)
+nav.set_altitude_position(location_top.lat, location_top.lon, location_top.alt, battery, hard_cutoff_enable=False)
 
 LAPS = 5
 
@@ -72,7 +72,7 @@ for i in range(LAPS):
         nav.send_status_message("Battery lap cutoff reached")
         break
     for location in locations:
-        nav.set_altitude_position(location.lat, location.lon, location.alt)
+        nav.set_altitude_position(location.lat, location.lon, location.alt, battery, VOLTAGE_HARD_CUTOFF)
 
 nav.set_altitude_position(waypoints[0].lat, waypoints[0].lon, waypoints[0].alt)
 

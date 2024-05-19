@@ -62,7 +62,7 @@ time.sleep(1)
 
 for i, location in enumerate(locations):
     nav.send_status_message(f"Moving to waypoint {i + 1} of {len(locations)}")
-    nav.set_altitude_position(location.lat, location.lon, location.alt)
+    nav.set_altitude_position(location.lat, location.lon, location.alt, battery=None, hard_cutoff_enable=False)
 
 nav.land()
 
