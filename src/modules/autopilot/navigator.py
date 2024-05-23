@@ -60,12 +60,15 @@ class Navigator:
 
         self.__message(f"Moving to {lat}, {lon}")
 
-        target_location = dronekit.LocationGlobalRelative(lat, lon, self.vehicle.location.global_relative_frame.alt)
+        target_location = dronekit.LocationGlobalRelative(
+            lat, lon, self.vehicle.location.global_relative_frame.alt
+        )
         self.vehicle.simple_goto(target_location)
 
         while self.vehicle.mode.name == "GUIDED":
-            remaining_distance = self.__get_distance_metres(self.vehicle.location.global_relative_frame,
-                                                            target_location)
+            remaining_distance = self.__get_distance_metres(
+                self.vehicle.location.global_relative_frame, target_location
+            )
             self.__message(f"Distance to target: {remaining_distance} m")
             if remaining_distance <= self.POSITION_TOLERANCE:
                 self.__message("Reached target")
@@ -85,13 +88,13 @@ class Navigator:
 
         current_location = self.vehicle.location.global_relative_frame
         target_location = self.__get_location_metres(current_location, d_north, d_east)
-        target_distance = self.__get_distance_metres(current_location, target_location)
 
         self.vehicle.simple_goto(target_location)
 
         while self.vehicle.mode.name == "GUIDED":
-            remaining_distance = self.__get_distance_metres(self.vehicle.location.global_relative_frame,
-                                                            target_location)
+            remaining_distance = self.__get_distance_metres(
+                self.vehicle.location.global_relative_frame, target_location
+            )
             self.__message(f"Distance to target: {remaining_distance} m")
             if remaining_distance <= self.POSITION_TOLERANCE:
                 self.__message("Reached target")
@@ -108,7 +111,7 @@ class Navigator:
 
         self.__message(f"Changing heading to {heading} degrees")
 
-        #self.vehicle.commands.condition_yaw(heading)
+        # self.vehicle.commands.condition_yaw(heading)
         self.__condition_yaw(heading)
 
     def set_heading_relative(self, heading):
@@ -119,9 +122,11 @@ class Navigator:
         :return: None
         """
 
-        self.__message(f"Changing heading to {heading} degrees relative to current heading")
+        self.__message(
+            f"Changing heading to {heading} degrees relative to current heading"
+        )
 
-        #self.vehicle.commands.condition_yaw(heading, relative=True)
+        # self.vehicle.commands.condition_yaw(heading, relative=True)
         self.__condition_yaw(heading, relative=True)
 
     def set_altitude(self, altitude):
@@ -134,14 +139,17 @@ class Navigator:
 
         self.__message(f"Setting altitude to {altitude} m")
 
-        target_altitude = dronekit.LocationGlobalRelative(self.vehicle.location.global_relative_frame.lat,
-                                                          self.vehicle.location.global_relative_frame.lon,
-                                                          altitude)
+        target_altitude = dronekit.LocationGlobalRelative(
+            self.vehicle.location.global_relative_frame.lat,
+            self.vehicle.location.global_relative_frame.lon,
+            altitude,
+        )
         self.vehicle.simple_goto(target_altitude)
 
         while self.vehicle.mode.name == "GUIDED":
             remaining_distance = self.__get_distance_metres(
-                self.vehicle.location.global_relative_frame, target_altitude)
+                self.vehicle.location.global_relative_frame, target_altitude
+            )
             self.__message(f"Distance to target: {remaining_distance} m")
             if remaining_distance <= self.POSITION_TOLERANCE:
                 self.__message("Reached target")
@@ -158,21 +166,26 @@ class Navigator:
 
         self.__message(f"Setting altitude to {altitude} m relative to current altitude")
 
-        target_altitude = dronekit.LocationGlobalRelative(self.vehicle.location.global_relative_frame.lat,
-                                                          self.vehicle.location.global_relative_frame.lon,
-                                                          self.vehicle.location.global_relative_frame.alt + altitude )
+        target_altitude = dronekit.LocationGlobalRelative(
+            self.vehicle.location.global_relative_frame.lat,
+            self.vehicle.location.global_relative_frame.lon,
+            self.vehicle.location.global_relative_frame.alt + altitude,
+        )
         self.vehicle.simple_goto(target_altitude)
 
         while self.vehicle.mode.name == "GUIDED":
             remaining_distance = self.__get_distance_metres(
-                self.vehicle.location.global_relative_frame, target_altitude)
+                self.vehicle.location.global_relative_frame, target_altitude
+            )
             self.__message(f"Distance to target: {remaining_distance} m")
             if remaining_distance <= self.POSITION_TOLERANCE:
                 self.__message("Reached target")
                 break
             time.sleep(2)
 
-    def set_altitude_position(self, lat, lon, alt, battery, voltage_hard_cutoff = 22.4, hard_cutoff_enable = True):
+    def set_altitude_position(
+        self, lat, lon, alt, battery, voltage_hard_cutoff=22.4, hard_cutoff_enable=True
+    ):
         """
         Sets the altitude and the position in absolute terms
 
@@ -186,7 +199,7 @@ class Navigator:
 
         target_altitude_position = dronekit.LocationGlobalRelative(lat, lon, alt)
 
-        if hard_cutoff_enable == True:
+        if hard_cutoff_enable:
             if self.sufficient_battery(battery, voltage_hard_cutoff):
                 self.__message("--------Hard Cutoff reached----------")
                 self.__message("--------Returning to Launch----------")
@@ -197,8 +210,8 @@ class Navigator:
 
         while self.vehicle.mode.name == "GUIDED":
             remaining_distance = self.__get_distance_metres(
-                self.vehicle.location.global_relative_frame,
-                target_altitude_position)
+                self.vehicle.location.global_relative_frame, target_altitude_position
+            )
             self.__message(f"Distance to target: {remaining_distance} m")
             if remaining_distance <= self.POSITION_TOLERANCE:
                 self.__message("Reached target")
@@ -215,7 +228,9 @@ class Navigator:
         :return: None
         """
 
-        self.__message(f"Moving {d_north} m north and {d_east} m east and {alt} m in altitude")
+        self.__message(
+            f"Moving {d_north} m north and {d_east} m east and {alt} m in altitude"
+        )
 
         current_location = self.vehicle.location.global_relative_frame
         target_location = self.__get_location_metres(current_location, d_north, d_east)
@@ -225,8 +240,8 @@ class Navigator:
 
         while self.vehicle.mode.name == "GUIDED":
             remaining_distance = self.__get_distance_metres(
-                self.vehicle.location.global_relative_frame,
-                target_altitude_position)
+                self.vehicle.location.global_relative_frame, target_location
+            )
             self.__message(f"Distance to target: {remaining_distance} m")
             if remaining_distance <= self.POSITION_TOLERANCE:
                 self.__message("Reached target")
@@ -273,7 +288,7 @@ class Navigator:
             0,
             0,
             0,
-            0  # ignore other parameters
+            0,  # ignore other parameters
         )
 
         self.vehicle.send_mavlink(msg)
@@ -293,15 +308,21 @@ class Navigator:
         earth_radius = 6378137.0  # Radius of "spherical" earth
         # Coordinate offsets in radians
         d_lat = d_north / earth_radius
-        d_lon = d_east / (earth_radius * math.cos(math.pi * original_location.lat / 180))
+        d_lon = d_east / (
+            earth_radius * math.cos(math.pi * original_location.lat / 180)
+        )
 
         # New position in decimal degrees
         new_lat = original_location.lat + (d_lat * 180 / math.pi)
         new_lon = original_location.lon + (d_lon * 180 / math.pi)
         if type(original_location) is dronekit.LocationGlobal:
-            target_location = dronekit.LocationGlobal(new_lat, new_lon, original_location.alt)
+            target_location = dronekit.LocationGlobal(
+                new_lat, new_lon, original_location.alt
+            )
         elif type(original_location) is dronekit.LocationGlobalRelative:
-            target_location = dronekit.LocationGlobalRelative(new_lat, new_lon, original_location.alt)
+            target_location = dronekit.LocationGlobalRelative(
+                new_lat, new_lon, original_location.alt
+            )
         else:
             raise Exception("Invalid Location object passed")
 
@@ -325,22 +346,25 @@ class Navigator:
 
     def __condition_yaw(self, heading, relative=False):
         if relative:
-            is_relative=1 #yaw relative to direction of travel
+            is_relative = 1  # yaw relative to direction of travel
         else:
-            is_relative=0 #yaw is an absolute angle
+            is_relative = 0  # yaw is an absolute angle
         # create the CONDITION_YAW command using command_long_encode()
         msg = self.vehicle.message_factory.command_long_encode(
-            0, 0,    # target system, target component
-            mavutil.mavlink.MAV_CMD_CONDITION_YAW, #command
-            0, #confirmation
-            heading,    # param 1, yaw in degrees
-            0,          # param 2, yaw speed deg/s
-            1,          # param 3, direction -1 ccw, 1 cw
-            is_relative, # param 4, relative offset 1, absolute angle 0
-            0, 0, 0)    # param 5 ~ 7 not used
+            0,
+            0,  # target system, target component
+            mavutil.mavlink.MAV_CMD_CONDITION_YAW,  # command
+            0,  # confirmation
+            heading,  # param 1, yaw in degrees
+            0,  # param 2, yaw speed deg/s
+            1,  # param 3, direction -1 ccw, 1 cw
+            is_relative,  # param 4, relative offset 1, absolute angle 0
+            0,
+            0,
+            0,
+        )  # param 5 ~ 7 not used
         # send command to vehicle
         self.vehicle.send_mavlink(msg)
-
 
     def optimum_speed(self, time_left, waypoints):
         """
@@ -354,10 +378,10 @@ class Navigator:
         self.__message("Calculating optimum horizontal speed")
 
         total_distance = self.__get_distance_metres(
-            self.vehicle.location.global_relative_frame, waypoints[0])
+            self.vehicle.location.global_relative_frame, waypoints[0]
+        )
         for i in range(1, len(waypoints)):
-            total_distance += self.__get_distance_metres(
-                waypoints[i - 1], waypoints[i])
+            total_distance += self.__get_distance_metres(waypoints[i - 1], waypoints[i])
 
         speed_required = total_distance / time_left
         self.__message(
@@ -366,13 +390,14 @@ class Navigator:
 
         return speed_required
 
-
-    def sufficient_battery(self, battery, voltage_required = 10):
+    def sufficient_battery(self, battery, voltage_required=10.0):
         """
         Returns True or False based on whether or not the drone has enough battery to do another lap.
-        Each lap is when drone starts at Alpha, goes to Bravo and comes back to Alpha. So we check if drone has little more battery than what is required for twice the distance between Alpha and Bravo.
+        Each lap is when drone starts at Alpha, goes to Bravo and comes back to Alpha.
+        So we check if drone has little more battery than what is required for twice the distance between Alpha and Bravo.
 
-        :param voltage_required: value of voltage required to travel the lap distance (Distance between Alpha and Bravo in Alma is 3km, so hard code this to voltage required for 6km of flight)
+        :param voltage_required: value of voltage required to travel the lap distance
+        (Distance between Alpha and Bravo in Alma is 3km, so hard code this to voltage required for 6km of flight)
         :param battery: instance of the MAVLinkBatteryStatusProvider
 
         :return: a Boolean value, True indicating the drone has sufficient battery for another lap.

@@ -29,18 +29,12 @@ MAX_GROUND_SPEED = 20
 TIME = 5 * 60  # 5 minutes
 ALTITUDE = 15
 
-waypoints = [
-                [53.497332, -113.550619, 30],
-                [53.496801, -113.550650, 25],
-                [53.496801, -113.549702, 20],
-                [53.496917, -113.549702, 19],
-                [53.496975, -113.549616, 18],
-                [53.497028, -113.549499, 17],
-                [53.497061, -113.549299, 16],
-                [53.497056, -113.549003, 15],
-                [53.497302, -113.548999, 12.5],
-                [start_coords.lat, start_coords.lon, 10]
-            ]
+waypoints = [[53.497332, -113.550619, 30], [53.496801, -113.550650, 25],
+             [53.496801, -113.549702, 20], [53.496917, -113.549702, 19],
+             [53.496975, -113.549616, 18], [53.497028, -113.549499, 17],
+             [53.497061, -113.549299, 16], [53.497056, -113.549003, 15],
+             [53.497302, -113.548999, 12.5],
+             [start_coords.lat, start_coords.lon, 10]]
 
 locations = [LocationGlobal(wp[0], wp[1], wp[2]) for wp in waypoints]
 
@@ -62,7 +56,11 @@ time.sleep(1)
 
 for i, location in enumerate(locations):
     nav.send_status_message(f"Moving to waypoint {i + 1} of {len(locations)}")
-    nav.set_altitude_position(location.lat, location.lon, location.alt, battery=None, hard_cutoff_enable=False)
+    nav.set_altitude_position(location.lat,
+                              location.lon,
+                              location.alt,
+                              battery=None,
+                              hard_cutoff_enable=False)
 
 nav.land()
 

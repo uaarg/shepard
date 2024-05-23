@@ -1,7 +1,7 @@
 import threading
 import time
 
-from dronekit import connect, VehicleMode, LocationGlobal
+from dronekit import connect
 
 from src.modules.autopilot import navigator
 from src.modules.autopilot import lander
@@ -21,6 +21,7 @@ nav.send_status_message("Shepard is online")
 mavlink = MAVLinkDelegate()
 battery = MAVLinkBatteryStatusProvider(mavlink)
 
+
 def wait_for_voltage():
     while True:
         try:
@@ -28,8 +29,9 @@ def wait_for_voltage():
             print("voltage: ", voltage)
         except ValueError:
             pass
-            #print("no data yet")
+            # print("no data yet")
         time.sleep(0.5)
+
 
 threading.Thread(daemon=True, target=mavlink.run).start()
 
