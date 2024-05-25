@@ -39,7 +39,7 @@ first_location = LocationGlobal(ALPHA[0], ALPHA[1], 100)
 nav.set_position_relative(0, 0)
 drone.groundspeed = SPEED
 
-nav.set_altitude_position_relative(0, 0, 100)
+nav.set_altitude(100)
 
 nav.set_altitude_position(first_location.lat,
                           first_location.lon,

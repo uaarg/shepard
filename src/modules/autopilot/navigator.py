@@ -147,9 +147,7 @@ class Navigator:
         self.vehicle.simple_goto(target_altitude)
 
         while self.vehicle.mode.name == "GUIDED":
-            remaining_distance = self.__get_distance_metres(
-                self.vehicle.location.global_relative_frame, target_altitude
-            )
+            remaining_distance = abs(self.vehicle.location.global_relative_frame.alt - target_altitude)
             self.__message(f"Distance to target: {remaining_distance} m")
             if remaining_distance <= self.POSITION_TOLERANCE:
                 self.__message("Reached target")
