@@ -1,8 +1,10 @@
 import math
 import time
+from datetime import datetime
 
 import dronekit
 from pymavlink import mavutil
+from datetime import datetime
 
 from src.modules.autopilot.messenger import Messenger
 
@@ -363,6 +365,25 @@ class Navigator:
         )  # param 5 ~ 7 not used
         # send command to vehicle
         self.vehicle.send_mavlink(msg)
+
+    @staticmethod
+    def time_left(string_land_time):
+        """
+        Calculates the time between now and the time passed as a string arguement.
+
+        :param string_land_time: the target landing time as a string in the format "HH:MM:SS"
+
+        :return: time left in seconds
+        """
+        time_now = datetime.now().time()
+
+        land_time = datetime.strptime(string_land_time, "%H:%M:%S")
+
+        seconds_now = (time_now.hour*360) + (time_now.minute*60) + (time_now.second)
+
+        seconds_land = (land_time.hour*360) + (land_time.minute*60) + (land_time.second)
+
+        return seconds_land - seconds_now
 
     def optimum_speed(self, time_left, waypoints):
         """
