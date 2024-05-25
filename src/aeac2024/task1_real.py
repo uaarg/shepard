@@ -23,23 +23,22 @@ while not (drone.armed and drone.mode == VehicleMode("GUIDED")):
     pass
 
 nav.send_status_message("Executing mission")
-time.sleep(2)
 
 nav.takeoff(10)
-time.sleep(2)
 
 SPEED = 10  # m/s
 CRUISE_ALT = 20  # m
+MAX_ALT = 105
 
 ALPHA = [48.51127, -71.65054]
 BRAVO = [48.50586, -71.63222]
 
-first_location = LocationGlobal(ALPHA[0], ALPHA[1], 100)
+first_location = LocationGlobal(ALPHA[0], ALPHA[1], MAX_ALT)
 
 nav.set_position_relative(0, 0)
 drone.groundspeed = SPEED
 
-nav.set_altitude(100)
+nav.set_altitude(MAX_ALT)
 
 nav.set_altitude_position(first_location.lat,
                           first_location.lon,
