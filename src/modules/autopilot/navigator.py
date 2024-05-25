@@ -4,7 +4,6 @@ from datetime import datetime
 
 import dronekit
 from pymavlink import mavutil
-from datetime import datetime
 
 from src.modules.autopilot.messenger import Messenger
 
