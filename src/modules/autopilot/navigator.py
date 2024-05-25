@@ -184,7 +184,7 @@ class Navigator:
             time.sleep(2)
 
     def set_altitude_position(
-        self, lat, lon, alt, battery, voltage_hard_cutoff=22.4, hard_cutoff_enable=True
+        self, lat, lon, alt, battery=None, voltage_hard_cutoff=22.4, hard_cutoff_enable=False
     ):
         """
         Sets the altitude and the position in absolute terms
