@@ -25,7 +25,7 @@ time.sleep(2)
 
 drone.groundspeed = 10
 
-MAX_GROUND_SPEED = 20
+MAX_GROUND_SPEED = 10
 
 approach_start = [48.50964, -71.64507, 107]
 step2 = [48.50918, -71.64346, 76]
@@ -54,6 +54,9 @@ time_left = navigator.Navigator.time_left("11:20:00")
 speed = nav.optimum_speed(time_left, locations)
 
 if speed > MAX_GROUND_SPEED:
+    speed = MAX_GROUND_SPEED
+
+if speed < 0:
     speed = MAX_GROUND_SPEED
 
 nav.set_position_relative(0, 0)
