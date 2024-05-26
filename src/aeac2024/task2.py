@@ -23,6 +23,8 @@ nav.send_status_message("Executing mission")
 nav.takeoff(107)
 time.sleep(2)
 
+drone.groundspeed = 10
+
 MAX_GROUND_SPEED = 20
 
 approach_start = [48.50964, -71.64507, 107]
