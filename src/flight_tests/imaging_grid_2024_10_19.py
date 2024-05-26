@@ -1,6 +1,6 @@
 import time
 
-from dronekit import connect, VehicleMode, LocationGlobal
+from dronekit import connect, VehicleMode
 
 from src.modules.autopilot import navigator
 
