@@ -1,5 +1,6 @@
 import math
 import time
+from datetime import datetime
 
 import dronekit
 from pymavlink import mavutil
@@ -13,14 +14,11 @@ class Navigator:
     """
 
     vehicle: dronekit.Vehicle = None
-    POSITION_TOLERANCE = 1.0  # m
+    POSITION_TOLERANCE = 1
 
     def __init__(self, vehicle, messenger_port):
         self.vehicle = vehicle
         self.mavlink_messenger = Messenger(messenger_port)
-
-    def send_message(self, msg):
-        self.__message(msg)
 
     def send_status_message(self, message):
         self.__message(message)
@@ -33,7 +31,7 @@ class Navigator:
         """
 
         print(f"SHEPARD_NAV: {msg}")
-        self.mavlink_messenger.send(msg, "SHEPARD_NAV")
+        self.mavlink_messenger.send(msg)
 
     def takeoff(self, target_alt):
         """
@@ -110,8 +108,9 @@ class Navigator:
         :return: None
         """
 
-        self.__message(f"Setting heading to {heading} degrees")
+        self.__message(f"Changing heading to {heading} degrees")
 
+        # self.vehicle.commands.condition_yaw(heading)
         self.__condition_yaw(heading)
 
     def set_heading_relative(self, heading):
@@ -122,8 +121,11 @@ class Navigator:
         :return: None
         """
 
-        self.__message(f"Changing heading by {heading} degrees relative")
+        self.__message(
+            f"Changing heading to {heading} degrees relative to current heading"
+        )
 
+        # self.vehicle.commands.condition_yaw(heading, relative=True)
         self.__condition_yaw(heading, relative=True)
 
     def set_altitude(self, altitude):
@@ -138,8 +140,20 @@ class Navigator:
 
         target_altitude = dronekit.LocationGlobalRelative(
             self.vehicle.location.global_relative_frame.lat,
-            self.vehicle.location.global_relative_frame.lon, altitude)
+            self.vehicle.location.global_relative_frame.lon,
+            altitude,
+        )
         self.vehicle.simple_goto(target_altitude)
+
+        while self.vehicle.mode.name == "GUIDED":
+            remaining_distance = abs(
+                self.vehicle.location.global_relative_frame.alt -
+                target_altitude.alt)
+            self.__message(f"Distance to target: {remaining_distance} m")
+            if remaining_distance <= self.POSITION_TOLERANCE:
+                self.__message("Reached target")
+                break
+            time.sleep(2)
 
     def set_altitude_relative(self, altitude):
         """
@@ -149,21 +163,39 @@ class Navigator:
         :return: None
         """
 
-        self.__message(f"Changing altitude to {altitude} m relative")
+        self.__message(
+            f"Setting altitude to {altitude} m relative to current altitude")
 
         target_altitude = dronekit.LocationGlobalRelative(
             self.vehicle.location.global_relative_frame.lat,
             self.vehicle.location.global_relative_frame.lon,
-            self.vehicle.location.global_relative_frame.alt + altitude)
+            self.vehicle.location.global_relative_frame.alt + altitude,
+        )
         self.vehicle.simple_goto(target_altitude)
 
-    def set_altitude_position(self, lat, lon, alt):
+        while self.vehicle.mode.name == "GUIDED":
+            remaining_distance = self.__get_distance_metres(
+                self.vehicle.location.global_relative_frame, target_altitude)
+            self.__message(f"Distance to target: {remaining_distance} m")
+            if remaining_distance <= self.POSITION_TOLERANCE:
+                self.__message("Reached target")
+                break
+            time.sleep(2)
+
+    def set_altitude_position(self,
+                              lat,
+                              lon,
+                              alt,
+                              battery=None,
+                              voltage_hard_cutoff=22.4,
+                              hard_cutoff_enable=False):
         """
         Sets the altitude and the position in absolute terms
 
         :param lat: The latitude of the target position.
         :param lon: The longitude of the target position.
         :param alt: The target altitude in metres
+        :param battery: MAVLinkBatteryStatusProvider object
         :return: None
         """
         self.__message(f"Moving to lat: {lat} lon: {lon} alt: {alt}")
@@ -171,7 +203,24 @@ class Navigator:
         target_altitude_position = dronekit.LocationGlobalRelative(
             lat, lon, alt)
 
+        if hard_cutoff_enable:
+            if self.sufficient_battery(battery, voltage_hard_cutoff):
+                self.__message("--------Hard Cutoff reached----------")
+                self.__message("--------Returning to Launch----------")
+                self.return_to_launch()
+                return
+
         self.vehicle.simple_goto(target_altitude_position)
+
+        while self.vehicle.mode.name == "GUIDED":
+            remaining_distance = self.__get_distance_metres(
+                self.vehicle.location.global_relative_frame,
+                target_altitude_position)
+            self.__message(f"Distance to target: {remaining_distance} m")
+            if remaining_distance <= self.POSITION_TOLERANCE:
+                self.__message("Reached target")
+                break
+            time.sleep(2)
 
     def set_altitude_position_relative(self, d_north, d_east, alt):
         """
@@ -222,6 +271,32 @@ class Navigator:
 
         self.__message("Returning to launch")
         self.vehicle.mode = dronekit.VehicleMode("RTL")
+
+    def set_speed(self, speed):
+        """
+        Set the vehicle speed.
+
+        :param speed: The target speed in m/s.
+        :return: None
+        """
+
+        self.__message(f"Setting speed to {speed} m/s")
+        msg = self.vehicle.message_factory.command_long_encode(
+            0,
+            0,  # target system, target component
+            mavutil.mavlink.MAV_CMD_DO_CHANGE_SPEED,  # command
+            0,  # confirmation
+            0,  # speed type, ignored in Copter
+            speed,  # speed
+            0,
+            0,
+            0,
+            0,
+            0,  # ignore other parameters
+        )
+
+        self.vehicle.send_mavlink(msg)
+        self.vehicle.flush()
 
     def __get_location_metres(self, original_location, d_north, d_east):
         """
@@ -287,6 +362,81 @@ class Navigator:
             is_relative,  # param 4, relative offset 1, absolute angle 0
             0,
             0,
-            0)  # param 5 ~ 7 not used
+            0,
+        )  # param 5 ~ 7 not used
         # send command to vehicle
         self.vehicle.send_mavlink(msg)
+
+    @staticmethod
+    def time_left(string_land_time):
+        """
+        Calculates the time between now and the time passed as a string arguement.
+
+        :param string_land_time: the target landing time as a string in the format "HH:MM:SS"
+
+        :return: time left in seconds
+        """
+        time_now = datetime.now().time()
+
+        land_time = datetime.strptime(string_land_time, "%H:%M:%S")
+
+        seconds_now = (time_now.hour * 360) + (time_now.minute *
+                                               60) + (time_now.second)
+
+        seconds_land = (land_time.hour * 360) + (land_time.minute *
+                                                 60) + (land_time.second)
+
+        return seconds_land - seconds_now
+
+    def optimum_speed(self, time_left, waypoints):
+        """
+        Finds the optimum horizontal speed required to go from current position to all waypoints and land within the given time
+
+        :param time_left: The time left to land in [seconds], initially the land time minus the takeoff time.
+        :param waypoints: List of all remaining way points to go to.
+        :return: required ground speed in [m/s].
+        """
+
+        self.__message("Calculating optimum horizontal speed")
+
+        total_distance = self.__get_distance_metres(
+            self.vehicle.location.global_relative_frame, waypoints[0])
+        for i in range(1, len(waypoints)):
+            total_distance += self.__get_distance_metres(
+                waypoints[i - 1], waypoints[i])
+
+        speed_required = total_distance / time_left
+        self.__message(
+            f"Speed required to travel {total_distance} m in {time_left} s is {speed_required} m/s"
+        )
+
+        return speed_required
+
+    def sufficient_battery(self, battery, voltage_required=10.0):
+        """
+        Returns True or False based on whether or not the drone has enough battery to do another lap.
+        Each lap is when drone starts at Alpha, goes to Bravo and comes back to Alpha.
+        So we check if drone has little more battery than what is required for twice the distance between Alpha and Bravo.
+
+        :param voltage_required: value of voltage required to travel the lap distance
+        (Distance between Alpha and Bravo in Alma is 3km, so hard code this to voltage required for 6km of flight)
+        :param battery: instance of the MAVLinkBatteryStatusProvider
+
+        :return: a Boolean value, True indicating the drone has sufficient battery for another lap.
+        """
+
+        self.__message("Attempting to read voltage reading")
+        while True:
+            try:
+                voltage = battery.voltage()
+                break
+            except ValueError:
+                pass
+            time.sleep(0.1)
+
+        self.__message(f"Current battery voltage is {voltage} V")
+
+        if voltage < voltage_required:
+            return False
+
+        return True
