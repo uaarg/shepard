@@ -3,10 +3,6 @@ import time
 from dronekit import connect, VehicleMode, LocationGlobal
 
 from src.modules.autopilot import navigator
-from src.modules.autopilot import lander
-
-from src.modules.imaging.mavlink import MAVLinkDelegate
-from src.modules.imaging.battery import MAVLinkBatteryStatusProvider
 
 CONN_STR = "udp:127.0.0.1:14551"
 MESSENGER_PORT = 14552
@@ -49,14 +45,13 @@ lap_locations = [LocationGlobal(wp[0], wp[1], CRUISE_ALT) for wp in waypoints]
 nav.set_position_relative(0, 0)
 drone.groundspeed = SPEED
 
-nav.set_altitude_position(first_location.lat,
-                          first_location.lon,
+nav.set_altitude_position(first_location.lat, first_location.lon,
                           first_location.alt)
 
 LAPS = 1
 
 for i in range(LAPS):
-    nav.send_status_message(f"Lap {i+1} of {LAPS}")
+    nav.send_status_message(f"Lap {i + 1} of {LAPS}")
     for location in lap_locations:
         nav.set_altitude_position(location.lat, location.lon, location.alt)
 

@@ -1,12 +1,6 @@
-import time
-
 from dronekit import connect, VehicleMode, LocationGlobal
 
 from src.modules.autopilot import navigator
-from src.modules.autopilot import lander
-
-from src.modules.imaging.mavlink import MAVLinkDelegate
-from src.modules.imaging.battery import MAVLinkBatteryStatusProvider
 
 CONN_STR = "udp:127.0.0.1:14551"
 MESSENGER_PORT = 14552
@@ -40,8 +34,7 @@ drone.groundspeed = SPEED
 
 nav.set_altitude(MAX_ALT)
 
-nav.set_altitude_position(first_location.lat,
-                          first_location.lon,
+nav.set_altitude_position(first_location.lat, first_location.lon,
                           first_location.alt)
 
 nav.return_to_launch()

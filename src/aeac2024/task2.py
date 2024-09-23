@@ -4,7 +4,6 @@ from dronekit import connect, VehicleMode, LocationGlobal
 
 from src.modules.autopilot import navigator
 
-
 CALLSIGN = "ALBERTA1"
 CONN_STR = "udp:127.0.0.1:14551"
 MESSENGER_PORT = 14552
@@ -40,9 +39,13 @@ approach_end = [48.50696, -71.64726, 30.5]
 
 landing_zone = [48.506819, -71.646804, 30]
 
-waypoints = [approach_start, step2, step3, step3, point1, point2, point3, point4, point5, point6, approach_end]
+waypoints = [
+    approach_start, step2, step3, step3, point1, point2, point3, point4,
+    point5, point6, approach_end
+]
 locations = [LocationGlobal(wp[0], wp[1], wp[2]) for wp in waypoints]
-landing_zone_location = LocationGlobal(landing_zone[0], landing_zone[1], landing_zone[2])
+landing_zone_location = LocationGlobal(landing_zone[0], landing_zone[1],
+                                       landing_zone[2])
 
 time.sleep(1)
 
@@ -66,7 +69,8 @@ drone.groundspeed = speed
 for i, location in enumerate(locations[1:]):
     nav.set_altitude_position(location.lat, location.lon, location.alt)
 
-nav.set_altitude_position(landing_zone_location.lat, landing_zone_location.lon, landing_zone_location.alt)
+nav.set_altitude_position(landing_zone_location.lat, landing_zone_location.lon,
+                          landing_zone_location.alt)
 nav.set_heading(100)
 time.sleep(5)
 
