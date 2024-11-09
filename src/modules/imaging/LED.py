@@ -29,7 +29,4 @@ class StatusLeds:
                                                      x=self.RGB[0],
                                                      y=self.RGB[1],
                                                      z=self.RGB[2])
-
-bug
-
-self.mavlinkDelegate.send(message)
+        self.mavlinkDelegate.send(message)
