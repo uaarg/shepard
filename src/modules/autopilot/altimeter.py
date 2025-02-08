@@ -26,6 +26,9 @@ class XM125:
     # Status masks
     DETECTOR_STATUS_BUSY_MASK = 0x80000000
     DISTANCE_RESULT_NUM_DISTANCES_MASK = 0x0000000f
+    DISTANCE_RESULT_NEAR_START_EDGE = 0x00000100
+    DISTANCE_RESULT_CALIBRATION_NEEDED = 0x00000200
+    DISTANCE_RESULT_MEASURE_DISTANCE_ERROR = 0x00000400
 
     def __init__(self, bus=1, address=0x52):
         self.bus = smbus2.SMBus(bus)
@@ -111,6 +114,10 @@ class XM125:
         # Read result
         result = self._read_register(self.REG_DISTANCE_RESULT)
         if result is None:
+            return []
+
+        if result & self.DISTANCE_RESULT_MEASURE_DISTANCE_ERROR:
+            print("Error: Measurement error")
             return []
 
         num_distances = (result & self.DISTANCE_RESULT_NUM_DISTANCES_MASK)
