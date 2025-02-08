@@ -4,6 +4,26 @@ import time
 
 DEBUG = False
 
+
+class MovingAverage:
+    def __init__(self, window_size=5):
+        self.window_size = window_size
+        self.values = []
+
+    def add(self, value):
+        self.values.append(value)
+        if len(self.values) > self.window_size:
+            self.values.pop(0)
+
+    def get_average(self):
+        if not self.values:
+            return None
+        return sum(self.values) / len(self.values)
+
+    def is_valid(self):
+        return len(self.values) == self.window_size
+
+
 class XM125:
     # Register addresses from documentation
     REG_VERSION = 0x0000
@@ -32,9 +52,11 @@ class XM125:
     DISTANCE_RESULT_CALIBRATION_NEEDED = 0x00000200
     DISTANCE_RESULT_MEASURE_DISTANCE_ERROR = 0x00000400
 
-    def __init__(self, bus=1, address=0x52):
+    def __init__(self, bus=1, address=0x52, average_window=5):
         self.bus = smbus2.SMBus(bus)
         self.address = address
+        self.distance_avg = MovingAverage()
+        self.strength_avg = MovingAverage()
 
     def _read_register(self, reg_addr):
         """Read a 32-bit register value."""
@@ -193,15 +215,13 @@ class XM125:
             print("Error: Calibration needed")
             return []
 
-        if result & self.DISTANCE_RESULT_NEAR_START_EDGE:
-            print("Warning: Near start edge")
-            return []
-
         num_distances = (result & self.DISTANCE_RESULT_NUM_DISTANCES_MASK)
+
         if DEBUG:
             print(f"Number of distances detected: {num_distances}")
 
-        peaks = []
+        peaks_with_average = []
+
         for i in range(num_distances):
             if DEBUG:
                 print(f"\nReading peak {i}:")
@@ -210,21 +230,36 @@ class XM125:
             strength = self._read_register(self.REG_PEAK0_STRENGTH + i)
 
             if distance is not None and strength is not None:
-                peaks.append((distance, strength))
-                if DEBUG:
-                    print(f"  Distance: {distance}mm")
-                    print(f"  Strength: {strength}")
+                # Add to moving averages
+                self.distance_avg.add(distance)
+                self.strength_avg.add(strength)
 
-        return peaks
+                # Create tuple with both raw and averaged values
+                avg_distance = self.distance_avg.get_average()
+                avg_strength = self.strength_avg.get_average()
+
+                peak_data = {
+                    'raw': (distance, strength),
+                    'averaged': (avg_distance, avg_strength) if self.distance_avg.is_valid() else None
+                }
+
+                peaks_with_average.append(peak_data)
+
+                if DEBUG:
+                    print(f"  Raw Distance: {distance}mm, Strength: {strength}")
+                    if self.distance_avg.is_valid():
+                        print(f"  Avg Distance: {avg_distance:.1f}mm, Strength: {avg_strength:.1f}")
+
+        return peaks_with_average
 
 
 def main():
     # Initialize sensor
-    sensor = XM125()
+    sensor = XM125(average_window=5)  # 5-sample moving average
 
     try:
         # Setup sensor with 1m to 5m range
-        if not sensor.begin(end_mm=5000):
+        if not sensor.begin(start_mm=1000, end_mm=5000):
             print("Failed to initialize sensor")
             return
 
@@ -235,8 +270,14 @@ def main():
             peaks = sensor.measure()
 
             if peaks:
-                for i, (distance, strength) in enumerate(peaks):
-                    print(f"Peak {i}: Distance = {distance}mm, Strength = {strength}")
+                for i, peak_data in enumerate(peaks):
+                    raw_distance, raw_strength = peak_data['raw']
+                    print(f"\nPeak {i}:")
+                    print(f"  Raw: Distance = {raw_distance}mm, Strength = {raw_strength}")
+
+                    if peak_data['averaged']:
+                        avg_distance, avg_strength = peak_data['averaged']
+                        print(f"  Avg: Distance = {avg_distance:.1f}mm, Strength = {avg_strength:.1f}")
             else:
                 print("No peaks detected")
 
@@ -244,8 +285,6 @@ def main():
 
     except KeyboardInterrupt:
         print("\nStopping measurements")
-
-        # Clean up
         sensor.bus.close()
     except Exception as e:
         print(f"Error: {e}")
