@@ -306,9 +306,9 @@ class XM125:
                 strength = self._read_register(self.REG_PEAK0_STRENGTH + i)
 
                 if distance is not None and strength is not None:
-                    # Convert strength from 32-bit signed to regular int
-                    if strength & 0x80000000:
-                        strength = -((~strength + 1) & 0xFFFFFFFF)
+                    # Convert strength from 32-bit unsigned to signed int
+                    if strength > 0x7FFFFFFF:
+                        strength = -int(0x100000000 - strength)
 
                     self.distance_avg.add(distance)
                     self.strength_avg.add(strength)
@@ -332,7 +332,7 @@ class XM125:
 
 
 def main():
-    sensor = XM125(average_window=10)
+    sensor = XM125(average_window=5)
 
     try:
         if not sensor.begin():
