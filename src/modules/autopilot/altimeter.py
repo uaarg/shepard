@@ -320,7 +320,7 @@ class XM125:
 
 
 def main():
-    sensor = XM125(average_window=5)
+    sensor = XM125(average_window=10)
 
     try:
         if not sensor.begin():
