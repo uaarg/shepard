@@ -40,18 +40,19 @@ class XM125:
         """Read a 32-bit register value."""
         try:
             # Write register address (big endian)
-            msb = (reg_addr >> 8) & 0xFF  # Address to slave [15:8]
-            lsb = reg_addr & 0xFF  # Address to slave [7:0]
+            write = smbus2.i2c_msg.write(self.address, [(reg_addr >> 8) & 0xFF, reg_addr & 0xFF])
+            read = smbus2.i2c_msg.read(self.address, 4)
 
             if DEBUG:
                 print(f"\nREAD OPERATION:")
                 print(f"  Register: 0x{reg_addr:04x}")
-                print(f"  Sending address bytes: MSB=0x{msb:02x}, LSB=0x{lsb:02x}")
+                print(f"  Sending address bytes: MSB=0x{(reg_addr >> 8) & 0xFF:02x}, LSB=0x{reg_addr & 0xFF:02x}")
 
-            self.bus.write_i2c_block_data(self.address, msb, [lsb])
+            # Execute the transaction with repeated start
+            self.bus.i2c_rdwr(write, read)
 
-            # Read 4 bytes
-            data = self.bus.read_i2c_block_data(self.address, 0, 4)
+            # Convert the read result to bytes
+            data = list(read)
 
             # Convert to 32-bit integer (big endian as per protocol)
             value = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3]
