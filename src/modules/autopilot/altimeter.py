@@ -114,7 +114,7 @@ class XM125:
 
             return value
         except IOError as e:
-            self.handle_error(f"I/O error reading register 0x{reg_addr:04x}: {e}")
+            self._handle_error(f"I/O error reading register 0x{reg_addr:04x}: {e}")
             return None
 
     def _write_register(self, reg_addr: int, value: int) -> bool:
@@ -138,10 +138,10 @@ class XM125:
             self.bus.write_i2c_block_data(self.address, data[0], data[1:])
             return True
         except IOError as e:
-            self.handle_error(f"I/O error writing register 0x{reg_addr:04x}: {e}")
+            self._handle_error(f"I/O error writing register 0x{reg_addr:04x}: {e}")
             return False
 
-    def handle_error(self, error_msg: str):
+    def _handle_error(self, error_msg: str):
         """Handle errors and implement recovery logic."""
         current_time = time.time()
         self.consecutive_errors += 1
@@ -168,7 +168,7 @@ class XM125:
 
         time.sleep(self.RETRY_DELAY)
 
-    def wait_not_busy(self):
+    def _wait_not_busy(self):
         """Wait until the detector is not busy."""
         if DEBUG:
             print("\nWaiting for detector not busy...")
@@ -228,7 +228,7 @@ class XM125:
                 print("Failed to apply configuration and calibrate")
             return False
 
-        self.wait_not_busy()
+        self._wait_not_busy()
 
         # Check status
         status = self._read_register(self.REG_DETECTOR_STATUS)
@@ -287,7 +287,7 @@ class XM125:
             if not self._write_register(self.REG_COMMAND, self.CMD_MEASURE_DISTANCE):
                 return []
 
-            self.wait_not_busy()
+            self._wait_not_busy()
 
             # Read result
             result = self._read_register(self.REG_DISTANCE_RESULT)
@@ -295,7 +295,7 @@ class XM125:
                 return []
 
             if result & self.DISTANCE_RESULT_MEASURE_DISTANCE_ERROR:
-                self.handle_error("Measurement error")
+                self._handle_error("Measurement error")
                 return []
 
             num_distances = (result & self.DISTANCE_RESULT_NUM_DISTANCES_MASK)
@@ -327,7 +327,7 @@ class XM125:
             return peaks_with_average
 
         except Exception as e:
-            self.handle_error(f"Measurement error: {str(e)}")
+            self._handle_error(f"Measurement error: {str(e)}")
             return []
 
 
