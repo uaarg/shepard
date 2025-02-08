@@ -1,6 +1,7 @@
 import smbus2
 import time
 
+
 DEBUG = True
 
 class XM125:
@@ -34,24 +35,30 @@ class XM125:
     def __init__(self, bus=1, address=0x52):
         self.bus = smbus2.SMBus(bus)
         self.address = address
-        if DEBUG:
-            print(f"Initialized XM125 with bus={bus} and address=0x{address:02x}")
 
     def _read_register(self, reg_addr):
         """Read a 32-bit register value."""
         try:
-            msb = (reg_addr >> 8) & 0xFF
-            lsb = reg_addr & 0xFF
+            # Write register address (big endian)
+            msb = (reg_addr >> 8) & 0xFF  # Address to slave [15:8]
+            lsb = reg_addr & 0xFF  # Address to slave [7:0]
 
             if DEBUG:
-                print(f"Reading register 0x{reg_addr:04x}")
+                print(f"\nREAD OPERATION:")
+                print(f"  Register: 0x{reg_addr:04x}")
+                print(f"  Sending address bytes: MSB=0x{msb:02x}, LSB=0x{lsb:02x}")
 
             self.bus.write_i2c_block_data(self.address, msb, [lsb])
+
+            # Read 4 bytes
             data = self.bus.read_i2c_block_data(self.address, 0, 4)
+
+            # Convert to 32-bit integer (big endian as per protocol)
             value = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3]
 
             if DEBUG:
-                print(f"Read value 0x{value:08x} from register 0x{reg_addr:04x}")
+                print(f"  Received bytes: [0x{data[0]:02x}, 0x{data[1]:02x}, 0x{data[2]:02x}, 0x{data[3]:02x}]")
+                print(f"  Decoded value: 0x{value:08x} ({value})")
 
             return value
         except IOError as e:
@@ -61,18 +68,24 @@ class XM125:
     def _write_register(self, reg_addr, value):
         """Write a 32-bit register value."""
         try:
+            # Prepare all 6 bytes as per protocol example
             data = [
-                (reg_addr >> 8) & 0xFF,
-                reg_addr & 0xFF,
-                (value >> 24) & 0xFF,
-                (value >> 16) & 0xFF,
-                (value >> 8) & 0xFF,
-                value & 0xFF
+                (reg_addr >> 8) & 0xFF,  # Address to slave [15:8]
+                reg_addr & 0xFF,  # Address to slave [7:0]
+                (value >> 24) & 0xFF,  # Data to slave [31:24]
+                (value >> 16) & 0xFF,  # Data to slave [23:16]
+                (value >> 8) & 0xFF,  # Data to slave [15:8]
+                value & 0xFF  # Data to slave [7:0]
             ]
 
             if DEBUG:
-                print(f"Writing value 0x{value:08x} to register 0x{reg_addr:04x}")
+                print(f"\nWRITE OPERATION:")
+                print(f"  Register: 0x{reg_addr:04x}")
+                print(f"  Value to write: 0x{value:08x} ({value})")
+                print(
+                    f"  Sending bytes: [0x{data[0]:02x}, 0x{data[1]:02x}, 0x{data[2]:02x}, 0x{data[3]:02x}, 0x{data[4]:02x}, 0x{data[5]:02x}]")
 
+            # Write all bytes in a single transaction
             self.bus.write_i2c_block_data(self.address, data[0], data[1:])
             return True
         except IOError as e:
@@ -82,53 +95,94 @@ class XM125:
     def wait_not_busy(self):
         """Wait until the detector is not busy."""
         if DEBUG:
-            print("Waiting for detector to be not busy")
+            print("\nWaiting for detector not busy...")
+
+        attempts = 0
         while True:
             status = self._read_register(self.REG_DETECTOR_STATUS)
-            if status is None or not (status & self.DETECTOR_STATUS_BUSY_MASK):
+            if status is None:
+                if DEBUG:
+                    print("  Failed to read status")
                 break
+
+            busy = bool(status & self.DETECTOR_STATUS_BUSY_MASK)
+            if DEBUG:
+                print(f"  Status: 0x{status:08x}, Busy: {busy}")
+
+            if not busy:
+                break
+
             time.sleep(0.01)
-        if DEBUG:
-            print("Detector is not busy")
+            attempts += 1
+            if attempts >= 100:  # Timeout after 1 second
+                if DEBUG:
+                    print("  Timeout waiting for not busy")
+                break
 
     def begin(self, start_mm=1000, end_mm=5000):
         """Initialize the sensor with given start and end distances in mm."""
         if DEBUG:
-            print(f"Initializing sensor with start_mm={start_mm} and end_mm={end_mm}")
+            print(f"\nInitializing sensor:")
+            print(f"  Start distance: {start_mm}mm")
+            print(f"  End distance: {end_mm}mm")
+            print(f"  Reflector shape: {self.REFLECTOR_SHAPE}")
 
+        # Configure start and end distances
         if not self._write_register(self.REG_START, start_mm):
+            if DEBUG:
+                print("Failed to set start distance")
             return False
 
         if not self._write_register(self.REG_END, end_mm):
+            if DEBUG:
+                print("Failed to set end distance")
             return False
 
         if not self._write_register(self.REG_REFLECTOR_SHAPE, self.REFLECTOR_SHAPE):
+            if DEBUG:
+                print("Failed to set reflector shape")
             return False
 
+        if DEBUG:
+            print("Applying configuration and calibrating...")
+
+        # Apply configuration and calibrate
         if not self._write_register(self.REG_COMMAND, self.CMD_APPLY_CONFIG_AND_CALIBRATE):
+            if DEBUG:
+                print("Failed to apply configuration and calibrate")
             return False
 
         self.wait_not_busy()
 
+        # Check status
         status = self._read_register(self.REG_DETECTOR_STATUS)
         if DEBUG:
-            print(f"Initialization status: {status}")
+            print(f"Final status: 0x{status:08x}" if status is not None else "Failed to read final status")
 
         return status is not None and status >= 0
 
     def measure(self):
         """Perform a distance measurement and return the results."""
         if DEBUG:
-            print("Starting distance measurement")
+            print("\nStarting measurement...")
 
+        # Start measurement
         if not self._write_register(self.REG_COMMAND, self.CMD_MEASURE_DISTANCE):
+            if DEBUG:
+                print("Failed to start measurement")
             return []
 
         self.wait_not_busy()
 
+        # Read result
         result = self._read_register(self.REG_DISTANCE_RESULT)
         if result is None:
+            if DEBUG:
+                print("Failed to read measurement result")
             return []
+
+        if DEBUG:
+            print(f"Measurement result: 0x{result:08x}")
 
         if result & self.DISTANCE_RESULT_MEASURE_DISTANCE_ERROR:
             print("Error: Measurement error")
@@ -143,31 +197,39 @@ class XM125:
             return []
 
         num_distances = (result & self.DISTANCE_RESULT_NUM_DISTANCES_MASK)
-
         if DEBUG:
-            print(f"Number of distances: {num_distances}")
+            print(f"Number of distances detected: {num_distances}")
 
         peaks = []
         for i in range(num_distances):
+            if DEBUG:
+                print(f"\nReading peak {i}:")
+
             distance = self._read_register(self.REG_PEAK0_DISTANCE + i)
             strength = self._read_register(self.REG_PEAK0_STRENGTH + i)
+
             if distance is not None and strength is not None:
                 peaks.append((distance, strength))
                 if DEBUG:
-                    print(f"Peak {i}: Distance = {distance}mm, Strength = {strength}")
+                    print(f"  Distance: {distance}mm")
+                    print(f"  Strength: {strength}")
 
         return peaks
 
+
 def main():
+    # Initialize sensor
     sensor = XM125()
 
     try:
+        # Setup sensor with 1m to 5m range
         if not sensor.begin(start_mm=1000, end_mm=5000):
             print("Failed to initialize sensor")
             return
 
         print("Sensor initialized successfully")
 
+        # Continuous measurement loop
         while True:
             peaks = sensor.measure()
 
@@ -181,9 +243,12 @@ def main():
 
     except KeyboardInterrupt:
         print("\nStopping measurements")
+
+        # Clean up
         sensor.bus.close()
     except Exception as e:
         print(f"Error: {e}")
+
 
 if __name__ == "__main__":
     main()
