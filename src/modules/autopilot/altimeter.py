@@ -120,7 +120,7 @@ class XM125:
                     print("  Timeout waiting for not busy")
                 break
 
-    def begin(self, start_mm=1000, end_mm=5000):
+    def begin(self, start_mm=250, end_mm=3000):
         """Initialize the sensor with given start and end distances in mm."""
         if DEBUG:
             print(f"\nInitializing sensor:")
@@ -224,7 +224,7 @@ def main():
 
     try:
         # Setup sensor with 1m to 5m range
-        if not sensor.begin(start_mm=1000, end_mm=5000):
+        if not sensor.begin(end_mm=5000):
             print("Failed to initialize sensor")
             return
 
