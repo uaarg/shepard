@@ -120,6 +120,14 @@ class XM125:
             print("Error: Measurement error")
             return []
 
+        if result & self.DISTANCE_RESULT_CALIBRATION_NEEDED:
+            print("Error: Calibration needed")
+            return []
+
+        if result & self.DISTANCE_RESULT_NEAR_START_EDGE:
+            print("Warning: Near start edge")
+            return []
+
         num_distances = (result & self.DISTANCE_RESULT_NUM_DISTANCES_MASK)
 
         peaks = []
