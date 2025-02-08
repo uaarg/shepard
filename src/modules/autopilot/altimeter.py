@@ -143,8 +143,7 @@ def main():
 
             if peaks:
                 for i, (distance, strength) in enumerate(peaks):
-                    print(f"Peak {i}: Distance = {
-                          distance}mm, Strength = {strength}")
+                    print(f"Peak {i}: Distance = {distance}mm, Strength = {strength}")
             else:
                 print("No peaks detected")
 
