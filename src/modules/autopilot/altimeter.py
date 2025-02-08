@@ -40,6 +40,8 @@ class XM125:
             # Write register address (big endian)
             msb = (reg_addr >> 8) & 0xFF  # Address to slave [15:8]
             lsb = reg_addr & 0xFF         # Address to slave [7:0]
+
+            print(f"Reading register 0x{reg_addr:04x}")
             self.bus.write_i2c_block_data(self.address, msb, [lsb])
 
             # Read 4 bytes
@@ -166,6 +168,9 @@ def main():
 
     except KeyboardInterrupt:
         print("\nStopping measurements")
+
+        # Clean up
+        sensor.bus.close()
     except Exception as e:
         print(f"Error: {e}")
 
