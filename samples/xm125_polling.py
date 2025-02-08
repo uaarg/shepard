@@ -12,6 +12,9 @@ while True:
 
         # Average distance will not be available until at least `average_window` measurements have been taken
         if average:
-            print("Average dist: ", result[0]['averaged'][0])
+            average_distance = average[0]
+
+            # `average_distance` can now be used in your autopilot logic
+            print("Average dist: ", average_distance)
 
     sleep(0.5)
