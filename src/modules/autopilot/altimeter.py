@@ -14,10 +14,14 @@ class XM125:
     REG_START = 0x0040
     REG_END = 0x0041
     REG_COMMAND = 0x0100
+    REG_REFLECTOR_SHAPE = 0x004b
 
     # Command values
     CMD_APPLY_CONFIG_AND_CALIBRATE = 1
     CMD_MEASURE_DISTANCE = 2
+
+    # Value enums
+    REFLECTOR_SHAPE = 2  # 1 = Generic, 2 = Planar
 
     # Status masks
     DETECTOR_STATUS_BUSY_MASK = 0x80000000
@@ -81,6 +85,9 @@ class XM125:
             return False
 
         if not self._write_register(self.REG_END, end_mm):
+            return False
+
+        if not self._write_register(self.REG_REFLECTOR_SHAPE, self.REFLECTOR_SHAPE):
             return False
 
         # Apply configuration and calibrate
