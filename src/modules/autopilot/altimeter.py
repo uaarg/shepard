@@ -308,7 +308,7 @@ class XM125:
                 if distance is not None and strength is not None:
                     # Convert strength from 32-bit unsigned to signed int
                     if strength > 0x7FFFFFFF:
-                        strength = -int(0x100000000 - strength)
+                        strength = int(0x100000000 - strength)
 
                     self.distance_avg.add(distance)
                     self.strength_avg.add(strength)
