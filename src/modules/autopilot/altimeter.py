@@ -151,15 +151,21 @@ class XM125:
         print(f"Consecutive errors: {self.consecutive_errors}")
         print(f"Total errors: {self.error_count}")
 
+        # If we've hit max retries and enough time has passed since last reset
         if self.consecutive_errors >= self.MAX_RETRIES:
             if current_time - self.last_error_time > self.ERROR_TIMEOUT:
                 print("Attempting sensor reset and recalibration...")
-                self.reset_and_recalibrate()
-                self.consecutive_errors = 0
-            else:
-                raise SensorError(f"Too many consecutive errors: {error_msg}")
+                try:
+                    self.reset_and_recalibrate()
+                    self.consecutive_errors = 0  # Only reset if successful
+                    self.last_error_time = current_time
+                    return
+                except Exception as e:
+                    print(f"Reset failed: {e}")
 
-        self.last_error_time = current_time
+            # If we get here, either the timeout hasn't passed or reset failed
+            raise SensorError(f"Too many consecutive errors: {error_msg}")
+
         time.sleep(self.RETRY_DELAY)
 
     def wait_not_busy(self):
@@ -300,6 +306,10 @@ class XM125:
                 strength = self._read_register(self.REG_PEAK0_STRENGTH + i)
 
                 if distance is not None and strength is not None:
+                    # Convert strength from 32-bit signed to regular int
+                    if strength & 0x80000000:
+                        strength = -((~strength + 1) & 0xFFFFFFFF)
+
                     self.distance_avg.add(distance)
                     self.strength_avg.add(strength)
 
@@ -310,8 +320,10 @@ class XM125:
                     }
                     peaks_with_average.append(peak_data)
 
-            # Reset consecutive errors on successful measurement
-            self.consecutive_errors = 0
+            # Only reset consecutive errors if we got valid data
+            if peaks_with_average:
+                self.consecutive_errors = 0
+
             return peaks_with_average
 
         except Exception as e:
@@ -349,9 +361,15 @@ def main():
 
             except SensorError as e:
                 print(f"Sensor error: {e}")
-                print("Attempting recovery...")
-                time.sleep(1.0)
-                continue
+                print("Waiting before retry...")
+                time.sleep(2.0)  # Longer delay on serious errors
+
+                # Try to reset the sensor on serious errors
+                try:
+                    sensor.reset_and_recalibrate()
+                except Exception as reset_error:
+                    print(f"Reset failed: {reset_error}")
+                    time.sleep(5.0)  # Even longer delay if reset fails
 
     except KeyboardInterrupt:
         print("\nStopping measurements")
