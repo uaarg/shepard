@@ -2,7 +2,7 @@ import smbus2
 import time
 
 
-DEBUG = True
+DEBUG = False
 
 class XM125:
     # Register addresses from documentation
@@ -23,7 +23,7 @@ class XM125:
     CMD_MEASURE_DISTANCE = 2
 
     # Value enums
-    REFLECTOR_SHAPE = 2  # 1 = Generic, 2 = Planar
+    REFLECTOR_SHAPE = 1  # 1 = Generic, 2 = Planar
 
     # Status masks
     DETECTOR_STATUS_BUSY_MASK = 0x80000000
