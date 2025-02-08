@@ -323,7 +323,7 @@ def main():
     sensor = XM125(average_window=5)
 
     try:
-        if not sensor.begin(start_mm=1000, end_mm=5000):
+        if not sensor.begin(end_mm=10000):
             print("Failed to initialize sensor")
             return
 
