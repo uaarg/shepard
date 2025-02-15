@@ -99,8 +99,8 @@ class RPiCamera(CameraProvider):
         self.size = (1920, 1080)
         self.configure_camera()
         self.camera.start()
-        print(self.camera.capture_metadata()['ScalarCrop'])
-        print(self.camera.camera_controls['ScalarCrop'])
+        print(self.camera.capture_metadata()['ScalerCrop'])
+        print(self.camera.camera_controls['ScalerCrop'])
 
     def configure_camera(self):
         # Configuring camera properties
