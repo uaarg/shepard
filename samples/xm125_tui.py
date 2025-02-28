@@ -3,7 +3,7 @@ import curses
 import time
 import statistics
 from datetime import datetime
-from src.modules.autopilot.altimeter import XM125, SensorError
+from src.modules.autopilot.altimeter_xm125 import XM125, SensorError
 
 
 def format_measurement_table(screen, start_y, peaks, width):

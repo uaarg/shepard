@@ -1,12 +1,12 @@
 from time import sleep
 
-import src.modules.autopilot.altimeter as altimeter
+import src.modules.autopilot.altimeter_xm125 as altimeter_module
 
-altimeter = altimeter.XM125(average_window=5)
-altimeter.begin()
+altimeter_module = altimeter_module.XM125(average_window=5)
+altimeter_module.begin()
 
 while True:
-    result = altimeter.measure()
+    result = altimeter_module.measure()
     if result:
         average = result[0]['averaged']
 
