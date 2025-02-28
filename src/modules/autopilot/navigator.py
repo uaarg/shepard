@@ -6,7 +6,9 @@ import dronekit
 from pymavlink import mavutil
 
 from src.modules.autopilot.messenger import Messenger
-
+from src.modules.autopilot.messenger import ImageAnalysisDelegate
+from src.modules import imaging
+from dep.labeller.benchmarks.detector import LandingPadDetector, BoundingBox
 
 class Navigator:
     """
@@ -16,9 +18,14 @@ class Navigator:
     vehicle: dronekit.Vehicle = None
     POSITION_TOLERANCE = 1
 
-    def __init__(self, vehicle, messenger_port):
+    def __init__(self, vehicle, messenger_port, camera):
         self.vehicle = vehicle
         self.mavlink_messenger = Messenger(messenger_port)
+        self.image_delgate = ImageAnalysisDelegate(LandingPadDetector(), camera, imaging.debug.ImageAnalysisDebugger())
+
+        self.landing_data = {"im": [],
+                             "lat": [],
+                             "lon": []}
 
     def send_status_message(self, message):
         self.__message(message)
@@ -262,6 +269,30 @@ class Navigator:
         self.__message("Landing")
         self.vehicle.mode = dronekit.VehicleMode("LAND")
 
+
+    def precision_landing(self, lat, long, alt):
+        """
+
+        Experimenting with precision landing and utilizing the PyMavlink precision landing function.
+
+        Creates and sends a precision landing message to the mavlink
+
+        Requires landing target data
+        """
+        
+        abort_land_alt = 5
+
+        msg = self.vehicle.message_factory.mav_cmd_nav_land(abort_land_alt, # minimum altitude if landing is aborted
+                                                            2, # Enable precision landing mode
+                                                            0, # blank
+                                                            0, # Desired Yaw Angle
+                                                            lat, # Latitude of target
+                                                            long, # Longitude of the target
+                                                            alt  # Altitude of the ground in the current reference frame
+                                                            )
+        self.vehicle.send_mavlink(msg)
+
+
     def return_to_launch(self):
         """
         Returns the vehicle to its launch position.
@@ -271,6 +302,100 @@ class Navigator:
 
         self.__message("Returning to launch")
         self.vehicle.mode = dronekit.VehicleMode("RTL")
+
+    def basic_precision_landing(self, lat, long, alt):
+        """
+        PHASED OUT
+
+        Experimenting with precision landing and utilizing the PyMavlink precision landing function.
+
+        Creates and sends a precision landing message to the mavlink
+        """
+        
+        abort_land_alt = 5
+
+        msg = self.vehicle.message_factory.mav_cmd_nav_land(abort_land_alt, # minimum altitude if landing is aborted
+                                                            2, # Enable precision landing mode
+                                                            0, # blank
+                                                            0, # Desired Yaw Angle
+                                                            lat, # Latitude of target
+                                                            long, # Longitude of the target
+                                                            alt  # Altitude of the ground in the current reference frame
+                                                            )
+        
+        self.vehicle.send_mavlink(msg)
+        
+    def precision_landing(self, threshold_alt: 5, landing_speed: 2):
+        """ Manual Precision Landing. Utlizes imaging data and LIDAR data in order to make landing precise. 
+
+        :param threshold_alt: the altitude at which the vehicle will no longer make lat and lon adjustments or speed adjustments (m)
+        :param landing_speed: the speed at which the drone will be landing. (m/s)
+        """
+
+
+        
+        
+
+        analysis = self.image_delgate
+
+        analysis.subscribe(self.update_landing_data)
+        analysis.start()
+
+
+        # Begin the descent
+        self.set_altitude(0)
+
+        while current_alt != 0:
+
+            """Landing Procedure: 
+                1. Set drone position to be above the landing pad directly based on current accuracy (this will most likly be done in flight test script)
+                2. Begin descent
+                3. Adjust the descent velocity based on the following factors
+                    a. landing pad location, of the drone is moving away from the predicted center of the landing pad,
+                    slow down and allow for repositioning
+                    b. wind, this manifests itself in point a
+                    c. current altitude which will be accurately provided from a LIDAR sensor.
+                4. Within a certain altitude threshold (most likely just going to be 5m from the ground although this may be tweaked),
+                there will be no more repositioning and the vehicle will land based on the current projection. """
+            
+            landing_data = self.landing_data # Use updated landing data.
+            landing_pad_coords = (landing_data["lat"], landing_data["lon"])
+
+            #NOTE: Change this to LIDAR sensor data once that becomes availbale. this is CRITICAL for proper landing accuracy.
+            # Same goes for the other altitude measurement 
+            current_alt = self.vehicle.location.global_relative_frame.alt
+
+            current_coords = (self.vehicle.location.global_relative_frame.lat, self.vehicle.location.global_relative_frame.lon)
+
+
+            # Make lat and lon adjustments to make landing precise
+            if current_alt >= threshold_alt:            
+                self.set_position(landing_pad_coords[0], landing_pad_coords[1])
+
+            delta = self.__get_distance_metres(current_coords, landing_pad_coords)
+
+            if delta >= 0.5 or current_alt <= threshold_alt:
+                self.set_speed(0.5)
+            
+            else:
+                self.set_speed(landing_speed)
+        
+
+
+        # Figure out how to integrate the other existing things to make the landing message more natural
+        self.set_speed(0)
+        self.__message("The drone has landed")
+
+            
+            
+
+        
+    def update_landing_data(self, im, lat, lon):
+        """Update the landing data dictionary. This function is called on in the ImageAnalysisDelegate
+        so that the landing data can be updated"""
+        
+        self.update_landing_data(im, lat, lon)
+
 
     def set_speed(self, speed):
         """
