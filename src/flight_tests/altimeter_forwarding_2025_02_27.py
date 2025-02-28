@@ -1,6 +1,6 @@
 import time
 
-from dronekit import connect, VehicleMode
+from dronekit import connect
 
 from src.modules.autopilot import navigator
 from src.modules.autopilot.altimeter_xm125 import XM125

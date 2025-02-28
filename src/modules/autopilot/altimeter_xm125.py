@@ -7,6 +7,7 @@ from src.modules.autopilot.altimeter import Altimeter, MovingAverage
 
 DEBUG = False
 
+
 class SensorError(Exception):
     """Base exception class for sensor errors"""
     pass
