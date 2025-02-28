@@ -270,6 +270,29 @@ class Navigator:
         self.vehicle.mode = dronekit.VehicleMode("LAND")
 
 
+    def precision_landing(self, lat, long, alt):
+        """
+
+        Experimenting with precision landing and utilizing the PyMavlink precision landing function.
+
+        Creates and sends a precision landing message to the mavlink
+
+        Requires landing target data
+        """
+        
+        abort_land_alt = 5
+
+        msg = self.vehicle.message_factory.mav_cmd_nav_land(abort_land_alt, # minimum altitude if landing is aborted
+                                                            2, # Enable precision landing mode
+                                                            0, # blank
+                                                            0, # Desired Yaw Angle
+                                                            lat, # Latitude of target
+                                                            long, # Longitude of the target
+                                                            alt  # Altitude of the ground in the current reference frame
+                                                            )
+        self.vehicle.send_mavlink(msg)
+
+
     def return_to_launch(self):
         """
         Returns the vehicle to its launch position.
