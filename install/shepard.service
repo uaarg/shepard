@@ -3,8 +3,8 @@ Description=Shepard
 After=login.target
 
 [Service]
-ExecStart=/home/uaarg/shepard/bin/run-nav.sh
-WorkingDirectory=/home/uaarg/shepard
+ExecStart=/home/uaarg/Documents/shepard/bin/run-nav.sh
+WorkingDirectory=/home/uaarg/Documents/shepard
 
 [Install]
 WantedBy=multi-user.target

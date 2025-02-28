@@ -16,7 +16,7 @@ os.makedirs("tmp/log", exist_ok=True)
 dirs = os.listdir("tmp/log")
 ft_num = len(dirs)
 os.makedirs(f"tmp/log/{ft_num}")  # no exist_ok bc. this folder should be new
-
+os.makedirs(f"tmp/log/{ft_num}/dat")  # no exist_ok bc. this folder should be new
 i = 0
 last_picture = time.time()
 
@@ -35,16 +35,20 @@ def take_picture(_):
     cam.caputure_to(path)
     #location.dump_to(f"tmp/log/{ft_num}/{i}.json")
     print(i)
-    i += 1
     return path 
 
 
 def predict(pathToImage: str):
+    global i
+  
     image = Image.open(pathToImage)
     results = model.predict(image)
-    draw_bbox(image, results)
-    with open('tmp/2025_02_08.log', 'w') as file:
+    #draw_bbox(image, results)
+
+    with open(f'tmp/log/{ft_num}/dat/{i}.log', 'w') as file:
         file.write(str(results))
+
+    i += 1
     print(results)
 
 def draw_bbox(image: Image.Image, results: dict):
@@ -63,7 +67,7 @@ def draw_bbox(image: Image.Image, results: dict):
 
 while True:
     predict(take_picture(None))
-    time.sleep(1)
+    time.sleep(0.5)
 
 #mavlink.subscribe(take_picture)
 #mavlink.run()
