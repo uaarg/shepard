@@ -345,7 +345,6 @@ class Navigator:
             current_coords = (self.vehicle.location.global_relative_frame.lat, self.vehicle.location.global_relative_frame.lon)
 
 
-
             # Make lat and lon adjustments to make landing precise
             if current_alt >= threshold_alt:            
                 self.set_position(landing_pad_coords[0], landing_pad_coords[1])
