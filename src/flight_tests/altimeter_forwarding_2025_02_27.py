@@ -7,8 +7,8 @@ from src.modules.autopilot.altimeter_xm125 import XM125
 from src.modules.autopilot.altimeter_mavlink import MavlinkAltimeterProvider
 
 # Connection settings
-CONN_STR = "tcp:127.0.0.1:14550"  # Updated to common Pixhawk connection
-MESSENGER_PORT = 14550  # Updated to avoid port conflict
+CONN_STR = "tcp:127.0.0.1:14550"
+MESSENGER_PORT = 14550
 MAVLINK_ALTITUDE_CONN_STR = "tcp:127.0.0.1:14550"
 
 # Test settings
