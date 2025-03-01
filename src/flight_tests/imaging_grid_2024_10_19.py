@@ -44,7 +44,9 @@ while travelled_NS <= total_NS:
 
     travelled_NS += 20
 
-# RTL
-nav.return_to_launch()
+    
+nav.precision_landing(start_coords.lat, start_coords.lon, start_coords.alt)
+
+
 drone.close()
 nav.send_status_message("Flight test script execution terminated")
