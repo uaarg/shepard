@@ -152,7 +152,7 @@ class MavlinkAltimeterProvider:
                 255,  # covariance (255 if unknown)
                 0,  # horizontal_fov (0 if unknown)
                 0,  # vertical_fov (0 if unknown)
-                0,  # quaternion (zero-rotation)
+                [0, 0, 0, 0],  # quaternion (zero-rotation)
                 0  # signal_quality (0 = unknown)
             )
 
