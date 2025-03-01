@@ -131,6 +131,14 @@ class MavlinkAltimeterProvider:
             # Convert to centimeters for MAVLink message
             distance_cm = int(distance_mm / 10.0)
 
+            print("DEBUG")
+            print(f"\t distance_mm: {distance_mm}")
+            print(f"\t distance_cm: {distance_cm}")
+            print(f"\t min_distance_cm: {self.sensor.min_distance_cm}")
+            print(f"\t max_distance_cm: {self.sensor.max_distance_cm}")
+            print(f"\t sensor_type: {self.sensor.mavlink_sensor_type}")
+            print(f"\t sensor_id: {self.sensor.sensor_id}")
+
             # Create and send the DISTANCE_SENSOR message
             # Documentation: https://mavlink.io/en/messages/common.html#DISTANCE_SENSOR
             self._mavlink_connection.mav.distance_sensor_send(
