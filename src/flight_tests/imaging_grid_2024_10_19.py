@@ -4,7 +4,7 @@ from dronekit import connect, VehicleMode
 
 from src.modules.autopilot import navigator
 
-CONN_STR = "udp:127.0.0.1:14551"
+CONN_STR = "tcp:127.0.0.1:14550"
 MESSENGER_PORT = 14552
 
 drone = connect(CONN_STR, wait_ready=False)
