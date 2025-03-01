@@ -13,7 +13,6 @@ from dronekit import connect, VehicleMode, LocationGlobal
 from src.modules.autopilot import navigator
 from src.modules.autopilot import lander
 import src.modules.autopilot.altimeter as altimeter
-import src.modules.autopilot.altimeter_poll as poll
 
 CONN_STR = "udp:127.0.0.1:14551"
 MESSENGER_PORT = 14552
@@ -24,11 +23,6 @@ nav = navigator.Navigator(drone, MESSENGER_PORT)
 lander = lander.Lander()
 altimeter = altimeter.XM125(average_window=5)
 altimeter.begin()
-
-
-# Initialize a new thread which continuously polls the altimeter and will (hopefully) send the altimeter data to the pixhawk
-thread1 = threading.Thread(target = poll.poll(altimeter=altimeter))
-thread1.start()
 
 nav.send_status_message("Shepard is online")
 
