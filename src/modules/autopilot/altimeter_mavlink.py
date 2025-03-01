@@ -31,6 +31,7 @@ class MavlinkAltimeterProvider:
         self._thread = None
         self._lock = threading.Lock()
         self._mavlink_connection = None
+        self._tstart = None
 
     def start(self):
         """Start the altimeter thread."""
@@ -38,6 +39,8 @@ class MavlinkAltimeterProvider:
             return
 
         try:
+            self._tstart = time.time()
+
             # Initialize MAVLink connection
             self._mavlink_connection = mavutil.mavlink_connection(self.connection_string)
             # Wait for a heartbeat to ensure connection is established
@@ -142,18 +145,14 @@ class MavlinkAltimeterProvider:
             # Create and send the DISTANCE_SENSOR message
             # Documentation: https://mavlink.io/en/messages/common.html#DISTANCE_SENSOR
             self._mavlink_connection.mav.distance_sensor_send(
-                int(time.time() * 1000),  # time_boot_ms
+                int((time.time() * 1000) - self._tstart),  # time_boot_ms
                 self.sensor.min_distance_cm,  # min_distance (cm)
                 self.sensor.max_distance_cm,  # max_distance (cm)
                 distance_cm,  # current_distance (cm)
                 self.sensor.mavlink_sensor_type,  # type (from sensor)
                 self.sensor.sensor_id,  # id (unique ID for this sensor)
-                6,  # orientation (25 = MAV_SENSOR_ROTATION_PITCH_270 - downward facing)
-                255,  # covariance (255 if unknown)
-                0,  # horizontal_fov (0 if unknown)
-                0,  # vertical_fov (0 if unknown)
-                [0, 0, 0, 0],  # quaternion (zero-rotation)
-                0  # signal_quality (0 = unknown)
+                mavutil.mavlink.MAV_SENSOR_ROTATION_PITCH_270,  # orientation (downward facing)
+                0,  # covariance
             )
 
         except Exception as e:
