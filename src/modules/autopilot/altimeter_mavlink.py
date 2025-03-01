@@ -145,7 +145,7 @@ class MavlinkAltimeterProvider:
             # Create and send the DISTANCE_SENSOR message
             # Documentation: https://mavlink.io/en/messages/common.html#DISTANCE_SENSOR
             self._mavlink_connection.mav.distance_sensor_send(
-                int((time.time() * 1000) - self._tstart),  # time_boot_ms
+                int((time.time() - self._tstart) * 1000),  # time_boot_ms
                 self.sensor.min_distance_cm,  # min_distance (cm)
                 self.sensor.max_distance_cm,  # max_distance (cm)
                 distance_cm,  # current_distance (cm)
