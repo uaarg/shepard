@@ -26,7 +26,7 @@ drone = connect(CONN_STR, wait_ready=False)
 
 # Initialize navigator
 nav = navigator.Navigator(drone, MESSENGER_PORT)
-nav.send_status_message("SHEPARD: Altimeter test initializing")
+nav.send_status_message("Altimeter test initializing")
 
 # Initialize the XM125 radar altimeter
 radar_sensor = XM125(
@@ -46,7 +46,7 @@ if not radar_sensor.begin():
 mavlink_altimeter = MavlinkAltimeterProvider(radar_sensor, MAVLINK_ALTITUDE_CONN_STR)
 mavlink_altimeter.start()
 
-nav.send_status_message("SHEPARD: XM125 Altimeter test starting")
+nav.send_status_message("XM125 Altimeter test starting")
 
 try:
     nav.send_status_message("Forwarding altitude data to Pixhawk")
@@ -95,18 +95,5 @@ finally:
     nav.send_status_message("Stopping altitude provider")
     mavlink_altimeter.stop()
 
-    # Log altimeter data to json file
-    with open("./logs/log1.json", "w", encoding="utf-8") as file:
-        data = {
-            "AltimeterData": AltimeterData,
-            "PixHawkData": PixHawkData,
-            "Delta": Delta
-        }
-        data = json.dumps(data)
-
-        file.write(data)
-
-        
-
-    nav.send_status_message("SHEPARD: Altimeter test completed")
+    nav.send_status_message("Altimeter test completed")
     drone.close()
