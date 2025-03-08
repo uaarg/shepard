@@ -15,7 +15,7 @@ class Detector:
     def __init__(self, image_path=None):
         self.image_path = image_path
 
-    def detect_red_balloons(self): 
+    def detect_red_balloons(self, image_path): 
         """
         Main logic
 
@@ -25,6 +25,7 @@ class Detector:
                 nearest balloon, between 0 and 1.
             detected (bool): Whether a red balloon was detected.
         """
+        self.image_path = image_path
         logging.info(f"Detecting red balloons... {self.image_path}")
         if self.image_path is None:
             logging.error("No image provided")
@@ -104,7 +105,7 @@ class Detector:
         
         return direction, distance, True
 
-    def process_image_directory(self, directory_path, pattern="*.jpg"):
+    def process_image_directory(self, directory_path, pattern=".png"):
         """
         Process a directory of images by detecting red balloons and printing the results.
 
@@ -125,14 +126,13 @@ class Detector:
         image_paths = glob.glob(os.path.join(directory_path, pattern))
         
         # Process each image in the directory
-        for img_path in image_paths:
-            print(f"Processing image: {img_path}...")
-            direction, distance, detected = self.detect_red_balloons(image_path=img_path)
-            
-            if detected:
-                print(f"Red balloon(s) detected: Move {direction}, Distance: {distance:.2f}")
-            else:
-                print("No red balloons detected")
+        print(f"Processing image: {img_paths[-1]}...")
+        direction, distance, detected = self.detect_red_balloons(image_path=img_paths[-1])
+        
+        if detected:
+            print(f"Red balloon detected: Move {direction}, Distance: {distance:.2f}")
+        else:
+            print("No red balloons detected")
 
 if __name__ == "__main__":
     # Process a single image
