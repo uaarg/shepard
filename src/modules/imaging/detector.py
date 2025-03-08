@@ -105,7 +105,7 @@ class Detector:
         
         return direction, distance, True
 
-    def process_image_directory(self, directory_path, pattern=".png"):
+    def process_image_directory(self, directory_path, pattern=".png"): #do not add "/" at the end of directory path
         """
         Process a directory of images by detecting red balloons and printing the results.
 
@@ -123,16 +123,25 @@ class Detector:
         detected". Otherwise, it will print the direction and normalized distance from the
         center of the image to the nearest balloon.
         """
-        image_paths = glob.glob(os.path.join(directory_path, pattern))
+        for file in os.listdir(directory_path):
+            if ".png" in file:
+                image_path = directory_path + "/" + file
+            else:
+                print(f"picture not taken yet")
+                return None 
+            
+        print(image_path)
         
         # Process each image in the directory
-        print(f"Processing image: {img_paths[-1]}...")
-        direction, distance, detected = self.detect_red_balloons(image_path=img_paths[-1])
+        print(f"Processing image: {image_path}...")
+        direction, distance, detected = self.detect_red_balloons(image_path=image_path)
         
         if detected:
             print(f"Red balloon detected: Move {direction}, Distance: {distance:.2f}")
+            return direction, distance
         else:
             print("No red balloons detected")
+            return None
 
 if __name__ == "__main__":
     # Process a single image
