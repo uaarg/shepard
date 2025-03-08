@@ -21,30 +21,7 @@ MAVLINK_ALTITUDE_CONN_STR = "tcp:127.0.0.1:14550"
 drone = connect(CONN_STR, wait_ready=False)
 
 # Imaging setup
-cam = RPiCamera()
 detector = Detector()
-
-os.makedirs("tmp/log", exist_ok=True)
-dirs = os.listdir("tmp/log")
-ft_num = len(dirs)
-os.makedirs(f"tmp/log/{ft_num}")  # no exist_ok bc. this folder should be new
-
-i = 0
-
-def take_picture(_):
-    global i
-
-    cam.caputure_to(f"tmp/log/{ft_num}/{i}.png")
-    print(i)
-    i += 1
-
-def picture_loop(sleep):
-    while True:
-        take_picture(None)
-        time.sleep(sleep)
-imaging_thread = threading.Thread(target=picture_loop, args=[3])
-
-imaging_thread.start()
 
 # Initialize navigator
 nav = navigator.Navigator(drone, MESSENGER_PORT)
@@ -82,9 +59,14 @@ try:
 
     nav.send_status_message("Starting balloon search")
 
+    current_pic = 0
+
     while True:
         step_size = 1  # meters
-        distance, direction = detector.process_image_directory(directory_path=f"/tmp/log/{ft_num}/{i}")
+        last_pic = current_pic
+        distance, direction, current_pic = detector.process_image_directory(directory_path=f"tmp/log/{ft_num}")
+
+        if current_pic == last_pic: continue
 
         if direction is not None:
             nav.send_status_message(f"Balloon detected: Move {direction}, Distance: {distance:.2f}")
@@ -101,6 +83,7 @@ try:
                 nav.set_heading_relative(-10)
 
         else:
+            nav.send_status_message("No balloons detected")
             nav.set_heading_relative(10)
 
 except KeyboardInterrupt:
