@@ -35,7 +35,6 @@ radar_sensor = XM125(
     average_window=5
 )
 
-
 if not radar_sensor.begin():
     nav.send_status_message("ERROR: Failed to initialize radar sensor")
     drone.close()
@@ -60,6 +59,9 @@ try:
     nav.send_status_message("Starting balloon search")
 
     current_pic = 0
+    
+    dirs = os.listdir("tmp/log")
+    ft_num = len(dirs)
 
     while True:
         step_size = 1  # meters
