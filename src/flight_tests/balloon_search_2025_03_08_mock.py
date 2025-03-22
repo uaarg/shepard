@@ -7,19 +7,19 @@ from src.modules.imaging.detector import BalloonDetector
 from src.modules.imaging.analysis import ImageAnalysisDelegate
 from src.modules.imaging.analysis import ImageAnalysisDebugger
 from src.modules.imaging.location import DebugLocationProvider
+from PIL import Image
+import time
+
+def printlonglat(im, boundingbox):
+    im.show()
+    print(boundingbox)
 
 
 detector = BalloonDetector()
 location_debugger = DebugLocationProvider()
-debugger = ImageAnalysisDebugger()
 camera = RPiCamera()
-analysis = ImageAnalysisDelegate(detector=detector, camera=camera , location_provider=location_debugger, debugger=debugger)
 
-
-
-def printlonglat(im, boundingbox):
-    print(boundingbox)
+analysis = ImageAnalysisDelegate(detector=detector, camera=camera , location_provider=location_debugger) 
 
 analysis.subscribe(printlonglat)
-
 analysis.start()

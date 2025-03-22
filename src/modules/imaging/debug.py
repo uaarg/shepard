@@ -18,7 +18,6 @@ class ImageAnalysisDebugger:
         self.root = tk.Tk()
         self.root.title("debugger")
         self.is_visible = False
-        # self.root.mainloop()
 
     def show(self):
         """

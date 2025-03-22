@@ -48,6 +48,7 @@ class ImageAnalysisDelegate:
                  camera: CameraProvider,
                  location_provider: LocationProvider,
                  debugger: Optional[ImageAnalysisDebugger] = None):
+
         self.detector = detector
         self.camera = camera
         self.debugger = debugger
@@ -61,6 +62,10 @@ class ImageAnalysisDelegate:
             print("Bounding Box out of bounds")
             return None
         return inference
+
+    def flip_image(self, img):
+
+        return img.transpose(Image.FLIP_TOP_BOTTOM).transpose(Image.FLIP_LEFT_RIGHT)
 
     def start(self):
         """
@@ -76,7 +81,7 @@ class ImageAnalysisDelegate:
         should otherwise we run by `start()` which then starts
         `_analysis_loop()` in another thread.
         """
-        im = self.camera.capture()
+        im = self.flip_image(self.camera.capture())
         bounding_box = self.detector.predict(im)
         if self.debugger is not None:
             self.debugger.set_image(im)
