@@ -126,8 +126,6 @@ class BalloonDetector(LandingPadDetector):
             print("No red balloons detected")
             return None, None, pic_num-1
 
-        def predict(self, image: Image.Image) -> Optional[BoundingBox]:
-
 
 
 if __name__ == "__main__":
