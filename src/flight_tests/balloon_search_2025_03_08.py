@@ -2,16 +2,44 @@ import math
 import os
 import threading
 import time
+from PIL import Image
 
 from dronekit import connect, VehicleMode
 
 from src.modules.autopilot import navigator
+from src.modules.imaging.analysis import ImageAnalysisDelegate
+from src.modules.imaging.location import DebugLocationProvider
 from src.modules.autopilot.altimeter_xm125 import XM125
 from src.modules.autopilot.altimeter_mavlink import MavlinkAltimeterProvider
+from dep.labeller.detector import BoundingBox
 
 from src.modules.imaging.camera import RPiCamera
 from src.modules.imaging.detector import Detector
 
+new_inference = True
+direction = None
+distance = None
+
+def update_inference(img: Image.Image, bb: BoundingBox):
+    """subscribed to ImageAnalysisDelegate"""
+
+    global direction
+    global distance
+    global new_inference
+
+    new_inference = True
+
+    if bb.position.x >= 1200:
+        direction = "right"
+        distance = bb.position.x - 960
+    elif bb.position.x <= 720:
+        direction = "left"
+        distance = bb.position.x 
+    else:
+        direction = "center"
+        distance = 0
+        
+    
 # Connection settings
 CONN_STR = "tcp:127.0.0.1:14550"
 MESSENGER_PORT = 14550
@@ -22,6 +50,12 @@ drone = connect(CONN_STR, wait_ready=False)
 
 # Imaging setup
 detector = Detector()
+camera = RPiCamera()
+location_provider = DebugLocationProvider()
+
+analysis = ImageAnalysisDelegate(detector=detector, camera=camera, location_provider=location_debugger)
+analysis.subscribe(update_inference)
+analysis.start()
 
 # Initialize navigator
 nav = navigator.Navigator(drone, MESSENGER_PORT)
@@ -58,27 +92,18 @@ try:
 
     nav.send_status_message("Starting balloon search")
 
-    current_pic = 0
-    
-    dirs = os.listdir("tmp/log")
-    ft_num = len(dirs)
-
     prev_movement_dir = None
     prev_movement_amnt = 60
     turn_count = 0
 
     while turn_count < 6: # 60 degrees * 6 = 360 => we completed a full circle without finding balloons
         step_size = 1  # meters
-        last_pic = current_pic
-        distance, direction, current_pic = detector.process_image_directory(directory_path=f"tmp/log/{ft_num}")
 
-        if current_pic == last_pic: continue
-        
-        
+        if not new_inference: continue
 
         if direction is not None: # we saw balloon
             prev_movement_dir = direction # keep track in case balloon goes out of frame after previously found
-            prev_movement_amnt //= 2
+            #prev_movement_amnt //= 2
             nav.send_status_message(f"Balloon detected: Move {direction}, Distance: {distance:.2f}")
 
             if direction == "center":
@@ -91,9 +116,9 @@ try:
             # best thing we could do is calculate the angle required to centre it
             # could also keep halving the distance
             elif direction == "right":
-                nav.set_heading_relative(prev_movement_amnt)
+                nav.set_heading_relative(movement_amnt/(distance/960))
             elif direction == "left":
-                nav.set_heading_relative(-prev_movement_amnt)
+                nav.set_heading_relative(movement_amnt/(distance/960))
 
         else: # we did nto see the balloon
             if prev_movement_dir == None:
@@ -108,6 +133,9 @@ try:
                     nav.set_heading_relative(-prev_movement_amnt) # if previously moved right balloon would be to the left
                 else:
                     nav.set_heading_relative(prev_movement_amnt)
+        
+        new_inference = False
+    
 
 
 except KeyboardInterrupt:
