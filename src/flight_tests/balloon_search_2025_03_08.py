@@ -10,7 +10,10 @@ from src.modules.autopilot.altimeter_xm125 import XM125
 from src.modules.autopilot.altimeter_mavlink import MavlinkAltimeterProvider
 
 from src.modules.imaging.camera import RPiCamera
-from src.modules.imaging.detector import Detector
+from src.modules.imaging.detector import BalloonDetector
+from src.modules.imaging.analysis import ImageAnalysisDelegate
+from src.modules.imaging.analysis import ImageAnalysisDebugger
+from src.modules.imaging.location import DebugLocationProvider
 
 # Connection settings
 CONN_STR = "tcp:127.0.0.1:14550"
@@ -21,7 +24,11 @@ MAVLINK_ALTITUDE_CONN_STR = "tcp:127.0.0.1:14550"
 drone = connect(CONN_STR, wait_ready=False)
 
 # Imaging setup
-detector = Detector()
+detector = BalloonDetector()
+location_debugger = DebugLocationProvider()
+debugger = ImageAnalysisDebugger()
+camera = RPiCamera()
+analysis = ImageAnalysisDelegate(detector=detector, camera=camera , location_provider=location_debugger, debugger=debugger)
 
 # Initialize navigator
 nav = navigator.Navigator(drone, MESSENGER_PORT)
@@ -58,35 +65,7 @@ try:
 
     nav.send_status_message("Starting balloon search")
 
-    current_pic = 0
-    
-    dirs = os.listdir("tmp/log")
-    ft_num = len(dirs)
-
-    while True:
-        step_size = 1  # meters
-        last_pic = current_pic
-        distance, direction, current_pic = detector.process_image_directory(directory_path=f"tmp/log/{ft_num}")
-
-        if current_pic == last_pic: continue
-
-        if direction is not None:
-            nav.send_status_message(f"Balloon detected: Move {direction}, Distance: {distance:.2f}")
-
-            if direction == "center":
-                # Move in that direction, need to calculate the N and E offsets based on heading
-                current_heading = drone.heading
-                metres_north_relative = step_size * math.sin(math.radians(current_heading))
-                metres_east_relative = step_size * math.cos(math.radians(current_heading))
-                nav.set_position_relative(metres_north_relative, metres_east_relative)
-            elif direction == "right":
-                nav.set_heading_relative(10)
-            elif direction == "left":
-                nav.set_heading_relative(-10)
-
-        else:
-            nav.send_status_message("No balloons detected")
-            nav.set_heading_relative(10)
+    analysis.start()
 
 except KeyboardInterrupt:
     nav.send_status_message("Script interrupted by user")
