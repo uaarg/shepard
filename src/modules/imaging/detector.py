@@ -7,6 +7,7 @@ import os
 import glob
 from dep.labeller.benchmarks.detector import LandingPadDetector, BoundingBox
 from dep.labeller.loader import Vec2
+from typing import Optional
 
 class BalloonDetector(LandingPadDetector):
     """
