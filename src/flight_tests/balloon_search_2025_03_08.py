@@ -93,7 +93,7 @@ try:
     nav.send_status_message("Starting balloon search")
 
     prev_movement_dir = None
-    prev_movement_amnt = 60
+    movement_amnt = 60
     turn_count = 0
 
     while turn_count < 6: # 60 degrees * 6 = 360 => we completed a full circle without finding balloons
@@ -105,7 +105,7 @@ try:
 
         if direction is not None: # we saw balloon
             prev_movement_dir = direction # keep track in case balloon goes out of frame after previously found
-            #prev_movement_amnt //= 2
+            #movement_amnt //= 2
             nav.send_status_message(f"Balloon detected: Move {direction}, Distance: {distance:.2f}")
 
             if direction == "center":
@@ -130,11 +130,11 @@ try:
                 nav.set_heading_relative(60)
             else:
                 # we previously saw a balloon which we do not anymore
-                prev_movement_amnt //= 2
+                movement_amnt //= 2
                 if prev_movement_dir == "right":
-                    nav.set_heading_relative(-prev_movement_amnt) # if previously moved right balloon would be to the left
+                    nav.set_heading_relative(-movement_amnt) # if previously moved right balloon would be to the left
                 else:
-                    nav.set_heading_relative(prev_movement_amnt)
+                    nav.set_heading_relative(movement_amnt)
         
         new_inference = False
     
