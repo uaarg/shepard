@@ -1,10 +1,14 @@
 import cv2
 import numpy as np
+from PIL import Image
+import numpy as np
 import logging
 import os
 import glob
+from dep.labeller.benchmarks.detector import LandingPadDetector, BoundingBox
+from dep.labeller.loader import Vec2
 
-class Detector:
+class BalloonDetector(LandingPadDetector):
     """
     Detects red balloons in a given image and returns the direction and distance
     to the nearest balloon from the center of the image. The direction is one of
@@ -15,27 +19,10 @@ class Detector:
     def __init__(self, image_path=None):
         self.image_path = image_path
 
-    def detect_red_balloons(self, image_path): 
-        """
-        Main logic
-
-        Returns:
-            direction (str): One of left, right, up, down, or center.
-            distance (float): Normalized distance from the center of the image to the
-                nearest balloon, between 0 and 1.
-            detected (bool): Whether a red balloon was detected.
-        """
-        self.image_path = image_path
-        logging.info(f"Detecting red balloons... {self.image_path}")
-        if self.image_path is None:
-            logging.error("No image provided")
-            return "none", 0, 
+    def predict(self, image: Image.Image) -> Optional[BoundingBox]: 
             
-        img = cv2.imread(self.image_path)
-        if img is None:
-            logging.error(f"Image not found: {image_path}")
-            return "none", 0, False
-        
+        img = np.array(image)
+
         # Get dimensions and center of the image
         height, width = img.shape[:2]
         center_x, center_y = width // 2, height // 2
@@ -65,14 +52,14 @@ class Detector:
         
         # No contours means no red balloons
         if not contours:
-            return "none", 0, False
+            return None
         
         # Filter out small contours that might be noise
         min_contour_area = 100  # Adjust as needed
         valid_contours = [cnt for cnt in contours if cv2.contourArea(cnt) > min_contour_area]
         
         if not valid_contours:
-            return "none", 0, False
+            return None
         
         # For multiple balloons, we want to find the one closest to the center
         # Find the centroid of all balloons and find the closest one
@@ -80,7 +67,7 @@ class Detector:
         M = cv2.moments(all_balloon_points)
         
         if M["m00"] == 0:
-            return "none", 0, False
+            return None
         
         # Calculate the centroid of all red regions
         balloon_center_x = int(M["m10"] / M["m00"])
@@ -103,7 +90,7 @@ class Detector:
         else:
             direction = "down" if dy > 0 else "up"
         
-        return direction, distance, True
+        return BoundingBox(Vec2(balloon_center_x, balloon_center_y), Vec2(1,1)) 
 
     def process_image_directory(self, directory_path, pattern=".png"): #do not add "/" at the end of directory path
         """
@@ -123,25 +110,25 @@ class Detector:
         detected". Otherwise, it will print the direction and normalized distance from the
         center of the image to the nearest balloon.
         """
-        for file in os.listdir(directory_path):
-            if ".png" in file:
-                image_path = directory_path + "/" + file
-            else:
-                print(f"picture not taken yet")
-                return None 
             
-        print(image_path)
-        
+        pic_num = len(os.listdir(directory_path))
+        if pic_num == 0: return None, None, 0
+        image_path = directory_path + f"/{pic_num-1}{pattern}" #image_path starts from 0 
+
         # Process each image in the directory
         print(f"Processing image: {image_path}...")
         direction, distance, detected = self.detect_red_balloons(image_path=image_path)
         
         if detected:
             print(f"Red balloon detected: Move {direction}, Distance: {distance:.2f}")
-            return direction, distance
+            return direction, distance, pic_num-1
         else:
             print("No red balloons detected")
-            return None
+            return None, None, pic_num-1
+
+        def predict(self, image: Image.Image) -> Optional[BoundingBox]:
+
+
 
 if __name__ == "__main__":
     # Process a single image
