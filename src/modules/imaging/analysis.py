@@ -85,7 +85,7 @@ class ImageAnalysisDelegate:
 
         for subscribers in self.subscribers:
             if bounding_box:
-                inference = self.get_inference(bounding_box)
+                # inference = self.get_inference(bounding_box)
                 subscribers(im, bounding_box)
 #                if inference:
 #                    lon, lat = get_object_location(self.camera_attributes,
