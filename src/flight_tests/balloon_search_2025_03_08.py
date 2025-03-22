@@ -22,6 +22,7 @@ distance = None
 
 def update_inference(img: Image.Image, bb: BoundingBox):
     """subscribed to ImageAnalysisDelegate"""
+    img.show()
 
     global direction
     global distance
@@ -39,7 +40,6 @@ def update_inference(img: Image.Image, bb: BoundingBox):
         direction = "center"
         distance = 0
         
-    
 # Connection settings
 CONN_STR = "tcp:127.0.0.1:14550"
 MESSENGER_PORT = 14550
@@ -99,7 +99,9 @@ try:
     while turn_count < 6: # 60 degrees * 6 = 360 => we completed a full circle without finding balloons
         step_size = 1  # meters
 
-        if not new_inference: continue
+        if not new_inference:
+            direction = None
+            distance = None 
 
         if direction is not None: # we saw balloon
             prev_movement_dir = direction # keep track in case balloon goes out of frame after previously found
