@@ -15,7 +15,7 @@ class ImageAnalysisDebugger:
 
     def __init__(self):
         self.image: Optional[Image.Image] = None
-        self.root = tk.Tk()
+        self.root = tk.Tk("debugger")
         self.is_visible = False
 
     def show(self):
