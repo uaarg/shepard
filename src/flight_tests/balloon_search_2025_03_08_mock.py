@@ -17,5 +17,9 @@ analysis = ImageAnalysisDelegate(detector=detector, camera=camera , location_pro
 
 
 
+def printlonglat(im, boundingbox):
+    print(boundingbox)
+
+analysis.subscribe(printlonglat)
 
 analysis.start()
