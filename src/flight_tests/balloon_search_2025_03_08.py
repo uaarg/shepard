@@ -22,7 +22,6 @@ distance = None
 
 def update_inference(img: Image.Image, bb: BoundingBox):
     """subscribed to ImageAnalysisDelegate"""
-    img.show()
 
     global direction
     global distance
@@ -53,7 +52,7 @@ detector = Detector()
 camera = RPiCamera()
 location_provider = DebugLocationProvider()
 
-analysis = ImageAnalysisDelegate(detector=detector, camera=camera, location_provider=location_debugger)
+analysis = ImageAnalysisDelegate(detector=detector, camera=camera, location_provider=location_provider)
 analysis.subscribe(update_inference)
 analysis.start()
 
@@ -120,7 +119,7 @@ try:
             elif direction == "right":
                 nav.set_heading_relative(movement_amnt/(distance/960))
             elif direction == "left":
-                nav.set_heading_relative(movement_amnt/(distance/960))
+                nav.set_heading_relative(-movement_amnt/(distance/960))
 
         else: # we did nto see the balloon
             if prev_movement_dir == None:
@@ -130,15 +129,13 @@ try:
                 nav.set_heading_relative(60)
             else:
                 # we previously saw a balloon which we do not anymore
-                prev_movement_amnt //= 2
+                #prev_movement_amnt //= 2
                 if prev_movement_dir == "right":
-                    nav.set_heading_relative(-prev_movement_amnt) # if previously moved right balloon would be to the left
+                    nav.set_heading_relative(movement_amt/2) # if previously moved right balloon would be to the left
                 else:
-                    nav.set_heading_relative(prev_movement_amnt)
+                    nav.set_heading_relative(-movement_amt/2)
         
         new_inference = False
-    
-
 
 except KeyboardInterrupt:
     nav.send_status_message("Script interrupted by user")
