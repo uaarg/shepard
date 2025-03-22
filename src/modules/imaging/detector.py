@@ -7,6 +7,7 @@ import os
 import glob
 from dep.labeller.benchmarks.detector import LandingPadDetector, BoundingBox
 from dep.labeller.loader import Vec2
+from typing import Optional
 
 class BalloonDetector(LandingPadDetector):
     """
@@ -125,8 +126,6 @@ class BalloonDetector(LandingPadDetector):
         else:
             print("No red balloons detected")
             return None, None, pic_num-1
-
-        def predict(self, image: Image.Image) -> Optional[BoundingBox]:
 
 
 

@@ -14,7 +14,10 @@ from src.modules.autopilot.altimeter_mavlink import MavlinkAltimeterProvider
 from dep.labeller.detector import BoundingBox
 
 from src.modules.imaging.camera import RPiCamera
-from src.modules.imaging.detector import Detector
+from src.modules.imaging.detector import BalloonDetector
+from src.modules.imaging.analysis import ImageAnalysisDelegate
+from src.modules.imaging.analysis import ImageAnalysisDebugger
+from src.modules.imaging.location import DebugLocationProvider
 
 new_inference = True
 direction = None
@@ -48,13 +51,15 @@ MAVLINK_ALTITUDE_CONN_STR = "tcp:127.0.0.1:14550"
 drone = connect(CONN_STR, wait_ready=False)
 
 # Imaging setup
-detector = Detector()
+
+detector = BalloonDetector()
 camera = RPiCamera()
 location_provider = DebugLocationProvider()
 
 analysis = ImageAnalysisDelegate(detector=detector, camera=camera, location_provider=location_provider)
 analysis.subscribe(update_inference)
 analysis.start()
+
 
 # Initialize navigator
 nav = navigator.Navigator(drone, MESSENGER_PORT)
@@ -90,6 +95,8 @@ try:
     time.sleep(2)
 
     nav.send_status_message("Starting balloon search")
+
+    analysis.start()
 
     prev_movement_dir = None
     movement_amnt = 60
@@ -136,6 +143,7 @@ try:
                     nav.set_heading_relative(-movement_amt/2)
        
         new_inference = False
+
 
 except KeyboardInterrupt:
     nav.send_status_message("Script interrupted by user")

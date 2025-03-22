@@ -1,7 +1,7 @@
 from typing import Optional, Tuple
 from PIL import Image, ImageDraw, ImageTk
 import tkinter as tk
-from benchmarks.detector import BoundingBox
+from dep.labeller.benchmarks.detector import BoundingBox
 
 
 class ImageAnalysisDebugger:
@@ -16,6 +16,7 @@ class ImageAnalysisDebugger:
     def __init__(self):
         self.image: Optional[Image.Image] = None
         self.root = tk.Tk()
+        self.root.title("debugger")
         self.is_visible = False
 
     def show(self):
