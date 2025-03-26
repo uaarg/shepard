@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 import numpy as np
 import logging
 import os
@@ -29,14 +29,13 @@ class BalloonDetector(LandingPadDetector):
         center_x, center_y = width // 2, height // 2
         
         # Convert to HSV for better color detection
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        
+        hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
         # Define improved range for red color detection
         # Two ranges needed because red wraps around the hue spectrum in HSV
-        lower_red1 = np.array([0, 100, 100])
-        upper_red1 = np.array([10, 255, 255])
-        lower_red2 = np.array([160, 100, 100])
-        upper_red2 = np.array([180, 255, 255])
+        lower_red1 = np.array([0, 178, 153])
+        upper_red1 = np.array([35, 255, 255])
+        lower_red2 = np.array([152, 178, 153])
+        upper_red2 = np.array([179, 255, 255])
         
         # Create masks for red detection
         mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
@@ -132,7 +131,7 @@ class BalloonDetector(LandingPadDetector):
 if __name__ == "__main__":
     # Process a single image
     image_path = "path/to/image.jpg"
-    detector = Detector(image_path=image_path)
+    detector = BalloonDetector(image_path=image_path)
     if os.path.exists(image_path):
         direction, distance, detected = detector.detect_red_balloons(image_path=image_path)
         
