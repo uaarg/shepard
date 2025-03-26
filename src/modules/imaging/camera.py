@@ -61,6 +61,34 @@ class DebugCamera(CameraProvider):
         return self.im
 
 
+class DebugCameraFromDir(CameraProvider):
+    """
+    Debug camera source that returns image from a list of images
+    the directory 'images_dir'
+    """
+    def __init__(self, images_dir: str | pathlib.Path):
+        from os import walk, path # import just to load the images
+        filetype = "png"
+        fileNames = []
+        for root, _, files in walk(images_dir):
+            for file in files:
+                if file.endswith('.' + filetype) or file.split(".")[0].isdigit():
+                    fileNames.append(path.join(root, file))
+        if not fileNames:
+            raise ValueError("directly has no photos")
+        self.imgs = fileNames
+        self.i = 0
+
+    def set_size(self, size: Tuple[int, int]):
+        self.size = size
+
+    def capture(self) -> Image.Image:
+        # return the current image and update the index
+        file = self.imgs[self.i]
+        self.i = (self.i + 1) % len(self.imgs)
+        return Image.open(file)
+
+
 class WebcamCamera(CameraProvider):
     """
     Debug camera source which uses the computer's webcam as the image source.
