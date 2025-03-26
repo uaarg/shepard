@@ -89,9 +89,10 @@ class ImageAnalysisDelegate:
                 self.debugger.set_bounding_box(bounding_box)
 
         for subscribers in self.subscribers:
-            if bounding_box:
                 # inference = self.get_inference(bounding_box)
-                subscribers(im, bounding_box)
+            # update subscribers that an image was taken
+            # bounding_box null if no balloon, else there is balloon
+            subscribers(im, bounding_box)
 #                if inference:
 #                    lon, lat = get_object_location(self.camera_attributes,
 #                                                   inference)
