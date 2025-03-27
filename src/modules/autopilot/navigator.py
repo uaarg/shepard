@@ -467,3 +467,42 @@ class Navigator:
             return False
 
         return True
+
+
+    def set_position_target_local_ned(self, time_boot_ms=0, coordinate_frame=1, type_mask=0b000000000000, x=0, y=0, z=0, vx=0, vy=0, vz=0, afx=0, afy=0, afz=0, yaw=0, yaw_rate=0):
+        msg = self.vehicle.message_factory.command_long_encode(
+            0, # Target System ID
+            0, # Target Component ID
+            mavutil.mavlink.SET_POSITION_TARGET_LOCAL_NED,
+            0, # Confirmation
+            time_boot_ms, # Time since system boot
+            0, # Target System ID
+            0, # Target Component ID
+            coordinate_frame, # Coordinate Frame
+            type_mask, # Typemask of POSITION_TARGET_TYPEMASK
+            x,
+            y,
+            z,
+            vx,
+            vy,
+            vz,
+            afx,
+            afy,
+            afz,
+            yaw,
+            yaw_rate
+        )
+
+        self.vehicle.send_mavlink(msg)
+
+    def cancel_command(self, command_id=mavutil.mavlink.SET_POSITION_TARGET_LOCAL_NED):
+        msg = self.vehicle.message_factory.command_long_encode(
+            0,
+            0,
+            mavutil.mavlink.COMMAND_CANCEL,
+            0,
+            0,
+            command_id
+        )
+
+        self.vehicle.send_mavlink(msg)
