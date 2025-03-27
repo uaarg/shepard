@@ -7,7 +7,6 @@ from pymavlink import mavutil
 
 from src.modules.autopilot.messenger import Messenger
 from src.modules import imaging
-from dep.labeller.benchmarks.detector import LandingPadDetector, BoundingBox
 
 class Navigator:
     """
@@ -17,7 +16,7 @@ class Navigator:
     vehicle: dronekit.Vehicle = None
     POSITION_TOLERANCE = 1
 
-    def __init__(self, vehicle, messenger_port, camera):
+    def __init__(self, vehicle, messenger_port):
         self.vehicle = vehicle
         self.mavlink_messenger = Messenger(messenger_port)
         
@@ -469,12 +468,8 @@ class Navigator:
         return True
 
 
-    def set_position_target_local_ned(self, time_boot_ms=0, coordinate_frame=1, type_mask=0b000000000000, x=0, y=0, z=0, vx=0, vy=0, vz=0, afx=0, afy=0, afz=0, yaw=0, yaw_rate=0):
-        msg = self.vehicle.message_factory.command_long_encode(
-            0, # Target System ID
-            0, # Target Component ID
-            mavutil.mavlink.SET_POSITION_TARGET_LOCAL_NED,
-            0, # Confirmation
+    def set_position_target_local_ned(self, time_boot_ms=0, coordinate_frame=mavutil.mavlink.MAV_FRAME_LOCAL_NED, type_mask=0b000000000000, x=0, y=0, z=0, vx=0, vy=0, vz=0, afx=0, afy=0, afz=0, yaw=0, yaw_rate=0):
+        msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
             time_boot_ms, # Time since system boot
             0, # Target System ID
             0, # Target Component ID
@@ -495,6 +490,7 @@ class Navigator:
 
         self.vehicle.send_mavlink(msg)
 
+'''
     def cancel_command(self, command_id=mavutil.mavlink.SET_POSITION_TARGET_LOCAL_NED):
         msg = self.vehicle.message_factory.command_long_encode(
             0,
@@ -505,4 +501,6 @@ class Navigator:
             command_id
         )
 
-        self.vehicle.send_mavlink(msg)
+        self.vehicle.send_mavlink(msg)'''
+
+

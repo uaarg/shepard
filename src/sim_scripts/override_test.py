@@ -20,16 +20,21 @@ while not (drone.armed and drone.mode == VehicleMode("GUIDED")):
     pass
 
 
+nav.takeoff(10)
+time.sleep(2)
+
+nav.send_status_message("Executing First Waypoint")
 nav.set_position_target_local_ned(x = 10, y = 10, vx=2, vy=3)
-time.sleep(0.2)
+time.sleep(3)
 
+nav.send_status_message("Executing Second Waypoint")
 nav.set_position_target_local_ned(x=-30, y=-30, z=20, vx=3, vy=4)
-time.sleep(0.2)
+time.sleep(4)
 
+
+nav.send_status_message("Executing Third Waypoint")
 nav.set_position_target_local_ned(x=50, y=50, vx=10, vy=10)
 time.sleep(0.2)
-
-nav.cancel_command()
 time.sleep(0.2)
 
 nav.return_to_launch()
