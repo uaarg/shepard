@@ -127,6 +127,7 @@ try:
                 nav.set_heading_relative(movement_amnt/(distance/960))
             elif direction == "left":
                 nav.set_heading_relative(-movement_amnt/(distance/960))
+            new_inference = False
 
         else: # we did nto see the balloon
             if prev_movement_dir == None:
@@ -142,8 +143,7 @@ try:
                 else:
                     nav.set_heading_relative(-movement_amt/2)
        
-        new_inference = False
-
+       
 
 except KeyboardInterrupt:
     nav.send_status_message("Script interrupted by user")
