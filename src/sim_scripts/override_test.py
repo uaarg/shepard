@@ -20,25 +20,23 @@ while not (drone.armed and drone.mode == VehicleMode("GUIDED")):
     pass
 
 
-nav.takeoff(10)
+nav.takeoff(30)
 time.sleep(2)
 
+type_mask = nav.generate_typemask([0, 1, 2])
+
 nav.send_status_message("Executing First Waypoint")
-nav.set_position_target_local_ned(x = 10, y = 10, vx=2, vy=3)
-time.sleep(3)
+nav.set_position_target_local_ned(x = 50, y = 0, z = 20, type_mask = type_mask)
 
+
+time.sleep(20)
+'''
 nav.send_status_message("Executing Second Waypoint")
-nav.set_position_target_local_ned(x=-30, y=-30, z=20, vx=3, vy=4)
-time.sleep(4)
-
-
-nav.send_status_message("Executing Third Waypoint")
-nav.set_position_target_local_ned(x=50, y=50, vx=10, vy=10)
-time.sleep(0.2)
-time.sleep(0.2)
-
+nav.set_position_target_local_ned(x=-30, y=0, z=20, vx=3, vy=4, vz = 0, type_mask = type_mask)
+time.sleep(10)
+'''
 nav.return_to_launch()
-
+time.sleep(2)
 drone.close()
 
 nav.send_status_message("Shepard execution terminated")

@@ -20,6 +20,7 @@ class Navigator:
         self.vehicle = vehicle
         self.mavlink_messenger = Messenger(messenger_port)
         
+
     def send_status_message(self, message):
         self.__message(message)
 
@@ -468,7 +469,14 @@ class Navigator:
         return True
 
 
-    def set_position_target_local_ned(self, time_boot_ms=0, coordinate_frame=mavutil.mavlink.MAV_FRAME_LOCAL_NED, type_mask=0b000000000000, x=0, y=0, z=0, vx=0, vy=0, vz=0, afx=0, afy=0, afz=0, yaw=0, yaw_rate=0):
+    def generate_typemask(self, keeps):
+        # Generates typemask based on which values to be included
+        mask = 0
+        for bit in keeps:
+            mask |= (0 << bit)
+        return mask
+
+    def set_position_target_local_ned(self, time_boot_ms=0, coordinate_frame=mavutil.mavlink.MAV_FRAME_LOCAL_NED, type_mask=0x07FF, x=0, y=0, z=0, vx=0, vy=0, vz=0, afx=0, afy=0, afz=0, yaw=0, yaw_rate=0):
         msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
             time_boot_ms, # Time since system boot
             0, # Target System ID
@@ -489,6 +497,7 @@ class Navigator:
         )
 
         self.vehicle.send_mavlink(msg)
+
 
 '''
     def cancel_command(self, command_id=mavutil.mavlink.SET_POSITION_TARGET_LOCAL_NED):
