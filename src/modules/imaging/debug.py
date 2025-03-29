@@ -1,7 +1,7 @@
 from typing import Optional, Tuple
 from PIL import Image, ImageDraw, ImageTk
 import tkinter as tk
-from benchmarks.detector import BoundingBox
+from dep.labeller.benchmarks.detector import BoundingBox
 
 
 class ImageAnalysisDebugger:

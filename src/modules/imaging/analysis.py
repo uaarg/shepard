@@ -1,4 +1,5 @@
 from typing import Callable, Optional, List, Callable, Any
+import time
 
 import threading
 from dep.labeller.benchmarks.detector import LandingPadDetector, BoundingBox
@@ -52,7 +53,7 @@ class ImageAnalysisDelegate:
         self.camera = camera
         self.debugger = debugger
         self.location_provider = location_provider
-        self.subscribers: List[Callable[[Image.Image, float, float], Any]] = []
+        self.subscribers: List[Callable[[Image.Image, float], Any]] = []
         self.camera_attributes = CameraAttributes()
 
     def get_inference(self, bounding_box: BoundingBox) -> Optional[Inference]:
@@ -85,11 +86,11 @@ class ImageAnalysisDelegate:
 
         for subscribers in self.subscribers:
             if bounding_box:
-                inference = self.get_inference(bounding_box)
-                if inference:
-                    lon, lat = get_object_location(self.camera_attributes,
-                                                   inference)
-                    subscribers(im, lon, lat)
+                # inference = self.get_inference(bounding_box)
+                # if inference:
+                #     lon, lat = get_object_location(self.camera_attributes,
+                #                                    inference)
+                subscribers(im, bounding_box)
 
     def _analysis_loop(self):
         """
@@ -98,6 +99,7 @@ class ImageAnalysisDelegate:
         """
         while True:
             self._analyze_image()
+            time.sleep(2)
 
     def subscribe(self, callback: Callable):
         """
