@@ -101,6 +101,11 @@ class Navigator:
                 break
             time.sleep(2)
 
+    def get_local_position_ned(self):
+        # Gets the current location of the drone in the local NED frame
+        location = self.vehicle.location.local_frame
+        return (location.north, location.east, location.down)
+
     def set_heading(self, heading):
         """
         Sets the heading of the vehicle.
