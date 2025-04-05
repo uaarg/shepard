@@ -1,4 +1,5 @@
 from typing import Tuple
+import copy
 
 import pathlib
 from PIL import Image
@@ -60,6 +61,8 @@ class DebugCamera(CameraProvider):
     def capture(self) -> Image.Image:
         return self.im
 
+    def set_image(self, img_path: str):
+        self.__init__(img_path)
 
 class WebcamCamera(CameraProvider):
     """
