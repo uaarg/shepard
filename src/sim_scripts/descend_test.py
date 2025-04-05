@@ -32,29 +32,24 @@ sleep_time = 2
 
 hover_alt = 10
 
-
 print(current_alt)
 
 points = [(0, 0), (0,1), (1,1), (1,0)]
 i = 0
+j = 0
 
+nav.set_position_target_local_ned(x = points[0][0] * delta, y = points[0][1] * delta, z = -10, type_mask = type_mask)
 
-while current_alt <= -0.5:
-    # Generate random points to simulate the changes
-    #x = random.rand() * delta
-    #y = random.rand() * delta        
-
-    if i == 4:
+while j <= 5:
+    if i == 0:
+        nav.set_position_target_local_ned(x = points[0][0] * delta, y = points[0][1] * delta, z = -10, type_mask = type_mask)
+        time.sleep(5)
+        i = 1
+    else:
+        nav.set_position_target_local_ned(x = points[0][0] * delta, y = points[0][1] * delta, z = -5, type_mask = type_mask)
+        time.sleep(10)
         i = 0
 
-    print(i)
-    location = nav.get_local_position_ned()
-    current_alt = location[2]
-    print(current_alt)
-    nav.set_position_target_local_ned(x = points[i][0] * delta, y = points[i][1] * delta, z = -hover_alt, type_mask = type_mask)
-
-    i += 1
-    time.sleep(sleep_time)
 
 nav.return_to_launch()
 time.sleep(2)

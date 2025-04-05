@@ -113,6 +113,6 @@ def get_object_location(camera_attributes: 'CameraAttributes',
     )
     print("dir_vector", dir_vector)
 
-    lon, lat = XY_To_LonLat(dir_vector[0], dir_vector[1])
+    #lon, lat = XY_To_LonLat(dir_vector[0], dir_vector[1])
 
-    return (lon, lat)
+    return (dir_vector[0], dir_vector[1])
