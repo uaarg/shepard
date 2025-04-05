@@ -22,6 +22,8 @@ while not (drone.armed and drone.mode == VehicleMode("GUIDED")):
 
 time.sleep(2)
 
+nav.takeoff(10)
+
 type_mask = nav.generate_typemask([0, 1, 2])
 
 nav.send_status_message("Executing")
@@ -40,7 +42,7 @@ j = 0
 
 nav.set_position_target_local_ned(x = points[0][0] * delta, y = points[0][1] * delta, z = -10, type_mask = type_mask)
 
-while j <= 5:
+while j <= 3:
     if i == 0:
         nav.set_position_target_local_ned(x = points[0][0] * delta, y = points[0][1] * delta, z = -10, type_mask = type_mask)
         time.sleep(5)
@@ -49,7 +51,7 @@ while j <= 5:
         nav.set_position_target_local_ned(x = points[0][0] * delta, y = points[0][1] * delta, z = -5, type_mask = type_mask)
         time.sleep(10)
         i = 0
-
+    j += 1
 
 nav.return_to_launch()
 time.sleep(2)

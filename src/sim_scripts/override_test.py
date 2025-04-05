@@ -1,6 +1,7 @@
 import time
 import datetime
 from numpy import random
+import numpy as np
 
 from dronekit import connect, VehicleMode, LocationGlobal
 
@@ -25,21 +26,22 @@ time.sleep(2)
 type_mask = nav.generate_typemask([0, 1, 2])
 
 nav.send_status_message("Executing")
-current_alt = nav.get_local_position_ned()[2]
 
-delta = 0.5
+nav.takeoff(10)
+
+delta = 2
 sleep_time = 2
 
 hover_alt = 10
 
-
+current_alt = nav.get_local_position_ned()[2]
 print(current_alt)
 
 points = [(0, 0), (0,1), (1,1), (1,0)]
 i = 0
 
 
-while current_alt <= -0.5:
+while np.abs(current_alt) >= 0.5:
     # Generate random points to simulate the changes
     #x = random.rand() * delta
     #y = random.rand() * delta        
