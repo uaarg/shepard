@@ -47,7 +47,8 @@ class ImageAnalysisDelegate:
                  detector: LandingPadDetector,
                  camera: CameraProvider,
                  location_provider: LocationProvider,
-                 debugger: Optional[ImageAnalysisDebugger] = None):
+                 debugger: Optional[ImageAnalysisDebugger] = None,
+                 ):
         self.detector = detector
         self.camera = camera
         self.debugger = debugger

@@ -1,19 +1,28 @@
 import math
 import time
 
-from src.modules.autopilot.navigator import Navigator
 
+
+from src.modules.autopilot.navigator import Navigator
+from src.modules import imaging
 
 class Lander:
     """
-    A class to find the landing spot by going in square spirals
+    A class to handle everything regarding landing that is not already handled by ardupilot
     """
 
     HORIZONTAL_ANGLE = math.radians(30)
     VERTICAL_ANGLE = math.radians(24)
 
-    def __init__(self):
+    def __init__(self, nav, landing_spot=(0, 0)):
         self.__route = []  # Private attribute
+        self.__buffer = [[],
+                         []]
+        self.landing_spot = landing_spot
+        self.nav = nav
+        self.i = 10
+        
+
 
     @property
     def route(self):
@@ -68,6 +77,43 @@ class Lander:
         Navigator.set_heading(0)  # to make sure drone is facing
         Navigator.set_position_relative(route[0] * altitude,
                                         route[1] * altitude)
+        
+    def enable_precision_land(self, Navigator):
+
+        # NOTE: CHANGE THE CAMERA TYPE DURING ACTUAL USE
+        camera = imaging.camera.DebugCamera("./res/test-image.jpeg")
+        
+        analysis = imaging.analysis.ImageAnalysisDetector(camera = camera, nav = Navigator)
+
+        analysis.subscribe(self._precision_land)
+        analysis.run()
+
+    def _precision_land(self, im, lon, lat, x, y):
+
+        # Append new values for position to the buffer and compute the moving average, taking the new values into account. 
+        # Adjust buffer size depending on the refresh rate of the imaging script
+
+        buffer_size = 5
+
+        self.__buffer[0].append(x)
+        self.__buffer[1].append(y)
+
+        x = sum(self.__buffer[0]) / len(self._buffer[0])
+        y = sum(self.__buffer[1] / len(self.__buffer[1]))
+        
+
+        if len(self.__buffer[0]) >= buffer_size and len(self.__buffer[1]) >= buffer_size:
+            type_mask = self.nav.generate_typemask([0, 1, 2])
+
+            
+            self.nav.set_postion_target_local_NED(x = self.__buffer[0][-1], y = self.__buffer[1][-1], z = -(self.i), type_mask = type_mask)
+
+            self.i -= 1
+
+            # Maintain the size of the buffer
+            self.__buffer[0].pop(0)
+            self.__buffer[1].pop(0)
+
 
 
 def main():
