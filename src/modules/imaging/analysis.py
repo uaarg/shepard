@@ -52,7 +52,7 @@ class ImageAnalysisDelegate:
         self.camera = camera
         self.debugger = debugger
         self.location_provider = location_provider
-        self.subscribers: List[Callable[[Image.Image, float, float], Any]] = []
+        self.subscribers: List[Callable[[Image.Image, BoundingBox], Any]] = []
         self.camera_attributes = CameraAttributes()
 
     def get_inference(self, bounding_box: BoundingBox) -> Optional[Inference]:
@@ -83,13 +83,9 @@ class ImageAnalysisDelegate:
             if bounding_box is not None:
                 self.debugger.set_bounding_box(bounding_box)
 
-        for subscribers in self.subscribers:
+        for subscriber in self.subscribers:
             if bounding_box:
-                inference = self.get_inference(bounding_box)
-                if inference:
-                    lon, lat = get_object_location(self.camera_attributes,
-                                                   inference)
-                    subscribers(im, lon, lat)
+                subscriber(im, bounding_box)
 
     def _analysis_loop(self):
         """
