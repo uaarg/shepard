@@ -1,7 +1,7 @@
 import math
 import time
 
-
+from pymavlink import mavutil
 
 from src.modules.autopilot.navigator import Navigator
 from src.modules import imaging
@@ -74,10 +74,14 @@ class Lander:
         :return: None
         """
 
-        Navigator.set_heading(0)  # to make sure drone is facing
-        Navigator.set_position_relative(route[0] * altitude,
-                                        route[1] * altitude)
-        
+        type_mask = Navigator.generate_typemask([0, 1, 2])
+
+        Navigator.set_position_target_local_ned(x = route[0] * altitude,
+                                                y = route[1] * altitude,
+                                                z = -altitude,
+                                                type_mask=type_mask, 
+                                                mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED)
+
     def enable_precision_land(self, Navigator):
 
         # NOTE: CHANGE THE CAMERA TYPE DURING ACTUAL USE
