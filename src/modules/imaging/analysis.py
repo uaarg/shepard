@@ -1,6 +1,7 @@
 from typing import Callable, Optional, List, Callable, Any
 
-import threading
+# import threading
+from multiprocessing import Process
 from dep.labeller.benchmarks.detector import LandingPadDetector, BoundingBox
 from .camera import CameraProvider
 from .debug import ImageAnalysisDebugger
@@ -66,8 +67,10 @@ class ImageAnalysisDelegate:
         """
         Will start the image analysis process in another thread.
         """
-        thread = threading.Thread(target=self._analysis_loop)
-        thread.start()
+        # thread = threading.Thread(target=self._analysis_loop)
+        process = Process(target=self._analysis_loop)
+        # thread.start()
+        process.start()
         # Use `threading` to start `self._analysis_loop` in another thread.
 
     def _analyze_image(self):
