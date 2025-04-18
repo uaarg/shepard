@@ -1,19 +1,28 @@
 import math
 import time
 
-from src.modules.autopilot.navigator import Navigator
+from pymavlink import mavutil
 
+from src.modules.autopilot.navigator import Navigator
+from src.modules import imaging
 
 class Lander:
     """
-    A class to find the landing spot by going in square spirals
+    A class to handle everything regarding landing that is not already handled by ardupilot
     """
 
     HORIZONTAL_ANGLE = math.radians(30)
     VERTICAL_ANGLE = math.radians(24)
 
-    def __init__(self):
+    def __init__(self, nav, landing_spot=(0, 0)):
         self.__route = []  # Private attribute
+        self.__buffer = [[],
+                         []]
+        self.landing_spot = landing_spot
+        self.nav = nav
+        self.i = 10
+        
+
 
     @property
     def route(self):
@@ -33,29 +42,46 @@ class Lander:
 
         verticalScanRatio = math.tan(Lander.VERTICAL_ANGLE)
         horizontalScanRatio = math.tan(Lander.HORIZONTAL_ANGLE)
+        
+        step_size = 2
 
-        for i in range(2, numberOfLoops, 2):
-            for j in range(4):
-                if j == 0:
-                    self.y = self.y - verticalScanRatio
-                    self.__route.append([self.y, self.x])
-                    for k in range(i - 1):
-                        self.x = self.x + horizontalScanRatio
-                        self.__route.append([self.y, self.x])
-                if j == 1:
-                    for k in range(i):
-                        self.y = self.y + verticalScanRatio
-                        self.__route.append([self.y, self.x])
-                if j == 2:
-                    for k in range(i):
-                        self.x = self.x - horizontalScanRatio
-                        self.__route.append([self.y, self.x])
-                if j == 3:
-                    for k in range(i):
-                        self.y = self.y - verticalScanRatio
-                        self.__route.append([self.y, self.x])
+        steps_per_side = 1
+        curr_side_iter = 0
+        loops_completed = 0
+        
+        axis = "x"
+        
+        dir_x = 1
+        dir_y = -1
+        
+        x, y = 0, 0
+        
+        while loops_completed != numberOfLoops:
+            if axis == "x":
+                x += dir_x * steps_per_side * step_size
+                axis = "y"
+                dir_x *= -1
+            elif axis == "y":
+                y += dir_y * steps_per_side * step_size
+                axis = "x"
+                dir_y *= -1
+                
+            curr_side_iter += 1
+            
+            if curr_side_iter % 2 == 0:
+                steps_per_side += 1
+            
+            if curr_side_iter % 5 == 0:
+                loops_completed += 1
+        
+            self.__route.append((x, y))
+            
+            self.x = x
+            self.y = y
+            x = 0
+            y = 0
 
-    def goNext(self, Navigator, route, altitude):
+    def goNext(self, route, altitude):
         """
         Move the drone to the next position in the landing route.
 
@@ -65,9 +91,52 @@ class Lander:
         :return: None
         """
 
-        Navigator.set_heading(0)  # to make sure drone is facing
-        Navigator.set_position_relative(route[0] * altitude,
-                                        route[1] * altitude)
+        #type_mask = Navigator.generate_typemask([0, 1])
+
+        #Navigator.set_position_target_local_ned(x = route[0],
+        #                                        y = route[1],
+        #                                        type_mask=type_mask, 
+        #                                        coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED)
+        
+        self.nav.set_position_relative(route[0], route[1])
+        
+
+    def enable_precision_land(self, Navigator):
+
+        # NOTE: CHANGE THE CAMERA TYPE DURING ACTUAL USE
+        camera = imaging.camera.DebugCamera("./res/test-image.jpeg")
+        
+        analysis = imaging.analysis.ImageAnalysisDetector(camera = camera, nav = Navigator)
+
+        analysis.subscribe(self._precision_land)
+        analysis.run()
+
+    def _precision_land(self, im, lon, lat, x, y):
+
+        # Append new values for position to the buffer and compute the moving average, taking the new values into account. 
+        # Adjust buffer size depending on the refresh rate of the imaging script
+
+        buffer_size = 5
+
+        self.__buffer[0].append(x)
+        self.__buffer[1].append(y)
+
+        x = sum(self.__buffer[0]) / len(self._buffer[0])
+        y = sum(self.__buffer[1] / len(self.__buffer[1]))
+        
+
+        if len(self.__buffer[0]) >= buffer_size and len(self.__buffer[1]) >= buffer_size:
+            type_mask = self.nav.generate_typemask([0, 1, 2])
+
+            
+            self.nav.set_postion_target_local_NED(x = self.__buffer[0][-1], y = self.__buffer[1][-1], z = -(self.i), type_mask = type_mask)
+
+            self.i -= 1
+
+            # Maintain the size of the buffer
+            self.__buffer[0].pop(0)
+            self.__buffer[1].pop(0)
+
 
 
 def main():

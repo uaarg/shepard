@@ -14,6 +14,25 @@ from src.modules.autopilot import navigator
 from src.modules.autopilot import lander
 import src.modules.autopilot.altimeter as altimeter
 
+from src.modules.imaging import analysis
+from src.modules.imaging import camera
+from src.modules.imaging import debug
+from src.modules.imaging import location
+from dep.labeller.benchmarks import yolo
+
+mavlink_delegate = location.MAVLinkDelegate()
+location_provider = location.MAVLinkLocationProvider(mavlink_delegate)
+location_provider = location.DebugLocationProvider()
+location_provider.debug_change_location(altitude=1)
+
+detector = yolo.YoloDetector(weights="landing_nano.pt")
+cam = camera.RPiCamera()
+debugger = debug.ImageAnalysisDebugger()
+debugger = None
+img_analysis = analysis.ImageAnalysisDelegate(detector, cam, location_provider,
+                                              debugger)
+mavlink_delegate.run()
+
 CONN_STR = "udp:127.0.0.1:14551"
 MESSENGER_PORT = 14552
 
@@ -23,6 +42,7 @@ nav = navigator.Navigator(drone, MESSENGER_PORT)
 lander = lander.Lander()
 altimeter = altimeter.XM125(average_window=5)
 altimeter.begin()
+
 
 nav.send_status_message("Shepard is online")
 
@@ -39,8 +59,15 @@ time.sleep(2)
 MAX_GROUND_SPEED = 20
 TIME = 5 * 60  # 5 minutes
 ALTITUDE = 15
+precision_land_enable = False
 
-waypoint = [53.497332, -113.550619, 30]
+
+img_analysis.subscribe(lambda _, x, y: precision_land(x, y))
+img_analysis.start()
+
+
+
+waypoint = [10, 10, 20]
 
 
 # MODIFY THIS AS REQUIRED
@@ -68,8 +95,19 @@ nav.set_altitude_position(waypoint[0],
                             battery=None,
                             hard_cutoff_enable=False)
 
+precision_land_enable = True
 
+type_mask = nav.generate_typemask([0, 1, 2])
 
-# Invokes the implementation of the built-in precision landing function. 
-nav.precision_landing(start_coords.lat, start_coords.lon, start_coords.alt)
+current_alt = drone.location.global_relative_frame.alt
+
+def precision_land(x, y):
+
+    # NEEDS TO BE MODIFIED TO ACTUALLY GO TO COORDINATES RELEVATIVE TO THE ORIGIN OF THIS REFERENCE FRAME
+    current_alt = drone.location.global_relative_frame.alt
+    if precision_land_enable and current_alt >= 0.5:
+        nav.set_position_target_local_ned(x = x, y = y, z = 0, type_mask=type_mask)
+    elif current_alt < 0.5:
+        nav.land()
+        precision_land_enable = False
 

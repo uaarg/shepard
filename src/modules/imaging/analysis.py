@@ -48,7 +48,8 @@ class ImageAnalysisDelegate:
                  detector: LandingPadDetector,
                  camera: CameraProvider,
                  location_provider: LocationProvider,
-                 debugger: Optional[ImageAnalysisDebugger] = None):
+                 debugger: Optional[ImageAnalysisDebugger] = None,
+                 ):
         self.detector = detector
         self.camera = camera
         self.debugger = debugger
@@ -73,6 +74,7 @@ class ImageAnalysisDelegate:
         process.start()
         # Use `threading` to start `self._analysis_loop` in another thread.
 
+
     def _analyze_image(self):
         """
         Actually performs the image analysis once. Only useful for testing,
@@ -88,7 +90,11 @@ class ImageAnalysisDelegate:
 
         for subscriber in self.subscribers:
             if bounding_box:
-                subscriber(im, bounding_box)
+                inference = self.get_inference(bounding_box)
+                if inference:
+                    lon, lat, x, y = get_object_location(self.camera_attributes,
+                                                   inference)
+                    subscribers(im, lon, lat, x, y)
 
     def _analysis_loop(self):
         """
