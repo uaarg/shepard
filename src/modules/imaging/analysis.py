@@ -91,7 +91,10 @@ class ImageAnalysisDelegate:
                 if inference:
                     x, y = get_object_location(self.camera_attributes,
                                                    inference)
-                    subscribers(im, x, y)
+                    subscribers(im, (x, y))
+            elif not bounding_box:
+                subscribers(im, None)
+
 
     def _analysis_loop(self):
         """

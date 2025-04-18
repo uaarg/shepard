@@ -16,7 +16,7 @@ class Lander:
 
     def __init__(self, nav, landing_spot=(0, 0), max_velocity):
         self.__spiral_route = []  # Private attribute
-        self.__bounding_box_route = []
+        self.__bounding_box_pos = []
         self.__buffer = [[],
                          []]
         self.landing_spot = landing_spot
@@ -25,7 +25,7 @@ class Lander:
         self.max_velocity = max_velocity
         self.bounding_box_detected = False
         self.bounding_box_pos = []
-
+        self.leave_frame = False
 
     @property
     def route(self):
@@ -101,21 +101,49 @@ class Lander:
         :return: None
         """
         
-        type_mask = Navigator.generate_typemask([0, 1])
+        type_mask = self.nav.generate_typemask([0, 1])
     
-        for pos in self.__spiral_route:
+        while i <= len(self.__spiral_route):
             if not self.bounding_box_detected:
-                Navigator.set_position_target_local_ned(x = route[0],
+                self.nav.set_position_target_local_ned(x = route[0],
                                                     y = route[1],
                                                     type_mask=type_mask, 
                                                     coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED)
+                i += 1
                 time.sleep(1/(self.max_velocity))
             elif self.bounding_box_detected:
-
+                self.boundingBoxAction()
+                time.sleep(1/(self.max_velocity))
         #self.nav.set_position_relative(route[0], route[1])
 
     def boundingBoxAction(self):
-        type_mask = Navigator.generate_typemask([0, 1])
+        type_mask = self.nav.generate_typemask([0, 1]) 
+        
+        x, y = self.bounding_box_pos[0], self.bounding_box_pos[1]
+
+        self.nav.set_position_target_local_ned(x = x,
+                                                    y = y,
+                                                    type_mask=type_mask, 
+                                                    coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED)
+        time.sleep((math.sqrt(x ^ 2 + y ^ 2)/(self.max_velocity))
+
+        self.nav.set_position_target_local_ned(x = -x,
+                                                    y = -y,
+                                                    type_mask=type_mask, 
+                                                    coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED)
+        time.sleep((math.sqrt(x ^ 2 + y ^ 2)/(self.max_velocity))
+
+        self.bounding_box_detected = False
+        self.leave_frame = True
+
+    def detectBoundingBox(self, bounding_box_pos):
+        if bounding_box_pos:
+            if not self.leave_frame:
+                self.bounding_box_detected = True
+                self.bounding_box_pos = bounding_box_pos
+        else:
+            if self.leave_frame:
+                self.leave_frame = True
 
 
     def enable_precision_land(self, Navigator):
