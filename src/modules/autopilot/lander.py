@@ -14,21 +14,25 @@ class Lander:
     HORIZONTAL_ANGLE = math.radians(30)
     VERTICAL_ANGLE = math.radians(24)
 
-    def __init__(self, nav, landing_spot=(0, 0)):
-        self.__route = []  # Private attribute
+    def __init__(self, nav, landing_spot=(0, 0), max_velocity):
+        self.__spiral_route = []  # Private attribute
+        self.__bounding_box_route = []
         self.__buffer = [[],
                          []]
         self.landing_spot = landing_spot
         self.nav = nav
         self.i = 10
-        
+        self.max_velocity = max_velocity
+        self.bounding_box_detected = False
+        self.bounding_box_pos = []
 
 
     @property
     def route(self):
-        return self.__route
+        return self.__spiral_route
+    
 
-    def generateRoute(self, numberOfLoops=10):
+    def generateSpiralSearch(self, numberOfLoops=10):
         """
         Generate a landing route in a square spiral pattern. The generated route is to be multiplied by the current height in metres
         to get the relative distance traveled in metres.
@@ -37,13 +41,13 @@ class Lander:
         :return: None
         """
 
-        self.__route = []  # Clear the existing route
+        self.__spiral_route = []  # Clear the existing route
         self.y, self.x = 0, 0
 
         verticalScanRatio = math.tan(Lander.VERTICAL_ANGLE)
         horizontalScanRatio = math.tan(Lander.HORIZONTAL_ANGLE)
         
-        step_size = 2
+        step_size = 1
 
         steps_per_side = 1
         curr_side_iter = 0
@@ -58,11 +62,19 @@ class Lander:
         
         while loops_completed != numberOfLoops:
             if axis == "x":
-                x += dir_x * steps_per_side * step_size
+                x += dir_x * step_size
+
+                for _ in steps_per_side:
+                    self.__spiral_route.append(x, y)
+
                 axis = "y"
                 dir_x *= -1
             elif axis == "y":
-                y += dir_y * steps_per_side * step_size
+                y += dir_y * step_size
+
+                for _ in steps_per_side:
+                    self.__spiral_route.append(x, y)
+
                 axis = "x"
                 dir_y *= -1
                 
@@ -74,14 +86,12 @@ class Lander:
             if curr_side_iter % 5 == 0:
                 loops_completed += 1
         
-            self.__route.append((x, y))
-            
             self.x = x
             self.y = y
             x = 0
             y = 0
 
-    def goNext(self, route, altitude):
+    def executeSearch(self, altitude):
         """
         Move the drone to the next position in the landing route.
 
@@ -90,16 +100,23 @@ class Lander:
         :param altitude: The altitude in metres.
         :return: None
         """
-
-        #type_mask = Navigator.generate_typemask([0, 1])
-
-        #Navigator.set_position_target_local_ned(x = route[0],
-        #                                        y = route[1],
-        #                                        type_mask=type_mask, 
-        #                                        coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED)
         
-        self.nav.set_position_relative(route[0], route[1])
-        
+        type_mask = Navigator.generate_typemask([0, 1])
+    
+        for pos in self.__spiral_route:
+            if not self.bounding_box_detected:
+                Navigator.set_position_target_local_ned(x = route[0],
+                                                    y = route[1],
+                                                    type_mask=type_mask, 
+                                                    coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED)
+                time.sleep(1/(self.max_velocity))
+            elif self.bounding_box_detected:
+
+        #self.nav.set_position_relative(route[0], route[1])
+
+    def boundingBoxAction(self):
+        type_mask = Navigator.generate_typemask([0, 1])
+
 
     def enable_precision_land(self, Navigator):
 

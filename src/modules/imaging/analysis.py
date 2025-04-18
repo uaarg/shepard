@@ -13,7 +13,7 @@ class CameraAttributes:
 
     def __init__(self):
         self.focal_length = 0.01
-        self.angle = 10 / 180 * 3.14159  # in radians
+        self.angle = 0  # in radians
         self.resolution = (640, 640)
 
 
@@ -89,9 +89,9 @@ class ImageAnalysisDelegate:
             if bounding_box:
                 inference = self.get_inference(bounding_box)
                 if inference:
-                    lon, lat, x, y = get_object_location(self.camera_attributes,
+                    x, y = get_object_location(self.camera_attributes,
                                                    inference)
-                    subscribers(im, lon, lat, x, y)
+                    subscribers(im, x, y)
 
     def _analysis_loop(self):
         """
