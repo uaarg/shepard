@@ -14,7 +14,7 @@ class Lander:
     HORIZONTAL_ANGLE = math.radians(30)
     VERTICAL_ANGLE = math.radians(24)
 
-    def __init__(self, nav, landing_spot=(0, 0), max_velocity):
+    def __init__(self, nav, max_velocity):
         self.__spiral_route = []  # Private attribute
         self.__bounding_box_pos = []
         self.__buffer = [[],
