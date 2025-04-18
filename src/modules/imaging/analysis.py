@@ -1,6 +1,7 @@
 from typing import Callable, Optional, List, Callable, Any
 
-import threading
+# import threading
+from multiprocessing import Process
 from dep.labeller.benchmarks.detector import LandingPadDetector, BoundingBox
 from .camera import CameraProvider
 from .debug import ImageAnalysisDebugger
@@ -53,7 +54,7 @@ class ImageAnalysisDelegate:
         self.camera = camera
         self.debugger = debugger
         self.location_provider = location_provider
-        self.subscribers: List[Callable[[Image.Image, float, float], Any]] = []
+        self.subscribers: List[Callable[[Image.Image, BoundingBox], Any]] = []
         self.camera_attributes = CameraAttributes()
 
     def get_inference(self, bounding_box: BoundingBox) -> Optional[Inference]:
@@ -67,8 +68,10 @@ class ImageAnalysisDelegate:
         """
         Will start the image analysis process in another thread.
         """
-        thread = threading.Thread(target=self._analysis_loop)
-        thread.start()
+        # thread = threading.Thread(target=self._analysis_loop)
+        process = Process(target=self._analysis_loop)
+        # thread.start()
+        process.start()
         # Use `threading` to start `self._analysis_loop` in another thread.
 
 
@@ -85,7 +88,7 @@ class ImageAnalysisDelegate:
             if bounding_box is not None:
                 self.debugger.set_bounding_box(bounding_box)
 
-        for subscribers in self.subscribers:
+        for subscriber in self.subscribers:
             if bounding_box:
                 inference = self.get_inference(bounding_box)
                 if inference:
