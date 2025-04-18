@@ -13,9 +13,9 @@ from PIL import Image
 class CameraAttributes:
 
     def __init__(self):
-        self.focal_length = 0.01
+        self.focal_length = 0.0034
         self.angle = 0  # in radians
-        self.resolution = (640, 640)
+        self.resolution = (1920, 1080)
 
 
 class Inference:
@@ -92,7 +92,9 @@ class ImageAnalysisDelegate:
                 if inference:
                     x, y = get_object_location(self.camera_attributes,
                                                    inference)
-                   subscriber(im, bounding_box)
+                    subscriber(im, (x, y))
+            else:
+                subscriber(im, None)
 
     def _analysis_loop(self):
         """

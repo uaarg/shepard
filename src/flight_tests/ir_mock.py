@@ -5,9 +5,12 @@ from src.modules.imaging.analysis import ImageAnalysisDelegate
 from src.modules.imaging.camera import RPiCamera
 from src.modules.imaging.location import DebugLocationProvider
 from dep.labeller.benchmarks.detector import BoundingBox, LandingPadDetector
+
 from PIL import Image, ImageDraw
 from src.modules.autopilot import lander
 from src.modules.autopilot import navigator
+
+from dronekit import connect, VehicleMode
 
 
 CONN_STR = "udp:127.0.0.1:14551"
@@ -48,14 +51,11 @@ time.sleep(1)
 
 
 nav.send_status_message("Executing landing pad search")
-lander.generateRoute(4)
+lander.generateSpiralSearch(4)
 
 nav.send_status_message(lander.route)
 
-for route in lander.route:
-    lander.goNext(route, 10)
-    time.sleep(5)
-
+lander.executeSearch(10)
 # nav.set_position(start_coords.lat, start_coords.lon)
 # time.sleep(1)
 # nav.land()
@@ -65,9 +65,6 @@ nav.return_to_launch()
 drone.close()
 
 nav.send_status_message("Flight test script execution terminated")
-
-detected = False
-time1 = 0
 
 # def func(image: Image.Image, bb: [BoundingBox]):
    # global time1
