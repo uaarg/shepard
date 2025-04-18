@@ -11,7 +11,7 @@ class MAVLinkDelegate:
     """
 
     def __init__(self, port: int = 14550):
-        self._conn = mavutil.mavlink_connection(device=f"tcp:127.0.0.1:{port}",
+        self._conn = mavutil.mavlink_connection(device=f"udp:127.0.0.1:{port}",
                                                 source_system=255,
                                                 source_component=42)
 
