@@ -103,7 +103,7 @@ class DebugLocationProvider(LocationProvider):
     def __init__(self) -> None:
         self._current_location = LatLng(0.0, 0.0)
         self._current_heading = Heading(0.0)
-        self._current_altitude = 0.0
+        self._current_altitude = 10.0
         self._current_orientation = Rotation(0.0, 0.0, 0.0)
 
     def location(self) -> LatLng:
