@@ -106,6 +106,7 @@ class Navigator:
         location = self.vehicle.location.local_frame
         return (location.north, location.east, location.down)
 
+
     def set_heading(self, heading):
         """
         Sets the heading of the vehicle.
