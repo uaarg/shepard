@@ -55,10 +55,15 @@ lander.generateSpiralSearch(4)
 
 nav.send_status_message(lander.route)
 
-lander.executeSearch(10)
+bounding_boxes = lander.executeSearch(10)
 # nav.set_position(start_coords.lat, start_coords.lon)
 # time.sleep(1)
 # nav.land()
+
+with open("/tmp/IR_sites.txt", "w") as f:
+    f.write(str(bounding_boxes))
+
+nav.send_status_message("Bounding Box coordinates: " + str(bounding_boxes))
 
 nav.return_to_launch()
 
