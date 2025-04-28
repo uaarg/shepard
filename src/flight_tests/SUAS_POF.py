@@ -41,14 +41,14 @@ locations = [LocationGlobal(wp[0], wp[1], ALTITUDE) for wp in waypoints]
 nav.set_position_relative(0, 0)
 
 time.sleep(1)
-nav.set_speed(speed)
+nav.set_speed(10)
 time.sleep(1)
 
 nav.set_altitude_position(start_point[0],
-                        start_point[1],
-                        ALTITUDE)
+                        start_point[1], ALTITUDE)
 
 for _ in range(LAPS - 1):
+    nav.send_status_message("Lap #: " + str(_))
     for i, location in enumerate(locations):
         nav.send_status_message(f"Moving to waypoint {i + 1} of {len(locations)}")
         nav.set_altitude_position(location.lat,
