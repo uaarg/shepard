@@ -5,8 +5,8 @@ from dronekit import connect, VehicleMode, LocationGlobal
 from src.modules.autopilot import navigator
 from src.modules.autopilot import lander
 
-CONN_STR = "udp:127.0.0.1:14551"
-MESSENGER_PORT = 14552
+CONN_STR = "tcp:127.0.0.1:14550"
+MESSENGER_PORT = 14550
 
 drone = connect(CONN_STR, wait_ready=False)
 
@@ -41,7 +41,7 @@ locations = [LocationGlobal(wp[0], wp[1], ALTITUDE) for wp in waypoints]
 nav.set_position_relative(0, 0)
 
 time.sleep(1)
-nav.set_speed(10)
+nav.set_speed(14)
 time.sleep(1)
 
 nav.set_altitude_position(start_point[0],
