@@ -93,9 +93,9 @@ class RPiCamera(CameraProvider):
     source.
     """
 
-    def __init__(self):
+    def __init__(self, cam_num: int):
         from picamera2 import Picamera2
-        self.camera = Picamera2()
+        self.camera = Picamera2(cam_num)
         self.size = (1920, 1080)
         self.configure_camera()
         self.camera.start()
