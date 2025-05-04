@@ -106,6 +106,9 @@ class Navigator:
         location = self.vehicle.location.local_frame
         return (location.north, location.east, location.down)
 
+    def get_global_position(self):
+        location = self.vehicle.location.global_frame
+        return (location.lat, location.lon, location.alt)
 
     def set_heading(self, heading):
         """

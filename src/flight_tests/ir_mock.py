@@ -12,6 +12,7 @@ from src.modules.autopilot import navigator
 
 from dronekit import connect, VehicleMode
 
+import json
 
 CONN_STR = "udp:127.0.0.1:14551"
 MESSENGER_PORT = 14552
@@ -32,6 +33,10 @@ analysis = ImageAnalysisDelegate(detector, camera, location)
 analysis.subscribe(lander.detectBoundingBox)
 
 analysis.start()
+
+with open('./geofence/geofence.json', 'r') as f:
+    geofence = json.load(f)['features']['geometry']['coordinates']
+
 
 nav.send_status_message("Shepard is online")
 
@@ -55,7 +60,7 @@ lander.generateSpiralSearch(4)
 
 nav.send_status_message(lander.route)
 
-bounding_boxes = lander.executeSearch(10)
+bounding_boxes = lander.executeSearch(10, geofence)
 # nav.set_position(start_coords.lat, start_coords.lon)
 # time.sleep(1)
 # nav.land()
