@@ -102,9 +102,6 @@ A class to handle everything regarding landing that is not already handled by ar
 
             new_x, new_y = current_x + point[0], current_y + point[1]
 
-
-
-
     def executeSearch(self, altitude):
         """
         Move the drone to the next position in the landing route.
@@ -130,7 +127,6 @@ A class to handle everything regarding landing that is not already handled by ar
                     delta_x = bounding_box[0] - new_x - current_local_pos[0]
                     delta_y = bounding_box[1] - new_y - current_local_pos[1]
                     
-
                     if math.sqrt((delta_x ** 2) + (delta_y ** 2)) >= self.null_radius:
                         self.boundingBoxAction()
                         time.sleep(1/(self.max_velocity))
@@ -222,8 +218,8 @@ A class to handle everything regarding landing that is not already handled by ar
         hitcount = 0
         for i in range(len(self.geofence) - 1):
             # Model geofence lines as y = mx + b
-            A = geofence[i]
-            B = geofence[i + 1]
+            A = self.geofence[i]
+            B = self.geofence[i + 1]
 
             m = (B[1] - A[1]) / (B[0] - A[0])
 

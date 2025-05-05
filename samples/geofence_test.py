@@ -11,7 +11,7 @@ origin = [-113.54815575690603, 53.495546666117804]
 geofence = inference_georeference.Geofence_to_XY(origin, geofence)
 print(geofence)
 
-lander = Lander(0, 0)
+lander = Lander(0, 0, geofence)
 '''
 point1 = [53.4958, -113.5477]
 point2 = [53.4956, -113.5481]
@@ -24,18 +24,18 @@ point2 = [5, 5]
 point3 = [10, 10]
 point4 = [-5, -5]
 point5 = [-10, 10]
-point6 = [-113.54802339060521,
-          53.49545124831053]
+point6 = [30.4,
+          30.4]
 point7 = [-113.54827877970348,
           53.49573842746909]
 
 
-print(lander.geofence_check(geofence, point1))
-print(lander.geofence_check(geofence, point2))
-print(lander.geofence_check(geofence, point3))
-print(lander.geofence_check(geofence, point4))
-print(lander.geofence_check(geofence, point5))
-print(lander.geofence_check(geofence, point6))
-print(lander.geofence_check(geofence, point7))
+print(lander.geofence_check(point1))
+print(lander.geofence_check(point2))
+print(lander.geofence_check(point3))
+print(lander.geofence_check(point4))
+print(lander.geofence_check(point5))
+print(lander.geofence_check(point6))
+print(lander.geofence_check(point7))
 
 
