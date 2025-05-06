@@ -127,7 +127,7 @@ A class to handle everything regarding landing that is not already handled by ar
                         self.boundingBoxAction()
                         time.sleep(1/(self.max_velocity))
                         break
-                self.bounding_box_pos = False
+                self.bounding_box_detected = False
             else:
                 
                 if self.geofence_check((self.__spiral_route[i][0], self.__spiral_route[i][1])):
@@ -150,7 +150,7 @@ A class to handle everything regarding landing that is not already handled by ar
         time.sleep(1)
         
         x, y = self.bounding_box_pos[0], self.bounding_box_pos[1]
-        if self.geofence_check((x + 2, y)) and self.geofence_check(x, y + 2) and self.geofence_check(x + 2, y + 2):
+        if self.geofence_check((x + 2, y)) and self.geofence_check((x, y + 2)) and self.geofence_check((x + 2, y + 2)):
             self.nav.set_position_target_local_ned(x = x,
                                                         y = y,
                                                         type_mask=type_mask, 

@@ -30,15 +30,22 @@ nav = navigator.Navigator(drone, MESSENGER_PORT)
 with open('./samples/geofence.json', 'r') as f:
     geofence = json.load(f)['features'][0]['geometry']['coordinates'][0]
 
+time.sleep(2)
 
+origin = (drone.location.global_relative_frame.lon, drone.location.global_relative_frame.lat)
 
-geofence = inference_georeference.Geofence_to_XY((drone.location.global_relative_frame.lon, drone.location.global_relative_frame.lat), geofence)
+geofence = inference_georeference.Geofence_to_XY(origin, geofence) 
+
+if not geofence:
+    # Error handling as origin sometimes returns None, must be something to do with initialization
+    time.sleep(2) 
+    geofence = inference_georeference.Geofence_to_XY((drone.location.global_relative_frame.lon, drone.location.global_relative_frame.lat), geofence) 
 
 lander = lander.Lander(nav, MAX_VELOCITY, geofence)
 
 print(geofence)
 
-camera = RPiCamera()
+camera = RPiCamera(0)
 detector = IrDetector()
 location = DebugLocationProvider()
 
@@ -61,26 +68,25 @@ drone.groundspeed = 2  # m/s
 time.sleep(2)
 
 nav.send_status_message("Executing landing pad search")
-lander.generateSpiralSearch(10)
+lander.generateSpiralSearch(2)
 
 nav.send_status_message(lander.route)
 
 bounding_boxes = lander.executeSearch(10)
 
 
-bounding_boxes = inference_georeference.meters_to_LonLat((drone.location.global_relative_frame.lon, drone.location.global_relative_frame.lat), geofence)
+bounding_boxes = inference_georeference.meters_to_LonLat(origin, bounding_boxes)
 
 kml = KMLGenerator()
 
 for hotspot in bounding_boxes:
-    spot = LatLong(hotspot)
+    spot = LatLong(hotspot[0], hotspot[1])
 
     kml.push(spot)
 
-kml.generate("out.kml")
+kml.set_source("Crashed Drone", LatLong(24, 24))
 
-with open("/tmp/IR_sites.txt", "w") as f:
-    f.write(str(bounding_boxes))
+kml.generate("out.kml")
 
 nav.send_status_message("Generated KML File!")
 

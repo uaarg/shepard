@@ -11,8 +11,9 @@ where X, Y are in meters
 """
 # TODO: Requires a circular-import... but we only need these for type annotations
 import numpy as np
-from math import cos, tan, atan, radians
+from math import cos, tan, atan, radians, degrees
 import pyproj
+import time
 
 from typing import TYPE_CHECKING
 
@@ -47,31 +48,34 @@ def Geofence_to_XY(origin, geofence):
     # Returns a new geofence which consists of position vectors in meters
     # Guys the Earth is like mostly flat right??
 
+    try: 
+        R = 6378137 # Radius of the Earth in meters
 
-    R = 6378137 # Radius of the Earth in meters
+        new_fence = []
 
-    new_fence = []
+        origin_lon = origin[0]
+        origin_lat = origin[1]
 
-    origin_lon = origin[0]
-    origin_lat = origin[1]
+        origin_lon_rad = radians(origin_lon)
+        origin_lat_rad = radians(origin_lat)
 
-    origin_lon_rad = radians(origin_lon)
-    origin_lat_rad = radians(origin_lat)
+        for point in geofence:
+            
+            point_lon_rad = radians(point[0])
+            point_lat_rad = radians(point[1])
+            
+            delta_lat = point_lat_rad - origin_lat_rad
+            delta_lon = point_lon_rad - origin_lon_rad
 
-    for point in geofence:
-        
-        point_lon_rad = radians(point[0])
-        point_lat_rad = radians(point[1])
-        
-        delta_lat = point_lat_rad - origin_lat_rad
-        delta_lon = point_lon_rad - origin_lon_rad
+            x = delta_lat * R
+            y = delta_lon * cos((origin_lat_rad + point_lat_rad) / 2) * R
+            
+            new_fence.append((x, y))
 
-        x = delta_lat * R
-        y = delta_lon * cos((origin_lat_rad + point_lat_rad) / 2) * R
-        
-        new_fence.append((x, y))
+        return new_fence
 
-    return new_fence
+    except TypeError:
+        return None
 
 def meters_to_LonLat(origin, points):
 
@@ -90,10 +94,13 @@ def meters_to_LonLat(origin, points):
         point_x = point[0]
         point_y = point[1]
         
-        delta_lat = point_x / r
-        delta_lon = y / (cos(origin_lat_rad + delta_lat / 2) * R)
+        delta_lat = point_x / R
+        delta_lon = point_y / (cos(origin_lat_rad + delta_lat / 2) * R)
 
-        new_points.append((x, y))
+        delta_lat = degrees(delta_lat)
+        delta_lon = degrees(delta_lon)
+
+        new_points.append((delta_lat + origin_lat, delta_lon + origin_lon))
 
 
     return new_points
