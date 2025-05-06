@@ -24,6 +24,8 @@ drone = connect(CONN_STR, wait_ready=False)
 
 nav = navigator.Navigator(drone, MESSENGER_PORT)
 
+# How much we want to hover above the ground when we are filling or emptying
+target_height = 1
 
 bucket_avg = [[], []]
 
