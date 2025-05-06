@@ -43,6 +43,62 @@ def XY_To_LonLat(x, y, zone=12):
 
     return P(x, y, inverse=True)
 
+def Geofence_to_XY(origin, geofence):
+    # Returns a new geofence which consists of position vectors in meters
+    # Guys the Earth is like mostly flat right??
+
+
+    R = 6378137 # Radius of the Earth in meters
+
+    new_fence = []
+
+    origin_lon = origin[0]
+    origin_lat = origin[1]
+
+    origin_lon_rad = radians(origin_lon)
+    origin_lat_rad = radians(origin_lat)
+
+    for point in geofence:
+        
+        point_lon_rad = radians(point[0])
+        point_lat_rad = radians(point[1])
+        
+        delta_lat = point_lat_rad - origin_lat_rad
+        delta_lon = point_lon_rad - origin_lon_rad
+
+        x = delta_lat * R
+        y = delta_lon * cos((origin_lat_rad + point_lat_rad) / 2) * R
+        
+        new_fence.append((x, y))
+
+    return new_fence
+
+def meters_to_LonLat(origin, points):
+
+    R = 6378137
+
+    new_points = []
+
+    origin_lon = origin[0]
+    origin_lat = origin[1]
+
+    origin_lon_rad = radians(origin_lon)
+    origin_lat_rad = radians(origin_lat)
+
+    for point in points:
+        
+        point_x = point[0]
+        point_y = point[1]
+        
+        delta_lat = point_x / r
+        delta_lon = y / (cos(origin_lat_rad + delta_lat / 2) * R)
+
+        new_points.append((x, y))
+
+
+    return new_points
+    
+
 
 def pixel_to_rel_position(camera_attributes: 'CameraAttributes',
                           inference: 'Inference', fovh, fovv) -> np.array:

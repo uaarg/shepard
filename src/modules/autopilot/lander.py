@@ -1,20 +1,21 @@
-import math
+
 import time
 
 from pymavlink import mavutil
 
 from src.modules.autopilot.navigator import Navigator
 from src.modules import imaging
+import math
 
 class Lander:
     """
-    A class to handle everything regarding landing that is not already handled by ardupilot
+A class to handle everything regarding landing that is not already handled by ardupilot
     """
 
     HORIZONTAL_ANGLE = math.radians(30)
     VERTICAL_ANGLE = math.radians(24)
 
-    def __init__(self, nav, max_velocity):
+    def __init__(self, nav, max_velocity, geofence):
         self.__spiral_route = []  # Private attribute
         self.__bounding_box_pos = []
         self.__buffer = [[],
@@ -25,7 +26,12 @@ class Lander:
         self.max_velocity = max_velocity
         self.bounding_box_detected = False
         self.bounding_box_pos = []
+        self.bounding_box_log = []
         self.leave_frame = False
+        self.geofence = geofence
+
+        
+        self.null_radius = 10 # Radius in METERS of bounding box detection being ignored
 
     @property
     def route(self):
@@ -47,7 +53,7 @@ class Lander:
         verticalScanRatio = math.tan(Lander.VERTICAL_ANGLE)
         horizontalScanRatio = math.tan(Lander.HORIZONTAL_ANGLE)
         
-        step_size = 1
+        step_size = 5
 
         steps_per_side = 1
         curr_side_iter = 0
@@ -104,38 +110,93 @@ class Lander:
         type_mask = self.nav.generate_typemask([0, 1])
         i = 0 
         while i <= len(self.__spiral_route) - 1:
-            if not self.bounding_box_detected:
-                self.nav.set_position_target_local_ned(x = self.__spiral_route[i][0],
-                                                    y = self.__spiral_route[i][1],
-                                                    type_mask=type_mask, 
-                                                    coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED)
+            
+            current_local_pos = self.nav.get_local_position_ned()
+            print(self.geofence_check((self.__spiral_route[i][0], self.__spiral_route[i][1])))
+            if self.bounding_box_detected:
+                print(self.bounding_box_pos)
+                new_x, new_y = self.bounding_box_pos[0], self.bounding_box_pos[1]
+                if len(self.bounding_box_log) == 0:
+                    self.bounding_box_log.append((new_x, new_y))
+                print(self.bounding_box_log)
+                for bounding_box in self.bounding_box_log:
+                    delta_x = bounding_box[0] - new_x - current_local_pos[0]
+                    delta_y = bounding_box[1] - new_y - current_local_pos[1]
+                    
+                    if math.sqrt((delta_x ** 2) + (delta_y ** 2)) >= self.null_radius:
+                        self.boundingBoxAction()
+                        time.sleep(1/(self.max_velocity))
+                        break
+                self.bounding_box_pos = False
+            else:
+                
+                if self.geofence_check((self.__spiral_route[i][0], self.__spiral_route[i][1])):
+
+                    self.nav.set_position_target_local_ned(x = self.__spiral_route[i][0],
+                                                        y = self.__spiral_route[i][1],
+                                                        type_mask=type_mask, 
+                                                        coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED)
+                
                 i += 1
                 time.sleep(1/(self.max_velocity))
-            elif self.bounding_box_detected:
-                self.boundingBoxAction()
-                time.sleep(1/(self.max_velocity))
+                    
+        return self.bounding_box_log
+
         #self.nav.set_position_relative(route[0], route[1])
 
     def boundingBoxAction(self):
+        # go to bounding box and go around it in a square
         type_mask = self.nav.generate_typemask([0, 1]) 
         time.sleep(1)
         
         x, y = self.bounding_box_pos[0], self.bounding_box_pos[1]
+        if self.geofence_check((x + 2, y)) and self.geofence_check(x, y + 2) and self.geofence_check(x + 2, y + 2):
+            self.nav.set_position_target_local_ned(x = x,
+                                                        y = y,
+                                                        type_mask=type_mask, 
+                                                        coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED)
+            time.sleep((math.sqrt(x ** 2 + y ** 2)/(self.max_velocity)))
+            self.nav.set_position_target_local_ned(x = 2,
+                                                        y = 0,
+                                                        type_mask=type_mask, 
+                                                        coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED)
+            time.sleep((3/(self.max_velocity)))
+            self.nav.set_position_target_local_ned(x = 0,
+                                                        y = 2,
+                                                        type_mask=type_mask, 
+                                                        coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED)
+            time.sleep(3/(self.max_velocity))
+            self.nav.set_position_target_local_ned(x = -2,
+                                                        y = 0,
+                                                        type_mask=type_mask, 
+                                                        coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED)
+            time.sleep((3/(self.max_velocity)))
+            self.nav.set_position_target_local_ned(x = 0,
+                                                        y = -2,
+                                                        type_mask=type_mask, 
+                                                        coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED)
+            time.sleep((3/(self.max_velocity)))
+            
+            self.nav.set_position_target_local_ned(x = -x,
+                                                        y = -y,
+                                                        type_mask=type_mask, 
+                                                        coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED)
+            time.sleep((math.sqrt(x ** 2 + y ** 2)/(self.max_velocity)))
 
-        self.nav.set_position_target_local_ned(x = x,
-                                                    y = y,
-                                                    type_mask=type_mask, 
-                                                    coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED)
-        time.sleep((math.sqrt(x ** 2 + y ** 2)/(self.max_velocity)))
-
-        self.nav.set_position_target_local_ned(x = -x,
-                                                    y = -y,
-                                                    type_mask=type_mask, 
-                                                    coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED)
-        time.sleep((math.sqrt(x ** 2 + y ** 2)/(self.max_velocity)))
+        else:
+            self.nav.set_position_target_local_ned(x = x,
+                                                        y = y,
+                                                        type_mask=type_mask, 
+                                                        coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED)
+            time.sleep((math.sqrt(x ** 2 + y ** 2)/(self.max_velocity)))
+ 
 
         self.bounding_box_detected = False
-        self.leave_frame = True
+            
+        current_local_pos = self.nav.get_local_position_ned()
+            
+
+        self.bounding_box_log.append((current_local_pos[0] + x, current_local_pos[1] + y))
 
     def detectBoundingBox(self, _, bounding_box_pos):
         if bounding_box_pos:
@@ -143,8 +204,34 @@ class Lander:
                 self.bounding_box_detected = True
                 self.bounding_box_pos = bounding_box_pos
         else:
+
             if self.leave_frame:
                 self.leave_frame = False
+
+    def geofence_check(self, point):
+        # Adapted from code provided by Aiden
+        #lat, lon, alt = self.nav.get_global_position()
+        lat, lon = point[1], point[0]
+        hitcount = 0
+        for i in range(len(self.geofence) - 1):
+            # Model geofence lines as y = mx + b
+            A = self.geofence[i]
+            B = self.geofence[i + 1]
+
+            m = (B[1] - A[1]) / (B[0] - A[0])
+
+            # Handling the case of delta_lon == 0
+            if abs(m) == float('inf'):
+                m = (B[1] - A[1])/ (B[0] - A[0] + 0.00000001)
+
+            b = A[0] - m * A[0]
+
+            x = (lat - b) / m
+
+            if x > lon and lat > min(A[1], B[1]) and lat < max(A[1], B[1]):
+                hitcount += 1
+        return bool(hitcount & 1)
+
 
 
     def enable_precision_land(self, Navigator):
