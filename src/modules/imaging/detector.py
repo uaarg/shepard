@@ -30,6 +30,12 @@ class IrDetector(LandingPadDetector):
         return BoundingBox(Vec2(x, y), Vec2(w, h))
 
 
+class InvertedIrDetector(IrDetector):
+
+    def predict(self, image: Image.Image) -> Optional[BoundingBox]:
+        return super().predict(Image.fromarray(255 - np.array(image)))
+
+
 if __name__ == "__main__":
     # Helper, run with `PYTHONPATH=. python3 path/to/detector.py --invert image.png`
 
@@ -44,17 +50,16 @@ if __name__ == "__main__":
     detector = IrDetector()
     im = Image.open(args.image).convert("RGB")
 
-    original_im = im
     if args.invert:
         # Max val is 255 per channel per pixel
-        im = Image.fromarray(255 - np.array(im))
+        detector = InvertedIrDetector()
 
     bb = detector.predict(im)
     if bb is None:
         print("No IR source detected")
     else:
-        draw = ImageDraw.Draw(original_im)
+        draw = ImageDraw.Draw(im)
         draw.ink = 0xFF00FF
         draw.rectangle((bb.position.x, bb.position.y,
                         bb.position.x + bb.size.x, bb.position.y + bb.size.y))
-        original_im.show()
+        im.show()
