@@ -1,7 +1,7 @@
 from typing import Optional
 from src.modules.imaging.detector import IrDetector
 import time
-from src.modules.imaging.analysis import ImageAnalysisDelegate
+from src.modules.imaging.analysis import ImageAnalysisDelegate, DebugImageAnalysisDelegate
 from src.modules.imaging.camera import RPiCamera
 from src.modules.imaging.location import DebugLocationProvider
 from dep.labeller.benchmarks.detector import BoundingBox, LandingPadDetector
@@ -49,7 +49,10 @@ camera = RPiCamera()
 detector = IrDetector()
 location = DebugLocationProvider()
 
-analysis = ImageAnalysisDelegate(detector, camera, location)
+# analysis = ImageAnalysisDelegate(detector, camera, location)
+analysis = DebugImageAnalysisDelegate(camera)
+analysis.x = 0  # CHANGE ME
+analysis.y = 0  # CHANGE ME
 analysis.subscribe(moving_bucket_avg)
 
 nav.send_status_message("Shepard is online")
