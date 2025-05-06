@@ -6,6 +6,8 @@ from src.modules.imaging.camera import RPiCamera
 from src.modules.imaging.location import DebugLocationProvider
 from dep.labeller.benchmarks.detector import BoundingBox, LandingPadDetector
 from src.modules.georeference import inference_georeference
+from src.modules.imaging.kml import KMLGenerator, LatLong
+
 
 from PIL import Image, ImageDraw
 from src.modules.autopilot import lander
@@ -68,13 +70,19 @@ bounding_boxes = lander.executeSearch(10)
 
 bounding_boxes = inference_georeference.meters_to_LonLat((drone.location.global_relative_frame.lon, drone.location.global_relative_frame.lat), geofence)
 
+kml = KMLGenerator()
 
-# nav.set_position(start_coords.lat, start_coords.lon)
-# time.sleep(1)
-# nav.land()
+for hotspot in bounding_boxes:
+    spot = LatLong(hotspot)
+
+    kml.push(spot)
+
+kml.generate("out.kml")
 
 with open("/tmp/IR_sites.txt", "w") as f:
     f.write(str(bounding_boxes))
+
+nav.send_status_message("Generated KML File!")
 
 nav.send_status_message("Bounding Box coordinates: " + str(bounding_boxes))
 
@@ -83,7 +91,4 @@ nav.return_to_launch()
 drone.close()
 
 nav.send_status_message("Flight test script execution terminated")
-
-# def func(image: Image.Image, bb: [BoundingBox]):
-   # global time1
 
