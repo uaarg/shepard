@@ -73,6 +73,32 @@ def Geofence_to_XY(origin, geofence):
 
     return new_fence
 
+def meters_to_LonLat(origin, points):
+
+    R = 6378137
+
+    new_points = []
+
+    origin_lon = origin[0]
+    origin_lat = origin[1]
+
+    origin_lon_rad = radians(origin_lon)
+    origin_lat_rad = radians(origin_lat)
+
+    for point in points:
+        
+        point_x = point[0]
+        point_y = point[1]
+        
+        delta_lat = point_x / r
+        delta_lon = y / (cos(origin_lat_rad + delta_lat / 2) * R)
+
+        new_points.append((x, y))
+
+
+    return new_points
+    
+
 
 def pixel_to_rel_position(camera_attributes: 'CameraAttributes',
                           inference: 'Inference', fovh, fovv) -> np.array:

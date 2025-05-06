@@ -64,6 +64,11 @@ lander.generateSpiralSearch(10)
 nav.send_status_message(lander.route)
 
 bounding_boxes = lander.executeSearch(10)
+
+
+bounding_boxes = inference_georeference.meters_to_LonLat((drone.location.global_relative_frame.lon, drone.location.global_relative_frame.lat), geofence)
+
+
 # nav.set_position(start_coords.lat, start_coords.lon)
 # time.sleep(1)
 # nav.land()
