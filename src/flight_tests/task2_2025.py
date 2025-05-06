@@ -17,6 +17,8 @@ from dronekit import connect, VehicleMode
 
 import json
 
+import RPI.GPIO as GPIO
+
 CONN_STR = "udp:127.0.0.1:14551"
 MESSENGER_PORT = 14552
 
@@ -26,6 +28,13 @@ nav = navigator.Navigator(drone, MESSENGER_PORT)
 
 # How much we want to hover above the ground when we are filling or emptying
 target_height = 1
+
+PUMP_PIN = 23 # GPIO Pin 23 to control the pump relay
+
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(PUMP_PIN, )
+
 
 bucket_avg = [[], []]
 
@@ -76,37 +85,44 @@ delta = 0.5
 sleep_time = 2
 
 
-# VERIFY ALL OF THESE COORINDATE SYSTEMS BEFORE FLYING!!!!!!!!!!!!!!!!!!!!!!!!!
+#Off_set coordinate frame which is needed for this type of maneuver
+coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED
 
-nav.set_position_target_local_ned(x = bucket_avg[0][-1], y = bucket_avg[1][-1], z = 0, type_mask = type_mask)
+def fill_bucket(coordinate_frame):
 
-time.sleep(5)
+    nav.send_status_message("Descending to Bucket...")
 
-nav.set_position_target_local_ned(x = bucket_avg[0][-1], y = bucket_avg[1][-1], z = 10, type_mask = type_mask)
+    nav.set_position_target_local_ned(x = bucket_avg[0][-1], y = bucket_avg[1][-1], z = 0, type_mask = type_mask, coordinate_frame=coordinate_frame)
 
-time.sleep(5)
+    time.sleep(5)
 
+    nav.set_position_target_local_ned(x = bucket_avg[0][-1], y = bucket_avg[1][-1], z = 10, type_mask = type_mask, coordinate_frame=coordinate_frame))
 
-nav.set_position_target_local_ned(x = bucket_avg[0][-1], y = bucket_avg[1][-1], z = 5, type_mask = type_mask)
-
-time.sleep(5)
-
-
-nav.set_position_target_local_ned(x = bucket_avg[0][-1], y = bucket_avg[1][-1], z = 5, type_mask = type_mask)
-
-time.sleep(5)
+    time.sleep(5)
 
 
-nav.set_position_target_local_ned(x = bucket_avg[0][-1], y = bucket_avg[1][-1], z = 5, type_mask = type_mask)
+    nav.set_position_target_local_ned(x = bucket_avg[0][-1], y = bucket_avg[1][-1], z = 5, type_mask = type_mask, coordinate_frame=coordinate_frame))
 
-time.sleep(5)
-
-
-#Full commit
+    time.sleep(5)
 
 
-nav.set_position_target_local_ned(x = 0, y = 0, z = 5-target_height, type_mask = type_mask)
+    nav.set_position_target_local_ned(x = bucket_avg[0][-1], y = bucket_avg[1][-1], z = 5, type_mask = type_mask, coordinate_frame=coordinate_frame)
 
-time.sleep(5)
+    time.sleep(5)
+
+
+    nav.set_position_target_local_ned(x = bucket_avg[0][-1], y = bucket_avg[1][-1], z = 5, type_mask = type_mask, coordinate_frame=coordinate_frame)
+
+    time.sleep(5)
+
+
+    #Full commit
+    nav.set_position_target_local_ned(x = 0, y = 0, z = 5-target_height, type_mask = type_mask, coordinate_frame=coordinate_frame)
+
+    time.sleep(5)
+
+    # Activate Pump
+    
+
 
 
