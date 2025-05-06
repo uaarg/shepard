@@ -1,6 +1,6 @@
 from typing import Optional
 
-from PIL import Image
+from PIL import Image, ImageDraw
 import numpy as np
 import cv2
 
@@ -20,7 +20,7 @@ class IrDetector(LandingPadDetector):
         _, thresh = cv2.threshold(gray_img, max_val - 10, 255, cv2.THRESH_BINARY)
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        # cv2.drawContours(thresh, contours, -1, (0, 255, 0), 2)
+        #output = cv2.drawContours(thresh, contours, -1, (0, 255, 0), 2)
 
         if len(contours) == 0: return None
 
@@ -30,7 +30,31 @@ class IrDetector(LandingPadDetector):
         return BoundingBox(Vec2(x, y), Vec2(w, h))
 
 
+if __name__ == "__main__":
+    # Helper, run with `PYTHONPATH=. python3 path/to/detector.py --invert image.png`
 
-        
-        
+    import argparse
 
+    parser = argparse.ArgumentParser()
+    parser.description = 'Detect IR hotspots in a test image'
+    parser.add_argument('image', help="Image to process")
+    parser.add_argument('--invert', action='store_true', help="Invert the image before checking for hotspots")
+    args = parser.parse_args()
+
+    detector = IrDetector()
+    im = Image.open(args.image).convert("RGB")
+
+    original_im = im
+    if args.invert:
+        # Max val is 255 per channel per pixel
+        im = Image.fromarray(255 - np.array(im))
+
+    bb = detector.predict(im)
+    if bb is None:
+        print("No IR source detected")
+    else:
+        draw = ImageDraw.Draw(original_im)
+        draw.ink = 0xFF00FF
+        draw.rectangle((bb.position.x, bb.position.y,
+                        bb.position.x + bb.size.x, bb.position.y + bb.size.y))
+        original_im.show()
