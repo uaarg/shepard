@@ -1,5 +1,5 @@
 from typing import Optional
-from src.modules.imaging.detector import IrDetector
+from src.modules.imaging.detector import InvertedIrDetector
 import time
 from src.modules.imaging.analysis import ImageAnalysisDelegate
 from src.modules.imaging.camera import RPiCamera
@@ -25,7 +25,7 @@ lander = lander.Lander(nav, MAX_VELOCITY)
 
     
 camera = RPiCamera()
-detector = IrDetector()
+detector = InvertedIrDetector()
 location = DebugLocationProvider()
 
 analysis = ImageAnalysisDelegate(detector, camera, location)
