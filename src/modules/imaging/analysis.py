@@ -1,13 +1,16 @@
-from typing import Callable, Optional, List, Callable, Any
+from typing import Callable, Optional, List, Callable, Any, Tuple
 
+import time
 import threading
-# from multiprocessing import Process
-from dep.labeller.benchmarks.detector import LandingPadDetector, BoundingBox
-from .camera import CameraProvider
-from .debug import ImageAnalysisDebugger
-from ..georeference.inference_georeference import get_object_location
-from .location import LocationProvider
 from PIL import Image
+import numpy as np
+# from multiprocessing import Process
+
+from dep.labeller.benchmarks.detector import LandingPadDetector, BoundingBox
+from src.modules.imaging.camera import CameraProvider
+from src.modules.imaging.debug import ImageAnalysisDebugger
+from src.modules.georeference.inference_georeference import get_object_location
+from src.modules.imaging.location import LocationProvider
 
 
 class CameraAttributes:
@@ -117,3 +120,55 @@ class ImageAnalysisDelegate:
             imaging_process.subscribe(myhandler)
         """
         self.subscribers.append(callback)
+
+
+class DebugImageAnalysisDelegate(ImageAnalysisDelegate):
+    """
+    Like ImageAnalysisDelegate, but provides a randomized location prediction
+    about self.x, self.y with standard deviation of self.std.
+
+    This can be used to simulate real input and a system's ability to withstand
+    noise/error from image analysis.
+
+    If the camera provider is None, the image argument in the callback will be
+    None. This may break some existing analysis subscribers/callbacks.
+
+    Example Usage:
+
+        camera = DebugCameraProvider()  # [OPTIONAL] Produces an image in the callback, can be None
+        analysis = ImageAnalysisDelegate(camera, delay=2.0)  # Produce a result every 2s
+
+        # Set center from which to produce noisy estimates from
+        analysis.x = 42
+        analysis.y = 100
+
+        # Set standard deviation
+        analysis.std = 0.8
+
+        # Start the analysis thread, listen with my_callback
+        analysis.subscribe(my_callback)
+        analysis.start()
+    """
+
+    def __init__(self, camera: CameraProvider, delay: float = 1.0):
+        super().__init__(None, camera, None, None)
+        self.x = 0
+        self.y = 0
+        self.std = 1
+        self.delay = delay
+
+    def rand_xy(self) -> Tuple[float, float]:
+        """
+        Generate a random (x, y) point following a normal distribution about
+        (self.x, self.y) with standard deviation self.std.
+        """
+        x = np.random.normal(loc=self.x, scale=self.std)
+        y = np.random.normal(loc=self.y, scale=self.std)
+        return x, y
+
+    def _analyze_image(self):
+        time.sleep(self.delay)
+
+        im = self.camera.capture() if self.camera is not None else None
+        for subscriber in self.subscribers:
+            subscriber(im, self.rand_xy())
