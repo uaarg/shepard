@@ -5,6 +5,7 @@ from src.modules.imaging.analysis import ImageAnalysisDelegate
 from src.modules.imaging.camera import RPiCamera
 from src.modules.imaging.location import DebugLocationProvider
 from dep.labeller.benchmarks.detector import BoundingBox, LandingPadDetector
+from src.modules.georeference import inference_georeference
 
 from PIL import Image, ImageDraw
 from src.modules.autopilot import lander
@@ -22,9 +23,19 @@ MAX_VELOCITY = 1
 drone = connect(CONN_STR, wait_ready=False)
 
 nav = navigator.Navigator(drone, MESSENGER_PORT)
-lander = lander.Lander(nav, MAX_VELOCITY)
 
-    
+
+with open('./samples/geofence.json', 'r') as f:
+    geofence = json.load(f)['features'][0]['geometry']['coordinates'][0]
+
+
+
+geofence = inference_georeference.Geofence_to_XY((drone.location.global_relative_frame.lon, drone.location.global_relative_frame.lat), geofence)
+
+lander = lander.Lander(nav, MAX_VELOCITY, geofence)
+
+print(geofence)
+
 camera = RPiCamera()
 detector = IrDetector()
 location = DebugLocationProvider()
@@ -33,10 +44,6 @@ analysis = ImageAnalysisDelegate(detector, camera, location)
 analysis.subscribe(lander.detectBoundingBox)
 
 analysis.start()
-
-with open('./geofence/geofence.json', 'r') as f:
-    geofence = json.load(f)['features']['geometry']['coordinates']
-
 
 nav.send_status_message("Shepard is online")
 
@@ -51,16 +58,12 @@ drone.groundspeed = 2  # m/s
 # start_coords = drone.location.global_relative_frame
 time.sleep(2)
 
-nav.set_altitude_position_relative(20, 0, 10)
-time.sleep(1)
-
-
 nav.send_status_message("Executing landing pad search")
-lander.generateSpiralSearch(4)
+lander.generateSpiralSearch(10)
 
 nav.send_status_message(lander.route)
 
-bounding_boxes = lander.executeSearch(10, geofence)
+bounding_boxes = lander.executeSearch(10)
 # nav.set_position(start_coords.lat, start_coords.lon)
 # time.sleep(1)
 # nav.land()

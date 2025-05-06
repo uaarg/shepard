@@ -13,6 +13,9 @@ class IrDetector(LandingPadDetector):
 
     def predict(self, image: Image.Image) -> Optional[BoundingBox]:
         img = np.array(image)
+        img = cv2.bitwise_not(img)
+
+        cv2.imwrite(f"./tmp/hawk/{np.random.randint(100)}/img.png", img)         
 
         gray_img = cv2.cvtColor(img, cv2.COLOR_RGBA2GRAY)
         max_val = np.max(gray_img) # returns maximum value of brightness 

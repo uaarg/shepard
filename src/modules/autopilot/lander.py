@@ -1,11 +1,11 @@
-import math
+
 import time
 
-#from pymavlink import mavutil
+from pymavlink import mavutil
 
-#from src.modules.autopilot.navigator import Navigator
-#from src.modules import imaging
-
+from src.modules.autopilot.navigator import Navigator
+from src.modules import imaging
+import math
 
 class Lander:
     """
@@ -53,7 +53,7 @@ A class to handle everything regarding landing that is not already handled by ar
         verticalScanRatio = math.tan(Lander.VERTICAL_ANGLE)
         horizontalScanRatio = math.tan(Lander.HORIZONTAL_ANGLE)
         
-        step_size = 1
+        step_size = 5
 
         steps_per_side = 1
         curr_side_iter = 0
@@ -97,11 +97,6 @@ A class to handle everything regarding landing that is not already handled by ar
             x = 0
             y = 0
 
-        for point in self.__spiral_route:
-            current_x, current_y = self.nav.get_local_position_ned[0], self.nav.get_local_position_ned[1]
-
-            new_x, new_y = current_x + point[0], current_y + point[1]
-
     def executeSearch(self, altitude):
         """
         Move the drone to the next position in the landing route.
@@ -117,6 +112,7 @@ A class to handle everything regarding landing that is not already handled by ar
         while i <= len(self.__spiral_route) - 1:
             
             current_local_pos = self.nav.get_local_position_ned()
+            print(self.geofence_check((self.__spiral_route[i][0], self.__spiral_route[i][1])))
             if self.bounding_box_detected:
                 print(self.bounding_box_pos)
                 new_x, new_y = self.bounding_box_pos[0], self.bounding_box_pos[1]
@@ -131,8 +127,9 @@ A class to handle everything regarding landing that is not already handled by ar
                         self.boundingBoxAction()
                         time.sleep(1/(self.max_velocity))
                         break
-
+                self.bounding_box_pos = False
             else:
+                
                 if self.geofence_check((self.__spiral_route[i][0], self.__spiral_route[i][1])):
 
                     self.nav.set_position_target_local_ned(x = self.__spiral_route[i][0],
