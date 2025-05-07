@@ -9,6 +9,7 @@ from ..georeference.inference_georeference import get_object_location
 from .location import LocationProvider
 from PIL import Image
 
+import os
 
 class CameraAttributes:
 
@@ -50,7 +51,6 @@ class ImageAnalysisDelegate:
                  location_provider: LocationProvider,
                  debugger: Optional[ImageAnalysisDebugger] = None,
                  ):
-        import os
         self.detector = detector
         self.camera = camera
         self.debugger = debugger
@@ -59,6 +59,7 @@ class ImageAnalysisDelegate:
         self.camera_attributes = CameraAttributes()
         dirs = os.listdir("tmp/log")
         self.im_path = f"tmp/log/{len(dirs)}"
+        os.makedirs(self.im_path)
         self.i = 0
 
     def get_inference(self, bounding_box: BoundingBox) -> Inference:
@@ -84,7 +85,7 @@ class ImageAnalysisDelegate:
         `_analysis_loop()` in another thread.
         """
         im = self.camera.capture()
-        im.save(self.im_path)
+        im.save(os.path.join(self.im_path, f"{self.i}.png"))
         self.i += 1
         bounding_box = self.detector.predict(im)
         if self.debugger is not None:

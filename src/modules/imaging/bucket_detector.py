@@ -12,11 +12,11 @@ from ultralytics import YOLO
 class BucketDetector(LandingPadDetector):
     
     def __init__(self, model_path):
+        print(f"model: {model_path}")
         self.model = YOLO(model_path)
 
     def predict(self, image: Image.Image) -> Optional[BoundingBox]:
-        
-        results = self.model(image)
+        results = self.model("tmp.jpg")
 
         result = results[0] # because one image
 
