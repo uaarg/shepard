@@ -29,14 +29,13 @@ A class to handle everything regarding landing that is not already handled by ar
         self.bounding_box_log = []
         self.leave_frame = False
         self.geofence = geofence
-
         
+            
         self.null_radius = 10 # Radius in METERS of bounding box detection being ignored
 
     @property
     def route(self):
         return self.__spiral_route
-    
 
     def generateSpiralSearch(self, numberOfLoops=10):
         """
@@ -97,7 +96,7 @@ A class to handle everything regarding landing that is not already handled by ar
             x = 0
             y = 0
 
-    def executeSearch(self, altitude):
+    '''def executeSearch(self, altitude):
         """
         Move the drone to the next position in the landing route.
 
@@ -113,6 +112,7 @@ A class to handle everything regarding landing that is not already handled by ar
             
             current_local_pos = self.nav.get_local_position_ned()
             print(self.geofence_check((self.__spiral_route[i][0], self.__spiral_route[i][1])))
+            print(self.__spiral_route[i])
             if self.bounding_box_detected:
                 print(self.bounding_box_pos)
                 new_x, new_y = self.bounding_box_pos[0], self.bounding_box_pos[1]
@@ -137,12 +137,44 @@ A class to handle everything regarding landing that is not already handled by ar
                                                         type_mask=type_mask, 
                                                         coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED)
                 
-                i += 1
-                time.sleep(1/(self.max_velocity))
-                    
+                    i += 1
+                    time.sleep(1/(self.max_velocity))
+                        
         return self.bounding_box_log
 
         #self.nav.set_position_relative(route[0], route[1])
+'''
+
+    def executeSearch(self, altitude):
+        type_mask = self.nav.generate_typemask([0, 1])
+        i = 0 
+        while i <= len(self.__spiral_route) - 1:
+            current_local_pos = self.nav.get_local_position_ned()
+            if self.bounding_box_detected:
+                print(self.bounding_box_pos)
+                new_x, new_y = self.bounding_box_pos[0], self.bounding_box_pos[1]
+                if len(self.bounding_box_log) == 0:
+                    self.bounding_box_log.append((new_x, new_y))
+                print(self.bounding_box_log)
+                for bounding_box in self.bounding_box_log:
+                    delta_x = bounding_box[0] - new_x - current_local_pos[0]
+                    delta_y = bounding_box[1] - new_y - current_local_pos[1]
+                    
+
+                    if math.sqrt((delta_x ** 2) + (delta_y ** 2)) >= self.null_radius:
+                        self.boundingBoxAction()
+                        time.sleep(4/(self.max_velocity))
+                        break
+                self.bounding_box_detected = False
+            else:
+                self.nav.set_position_target_local_ned(x = self.__spiral_route[i][0],
+                                                    y = self.__spiral_route[i][1],
+                                                    type_mask=type_mask, 
+                                                    coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED)
+                i += 1
+                time.sleep(4/(self.max_velocity))
+
+        return self.bounding_box_log
 
     def boundingBoxAction(self):
         # go to bounding box and go around it in a square
