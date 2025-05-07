@@ -16,7 +16,7 @@ class BucketDetector(LandingPadDetector):
         self.model = YOLO(model_path)
 
     def predict(self, image: Image.Image) -> Optional[BoundingBox]:
-        results = self.model("tmp.jpg")
+        results = self.model(image)
 
         result = results[0] # because one image
 

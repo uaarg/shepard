@@ -9,7 +9,7 @@ det = BucketDetector("samples/models/8n416.pt")
 location = DebugLocationProvider()
 analysis = ImageAnalysisDelegate(det, cam, location)
 
-def test(arg):
+def test(arg, _):
     print(arg)
 
 analysis.subscribe(test)
