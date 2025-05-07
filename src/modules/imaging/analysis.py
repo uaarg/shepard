@@ -57,6 +57,9 @@ class ImageAnalysisDelegate:
         self.location_provider = location_provider
         self.subscribers: List[Callable[[Image.Image, float, float], Any]] = []
         self.camera_attributes = CameraAttributes()
+        
+        # make directory to store all photos gathered
+        # REMOVE FOR COMP THIS WILL SLOW DOWN PROCESSESS !!!!
         dirs = os.listdir("tmp/log")
         self.im_path = f"tmp/log/{len(dirs)}"
         os.makedirs(self.im_path)
@@ -88,6 +91,7 @@ class ImageAnalysisDelegate:
         im.save(os.path.join(self.im_path, f"{self.i}.png"))
         self.i += 1
         bounding_box = self.detector.predict(im)
+
         if self.debugger is not None:
             self.debugger.set_image(im)
             if bounding_box is not None:
