@@ -18,6 +18,8 @@ from dronekit import connect, VehicleMode
 
 import json
 
+import os
+
 CONN_STR = "udp:127.0.0.1:14551"
 MESSENGER_PORT = 14552
 
@@ -29,6 +31,12 @@ time.sleep(2)
 
 bucket_avg = [[], []]
 target_height = 0.9
+
+
+os.makedirs("tmp/log", exist_ok=True)
+dirs = os.listdir("tmp/log")
+ft_num = len(dirs)
+os.makedirs(f"tmp/log/{ft_num}")
 
 
 def moving_bucket_avg(_, pos):
