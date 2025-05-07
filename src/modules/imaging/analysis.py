@@ -50,12 +50,16 @@ class ImageAnalysisDelegate:
                  location_provider: LocationProvider,
                  debugger: Optional[ImageAnalysisDebugger] = None,
                  ):
+        import os
         self.detector = detector
         self.camera = camera
         self.debugger = debugger
         self.location_provider = location_provider
         self.subscribers: List[Callable[[Image.Image, float, float], Any]] = []
         self.camera_attributes = CameraAttributes()
+        dirs = os.listdir("tmp/log")
+        self.im_path = f"tmp/log/{len(dirs)}"
+        self.i = 0
 
     def get_inference(self, bounding_box: BoundingBox) -> Inference:
         inference = Inference(bounding_box, self.location_provider.altitude())
@@ -80,6 +84,8 @@ class ImageAnalysisDelegate:
         `_analysis_loop()` in another thread.
         """
         im = self.camera.capture()
+        im.save(self.im_path)
+        self.i += 1
         bounding_box = self.detector.predict(im)
         if self.debugger is not None:
             self.debugger.set_image(im)
