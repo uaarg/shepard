@@ -147,7 +147,8 @@ A class to handle everything regarding landing that is not already handled by ar
 
     def executeSearch(self, altitude):
         type_mask = self.nav.generate_typemask([0, 1])
-        i = 0 
+        i = 0
+        origin = self.nav.get_local_position_ned()
         while i <= len(self.__spiral_route) - 1:
             current_local_pos = self.nav.get_local_position_ned()
             if self.bounding_box_detected:
@@ -167,12 +168,19 @@ A class to handle everything regarding landing that is not already handled by ar
                         break
                 self.bounding_box_detected = False
             else:
-                self.nav.set_position_target_local_ned(x = self.__spiral_route[i][0],
-                                                    y = self.__spiral_route[i][1],
+
+                # NOTE: THESE ARE ABSOLUTE COORDINATES
+                # Spiral search is in absolute coordinates in which it adds the offset to the origin
+
+                self.nav.set_position_target_local_ned(x = origin[0] + self.__spiral_route[i][0],
+                                                    y = origin[1] + self.__spiral_route[i][1],
                                                     type_mask=type_mask, 
-                                                    coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED)
+                                                    coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_NED)
                 i += 1
-                time.sleep(4/(self.max_velocity))
+
+                # Increase if the drone is overriding itself or moving too quickly
+                # Decrease if there is more "stop, start" than desirable
+                time.sleep(2/(self.max_velocity))
 
         return self.bounding_box_log
 
