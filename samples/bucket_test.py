@@ -5,7 +5,7 @@ from src.modules.imaging.analysis import ImageAnalysisDelegate
 
 
 cam = DebugCameraFromDir("images")
-det = BucketDetector("samples/models/8n416.pt")
+det = BucketDetector("samples/models/11n640.pt")
 location = DebugLocationProvider()
 analysis = ImageAnalysisDelegate(det, cam, location)
 

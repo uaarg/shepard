@@ -60,6 +60,7 @@ class ImageAnalysisDelegate:
         
         # make directory to store all photos gathered
         # REMOVE FOR COMP THIS WILL SLOW DOWN PROCESSESS !!!!
+        os.makedirs("tmp/log", exist_ok=True)
         dirs = os.listdir("tmp/log")
         self.im_path = f"tmp/log/{len(dirs)}"
         os.makedirs(self.im_path)
