@@ -1,5 +1,5 @@
 from typing import Optional
-from src.modules.imaging.bucket_detector import BucketDetector
+from src.modules.imaging.detector import IrDetector
 import time
 from src.modules.imaging.analysis import ImageAnalysisDelegate
 from src.modules.imaging.camera import RPiCamera
@@ -55,13 +55,8 @@ def moving_bucket_avg(_, pos):
         print(f"Y: {bucket_avg[1]}")
         time.sleep(1)
 
-
-
 camera = RPiCamera(0)
-
-model_file = "11n640.pt"
-
-detector = BucketDetector(f"samples/models/{model_file}")
+detector = IrDetector()
 location = DebugLocationProvider()
 
 analysis = ImageAnalysisDelegate(detector, camera, location)
