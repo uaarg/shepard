@@ -29,8 +29,3 @@ class IrDetector(LandingPadDetector):
 
         return BoundingBox(Vec2(x, y), Vec2(w, h))
 
-
-
-        
-        
-

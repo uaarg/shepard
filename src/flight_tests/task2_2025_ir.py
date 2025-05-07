@@ -1,5 +1,5 @@
 from typing import Optional
-from src.modules.imaging.bucket_detector import BucketDetector
+from src.modules.imaging.detector import IrDetector
 import time
 from src.modules.imaging.analysis import ImageAnalysisDelegate
 from src.modules.imaging.camera import RPiCamera
@@ -51,15 +51,12 @@ def moving_bucket_avg(_, pos):
             bucket_avg[0].append(pos[0])
             bucket_avg[1].append(pos[1])
         
+        print(f"X: {bucket_avg[0]}")
+        print(f"Y: {bucket_avg[1]}")
         time.sleep(1)
 
-
-
 camera = RPiCamera(0)
-
-model_file = "11n640.pt"
-
-detector = BucketDetector(f"samples/models/{model_file}")
+detector = IrDetector()
 location = DebugLocationProvider()
 
 analysis = ImageAnalysisDelegate(detector, camera, location)
@@ -97,28 +94,28 @@ def bucket_descent():
 
     time.sleep(5)
 
-    nav.set_position_target_local_ned(x = float(bucket_avg[0][-1] - bucket_avg[0][0]), y = float(bucket_avg[1][-1] - bucket_avg[1][0]), z = 10, type_mask = type_mask, coordinate_frame = coordinate_frame)
+    nav.set_position_target_local_ned(x = (bucket_avg[0][-1] - bucket_avg[0][0]), y = (bucket_avg[1][-1] - bucket_avg[1][0]), z = 10, type_mask = type_mask, coordinate_frame = coordinate_frame)
 
     time.sleep(5)
 
-    nav.set_position_target_local_ned(x = float(bucket_avg[0][-1] - bucket_avg[0][0]), y = float(bucket_avg[1][-1] - bucket_avg[1][0]), z = 5, type_mask = type_mask, coordinate_frame = coordinate_frame)
-
-    time.sleep(5)
-
-
-    nav.set_position_target_local_ned(x = float(bucket_avg[0][-1] - bucket_avg[0][0]), y = float(bucket_avg[1][-1] - bucket_avg[1][0]), z = 5, type_mask = type_mask, coordinate_frame = coordinate_frame)
+    nav.set_position_target_local_ned(x = (bucket_avg[0][-1] - bucket_avg[0][0]), y = (bucket_avg[1][-1], bucket_avg[1][0]), z = 5, type_mask = type_mask, coordinate_frame = coordinate_frame)
 
     time.sleep(5)
 
 
-    nav.set_position_target_local_ned(x = float(bucket_avg[0][-1] - bucket_avg[0][0]), y = float(bucket_avg[1][-1] - bucket_avg[1][0]), z = 5, type_mask = type_mask, coordinate_frame = coordinate_frame)
+    nav.set_position_target_local_ned(x = (bucket_avg[0][-1] - bucket_avg[0][0]), y = (bucket_avg[1][-1] - bucket_avg[1][0]), z = 5, type_mask = type_mask, coordinate_frame = coordinate_frame)
+
+    time.sleep(5)
+
+
+    nav.set_position_target_local_ned(x = (bucket_avg[0][-1] - bucket_avg[0][0]), y = (bucket_avg[1][-1] - bucket_avg[1][0]), z = 5, type_mask = type_mask, coordinate_frame = coordinate_frame)
 
     time.sleep(5)
 
 
     #Full commit
 
-    nav.set_position_target_local_ned(x = 0, y = 0, z = 0, type_mask = type_mask, coordinate_frame = coordinate_frame)
+    nav.set_position_target_local_ned(x = 0, y = 0, z = 5-target_height, type_mask = type_mask, coordinate_frame = coordinate_frame)
 
     time.sleep(5)
 
