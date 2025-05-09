@@ -87,12 +87,11 @@ class DebugImageAnalysisDelegate:
 
         bounding_box = self.detector.predict(im)
 
-        draw = ImageDraw.Draw(im)
-
-        bb = (bounding_box.position.x, bounding_box.position.y,
+        if bounding_box:
+            draw = ImageDraw.Draw(im)
+            bb = (bounding_box.position.x, bounding_box.position.y,
                        bounding_box.size.x, bounding_box.size.y)
-        print(bb)
-        draw.rectangle(bb)
+            draw.rectangle(bb)
         
         im.save(os.path.join(self.bb_img_path, f"{self.i}.png"))
 
