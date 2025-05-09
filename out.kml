@@ -12,28 +12,14 @@
     <Placemark>
       <name>Hotspot 1</name>
     <Point>
-      <coordinates>-113.54848097878985,53.495432717734936,0</coordinates>
+      <coordinates>-110.73576744018291,50.09763335073558,0</coordinates>
     </Point>
 
   </Placemark>
     <Placemark>
       <name>Hotspot 2</name>
     <Point>
-      <coordinates>-113.54864604422413,53.4953492783966,0</coordinates>
-    </Point>
-
-  </Placemark>
-    <Placemark>
-      <name>Hotspot 3</name>
-    <Point>
-      <coordinates>-113.54851421669566,53.4954619075579,0</coordinates>
-    </Point>
-
-  </Placemark>
-    <Placemark>
-      <name>Hotspot 4</name>
-    <Point>
-      <coordinates>-113.54850945496825,53.49551040418014,0</coordinates>
+      <coordinates>-110.73541141510805,50.10023901054221,0</coordinates>
     </Point>
 
   </Placemark>

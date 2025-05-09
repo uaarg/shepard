@@ -31,7 +31,7 @@ A class to handle everything regarding landing that is not already handled by ar
         self.geofence = geofence
         
             
-        self.null_radius = 10 # Radius in METERS of bounding box detection being ignored
+        self.null_radius = 20 # Radius in METERS of bounding box detection being ignored
 
     @property
     def route(self):
@@ -52,16 +52,16 @@ A class to handle everything regarding landing that is not already handled by ar
         verticalScanRatio = math.tan(Lander.VERTICAL_ANGLE)
         horizontalScanRatio = math.tan(Lander.HORIZONTAL_ANGLE)
         
-        step_size = 5
+        step_size = 1
 
-        steps_per_side = 1
+        steps_per_side = 5
         curr_side_iter = 0
         loops_completed = 0
         
         axis = "x"
         
         dir_x = 1
-        dir_y = -1
+        dir_y = 1
         
         x, y = 0, 0
         
@@ -69,16 +69,30 @@ A class to handle everything regarding landing that is not already handled by ar
             if axis == "x":
                 x += dir_x * step_size
 
-                for _ in range(steps_per_side):
-                    self.__spiral_route.append((x, y))
+                for i in range(steps_per_side):
+                    if len(self.__spiral_route) > 0:
+                        last_x = self.__spiral_route[-1][0]
+                        last_y = self.__spiral_route[-1][1]
+                    else:
+                        last_x = 0
+                        last_y = 0
+
+                    self.__spiral_route.append((x + last_x, y + last_y))
 
                 axis = "y"
                 dir_x *= -1
             elif axis == "y":
                 y += dir_y * step_size
 
-                for _ in range(steps_per_side):
-                    self.__spiral_route.append((x, y))
+                for i in range(steps_per_side):
+                    if len(self.__spiral_route) > 0:
+                        last_x = self.__spiral_route[-1][0]
+                        last_y = self.__spiral_route[-1][1]
+                    else:
+                        last_x = 0
+                        last_y = 0
+
+                    self.__spiral_route.append((x + last_x, y + last_y))
 
                 axis = "x"
                 dir_y *= -1
@@ -148,6 +162,7 @@ A class to handle everything regarding landing that is not already handled by ar
     def executeSearch(self, altitude):
         type_mask = self.nav.generate_typemask([0, 1])
         i = 0
+        laps = 0
         origin = self.nav.get_local_position_ned()
         while i <= len(self.__spiral_route) - 1:
             current_local_pos = self.nav.get_local_position_ned()
@@ -164,23 +179,26 @@ A class to handle everything regarding landing that is not already handled by ar
 
                     if math.sqrt((delta_x ** 2) + (delta_y ** 2)) >= self.null_radius:
                         self.boundingBoxAction()
-                        time.sleep(4/(self.max_velocity))
+                        time.sleep(2/(self.max_velocity))
                         break
                 self.bounding_box_detected = False
             else:
 
                 # NOTE: THESE ARE ABSOLUTE COORDINATES
                 # Spiral search is in absolute coordinates in which it adds the offset to the origin
-
-                self.nav.set_position_target_local_ned(x = origin[0] + self.__spiral_route[i][0],
-                                                    y = origin[1] + self.__spiral_route[i][1],
+                self.nav.set_position_target_local_ned(x = self.__spiral_route[i][0] + origin[0] - self.__spiral_route[0][0] / 2,
+                                                    y = self.__spiral_route[i][1] + origin[1] - self.__spiral_route[0][0] / 2,
+                                                    z = -altitude,
                                                     type_mask=type_mask, 
                                                     coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_NED)
-                i += 1
 
-                # Increase if the drone is overriding itself or moving too quickly
+                i += 1
+               
+                 
+                              # Increase if the drone is overriding itself or moving too quickly
                 # Decrease if there is more "stop, start" than desirable
-                time.sleep(2/(self.max_velocity))
+                time.sleep(3/(self.max_velocity))
+
 
         return self.bounding_box_log
 
@@ -322,6 +340,17 @@ def main():
         # add code to break the loop when landing spot is found
         LandingSpotFinder1.goNext(Navigator1, i)
         time.sleep(5)
+'''
+                if i == 0:
+                    self.nav.set_heading(0)
+                    time.sleep(5)
+                elif ((i - 1) % 5 == 0) and i != 1:
+                    self.nav.set_heading_relative(90)
+                else:
+                    self.nav.set_heading_relative(0)
+                
+'''             
+
 
 
 if __name__ == "__main__":

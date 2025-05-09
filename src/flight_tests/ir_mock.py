@@ -68,7 +68,7 @@ drone.groundspeed = 2  # m/s
 time.sleep(2)
 
 nav.send_status_message("Executing landing pad search")
-lander.generateSpiralSearch(2)
+lander.generateSpiralSearch(4)
 
 nav.send_status_message(lander.route)
 

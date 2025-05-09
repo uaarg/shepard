@@ -79,7 +79,7 @@ def Geofence_to_XY(origin, geofence):
 
 def meters_to_LonLat(origin, points):
 
-    R = 6378137
+    R = 635900
 
     new_points = []
 
