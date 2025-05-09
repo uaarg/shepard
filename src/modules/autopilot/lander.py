@@ -67,7 +67,7 @@ A class to handle everything regarding landing that is not already handled by ar
         
         while loops_completed != numberOfLoops:
             if axis == "x":
-                x += dir_x * step_size
+                x += dir_x * step_size - step_size / 2
 
                 for i in range(steps_per_side):
                     if len(self.__spiral_route) > 0:
@@ -82,7 +82,7 @@ A class to handle everything regarding landing that is not already handled by ar
                 axis = "y"
                 dir_x *= -1
             elif axis == "y":
-                y += dir_y * step_size
+                y += dir_y * step_size - step_size / 2
 
                 for i in range(steps_per_side):
                     if len(self.__spiral_route) > 0:

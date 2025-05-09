@@ -58,13 +58,6 @@ class ImageAnalysisDelegate:
         self.subscribers: List[Callable[[Image.Image, float, float], Any]] = []
         self.camera_attributes = CameraAttributes()
         
-        # make directory to store all photos gathered
-        # REMOVE FOR COMP THIS WILL SLOW DOWN PROCESSESS !!!!
-        os.makedirs("tmp/log", exist_ok=True)
-        dirs = os.listdir("tmp/log")
-        self.im_path = f"tmp/log/{len(dirs)}"
-        os.makedirs(self.im_path)
-        self.i = 0
 
     def get_inference(self, bounding_box: BoundingBox) -> Inference:
         inference = Inference(bounding_box, self.location_provider.altitude())
@@ -89,8 +82,6 @@ class ImageAnalysisDelegate:
         `_analysis_loop()` in another thread.
         """
         im = self.camera.capture()
-        im.save(os.path.join(self.im_path, f"{self.i}.png"))
-        self.i += 1
         bounding_box = self.detector.predict(im)
 
         if self.debugger is not None:

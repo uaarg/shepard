@@ -2,7 +2,6 @@ from typing import Optional
 
 from PIL import Image
 import numpy as np
-import cv2
 
 from dep.labeller.loader import Vec2
 from dep.labeller.benchmarks.detector import BoundingBox, LandingPadDetector
@@ -29,7 +28,7 @@ class BucketDetector(LandingPadDetector):
             if conf < 0.5:
                 return None
             else:
-                return BoundingBox(Vec2(x1, y1), Vec2(x2 - x1, y2 - y1))
+                return BoundingBox(Vec2(x1, y1), Vec2(x2, y2))
         else:
             return None
 

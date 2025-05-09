@@ -20,12 +20,19 @@ import json
 
 import os
 
+import RPi.GPIO as GPIO
+
 CONN_STR = "udp:127.0.0.1:14551"
 MESSENGER_PORT = 14552
+GPIO_PIN = 23
+
 
 drone = connect(CONN_STR, wait_ready=False)
 
 nav = navigator.Navigator(drone, MESSENGER_PORT)
+
+GPIO.setmode(GPIO.Board)
+GPIO.setup(GPIO_PIN, GPIO.OUT)
 
 time.sleep(2)
 
@@ -130,6 +137,13 @@ def bucket_descent():
 
     time.sleep(5)
 
+def ActivatePump(duration):
+        
+    # Runs the pump that is connected to GPIO 23 for a specified amount of time
+    GPIO.output(GPIO_PIN, GPIO.HIGH)
+    time.sleep(duration)
+    GPIO.output(GPIO_PIN, GPIO.LOW)
+
 
 
 
@@ -138,6 +152,9 @@ if len(bucket_avg[0]) > 0 and len(bucket_avg[1]) > 0:
 else:
     time.sleep(5)
     bucket_descent()
+
+ActivatePump(5)
+
 
 nav.return_to_launch()
 
