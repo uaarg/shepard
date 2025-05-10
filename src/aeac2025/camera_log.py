@@ -9,6 +9,7 @@ MESSENGER_PORT = 14552
 
 # NOTE: MAKE SURE THE CAMERA WITHOUT IR FILTER IS CONNECTED TO CAMERA 1
 cam = RPiCamera(1)
+camera.resolution = (640, 480)
 #mavlink = MAVLinkDelegate()
 
 drone = connect(CONN_STR, wait_read=False)
