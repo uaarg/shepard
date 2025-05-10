@@ -7,6 +7,7 @@ from src.modules.autopilot.navigator import Navigator
 from src.modules import imaging
 import math
 
+
 class Lander:
     """
 A class to handle everything regarding landing that is not already handled by ardupilot
@@ -165,12 +166,29 @@ A class to handle everything regarding landing that is not already handled by ar
 # Make it so that it is plug and play for this morning
 
     def executeSearch(self, altitude):
+        '''
+        (location.north, location.east, location.down)
+        to always face inwards, always face the origin
+        '''
         type_mask = self.nav.generate_typemask([0, 1])
         i = 0
-        laps = 0
         origin = self.nav.get_local_position_ned()
+
         while i <= len(self.__spiral_route) - 1:
             current_local_pos = self.nav.get_local_position_ned()
+            
+            # update heading, always face inwards / origin
+            # angle_diff = angle required to face origin
+            curr_angle = self.nav.vehicle.heading()
+
+            dx = current_local_pos[0] - origin[0]
+            dy = current_local_pos[1] - origin[1]
+            target_angle = (90 - math.degrees(math.atan2(dy, dx))) % 360
+            angle_diff = (target_angle - curr_angle + 180) % 360
+
+            self.nav.set_heading_relative(angle_diff)
+
+
             if self.bounding_box_detected:
                 print(self.bounding_box_pos)
                 new_x, new_y = self.bounding_box_pos[0], self.bounding_box_pos[1]
@@ -181,7 +199,6 @@ A class to handle everything regarding landing that is not already handled by ar
                 for bounding_box in self.bounding_box_log:
                     delta_x = bounding_box[0] - new_x - current_local_pos[0]
                     delta_y = bounding_box[1] - new_y - current_local_pos[1]
-                    
 
                     if math.sqrt((delta_x ** 2) + (delta_y ** 2)) >= self.null_radius:
                         self.boundingBoxAction()
