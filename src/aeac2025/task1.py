@@ -17,8 +17,8 @@ from dronekit import connect, VehicleMode
 
 import json
 
-CONN_STR = "udp:127.0.0.1:14551"
-MESSENGER_PORT = 14552
+CONN_STR = "tcp:127.0.0.1:14550"
+MESSENGER_PORT = 14550
 
 MAX_VELOCITY = 1
 
@@ -45,6 +45,8 @@ lander = lander.Lander(nav, MAX_VELOCITY, geofence)
 
 print(geofence)
 
+# NOTE: MAKE SURE THE CAMERA WITH THE IR FILTER IS CONNECETD TO THE CAMERA 0 SLOT
+
 camera = RPiCamera(0)
 detector = IrDetector()
 location = DebugLocationProvider()
@@ -62,17 +64,30 @@ while not (drone.armed and drone.mode == VehicleMode("GUIDED")):
 nav.send_status_message("Executing mission")
 time.sleep(2)
 
-nav.takeoff(10)
-drone.groundspeed = 5  # m/s
-# start_coords = drone.location.global_relative_frame
-time.sleep(2)
+nav.takeoff(25)
+
+time.sleep(10)
+
+
+# Waiting until out of guided mode
+while (drone.mode == VehicleMode("GUIDED")):
+    pass
+
+nav.send_status_message("Not Guided Mode...")
+
+
+# Wait until in guided mode
+while not (drone.armed and drone.mode == VehicleMode("GUIDED")):
+    pass
+
+nav.send_status_message("Back in Guided mode")
 
 nav.send_status_message("Executing landing pad search")
-lander.generateSpiralSearch(2)
+lander.generateSpiralSearch(19)
 
 nav.send_status_message(lander.route)
 
-bounding_boxes = lander.executeSearch(10)
+bounding_boxes = lander.executeSearch(25)
 
 bounding_boxes_meters = bounding_boxes
 
@@ -94,8 +109,6 @@ nav.send_status_message("Generated KML File!")
 nav.send_status_message("Bounding Box coordinates: " + str(bounding_boxes))
 
 nav.send_status_message("Boudning Box Coordinates (meters): " + str(bounding_boxes_meters))
-
-
 
 nav.return_to_launch()
 

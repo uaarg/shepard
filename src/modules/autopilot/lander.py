@@ -33,7 +33,7 @@ A class to handle everything regarding landing that is not already handled by ar
         self.geofence = geofence
         
             
-        self.null_radius = 20 # Radius in METERS of bounding box detection being ignored
+        self.null_radius = 10 # Radius in METERS of bounding box detection being ignored
 
     @property
     def route(self):
@@ -56,7 +56,7 @@ A class to handle everything regarding landing that is not already handled by ar
         
         step_size = 5
 
-        steps_per_side = 5
+        steps_per_side = 2
         curr_side_iter = 0
         loops_completed = 0
         
@@ -173,57 +173,46 @@ A class to handle everything regarding landing that is not already handled by ar
         type_mask = self.nav.generate_typemask([0, 1])
         i = 0
         origin = self.nav.get_local_position_ned()
+        try:
+            while i <= len(self.__spiral_route) - 1:
+                current_local_pos = self.nav.get_local_position_ned()
+                if self.bounding_box_detected:
+                    print(self.bounding_box_pos)
+                    new_x, new_y = self.bounding_box_pos[0], self.bounding_box_pos[1]
+                    if len(self.bounding_box_log) == 0:
+                        self.bounding_box_log.append((new_x, new_y))
+                        self.bounding_box_log_og.append((new_x + current_local_pos[0], new_y + current_local_pos[1]))
+                    print(self.bounding_box_log)
+                    for bounding_box in self.bounding_box_log:
+                        delta_x = bounding_box[0] - new_x - current_local_pos[0]
+                        delta_y = bounding_box[1] - new_y - current_local_pos[1]
 
-        while i <= len(self.__spiral_route) - 1:
-            current_local_pos = self.nav.get_local_position_ned()
-            
-            # update heading, always face inwards / origin
-            # angle_diff = angle required to face origin
-            curr_angle = self.nav.vehicle.heading()
+                        if math.sqrt((delta_x ** 2) + (delta_y ** 2)) >= self.null_radius:
+                            self.boundingBoxAction()
+                            time.sleep(2/(self.max_velocity))
+                            break
+                    self.bounding_box_detected = False
+                else:
 
-            dx = current_local_pos[0] - origin[0]
-            dy = current_local_pos[1] - origin[1]
-            target_angle = (90 - math.degrees(math.atan2(dy, dx))) % 360
-            angle_diff = (target_angle - curr_angle + 180) % 360
+                    # NOTE: THESE ARE ABSOLUTE COORDINATES
+                    # Spiral search is in absolute coordinates in which it adds the offset to the origin
+                    self.nav.set_position_target_local_ned(x = self.__spiral_route[i][0] + origin[0] - (self.__spiral_route[4][0] / 2),
+                                                        y = self.__spiral_route[i][1] + origin[1] - (self.__spiral_route[9][1] / 2),
+                                                        z = -altitude,
+                                                        type_mask=type_mask, 
+                                                        coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_NED)
 
-            self.nav.set_heading_relative(angle_diff)
+                    i += 1
+                   
+                     
+                                  # Increase if the drone is overriding itself or moving too quickly
+                    # Decrease if there is more "stop, start" than desirable
+                    time.sleep(1.5/(self.max_velocity))
 
+            print(self.bounding_box_log_og)
+        finally:
+            return self.bounding_box_log_og
 
-            if self.bounding_box_detected:
-                print(self.bounding_box_pos)
-                new_x, new_y = self.bounding_box_pos[0], self.bounding_box_pos[1]
-                if len(self.bounding_box_log) == 0:
-                    self.bounding_box_log.append((new_x, new_y))
-                    self.bounding_box_log_og.append((new_x + current_local_pos[0], new_y + current_local_pos[1]))
-                print(self.bounding_box_log)
-                for bounding_box in self.bounding_box_log:
-                    delta_x = bounding_box[0] - new_x - current_local_pos[0]
-                    delta_y = bounding_box[1] - new_y - current_local_pos[1]
-
-                    if math.sqrt((delta_x ** 2) + (delta_y ** 2)) >= self.null_radius:
-                        self.boundingBoxAction()
-                        time.sleep(2/(self.max_velocity))
-                        break
-                self.bounding_box_detected = False
-            else:
-
-                # NOTE: THESE ARE ABSOLUTE COORDINATES
-                # Spiral search is in absolute coordinates in which it adds the offset to the origin
-                self.nav.set_position_target_local_ned(x = self.__spiral_route[i][0] + origin[0] - (self.__spiral_route[4][0] / 2),
-                                                    y = self.__spiral_route[i][1] + origin[1] - (self.__spiral_route[9][1] / 2),
-                                                    z = -altitude,
-                                                    type_mask=type_mask, 
-                                                    coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_NED)
-
-                i += 1
-               
-                 
-                              # Increase if the drone is overriding itself or moving too quickly
-                # Decrease if there is more "stop, start" than desirable
-                time.sleep(3/(self.max_velocity))
-
-        print(self.bounding_box_log_og)
-        return self.bounding_box_log_og
 
     def boundingBoxAction(self):
         # go to bounding box and go around it in a square
