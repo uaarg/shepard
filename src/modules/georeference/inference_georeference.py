@@ -11,8 +11,9 @@ where X, Y are in meters
 """
 # TODO: Requires a circular-import... but we only need these for type annotations
 import numpy as np
-from math import cos, tan, atan, radians, degrees
+from math import cos, tan, atan, radians, degrees, sqrt
 import pyproj
+from pyproj import Geod
 import time
 
 from typing import TYPE_CHECKING
@@ -76,7 +77,7 @@ def Geofence_to_XY(origin, geofence):
 
     except TypeError:
         return None
-
+'''
 def meters_to_LonLat(origin, points):
 
     R = 635900
@@ -104,7 +105,18 @@ def meters_to_LonLat(origin, points):
 
 
     return new_points
-    
+'''
+def meters_to_LonLat(origin, points):
+    g = Geod(ellps='clrk66')
+    new_points = []
+    for point in points:
+        az = atan(point[1] / point[0])
+        dist = sqrt((point[0] ** 2 + point[1] ** 2))
+
+        point_lon, point_lat, backaz = g.fwd(origin[0], origin[1], az, dist)
+        new_points.append((point_lat, point_lon))
+
+    return new_points
 
 
 def pixel_to_rel_position(camera_attributes: 'CameraAttributes',

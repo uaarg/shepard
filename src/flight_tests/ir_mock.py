@@ -63,17 +63,18 @@ nav.send_status_message("Executing mission")
 time.sleep(2)
 
 nav.takeoff(10)
-drone.groundspeed = 2  # m/s
+drone.groundspeed = 5  # m/s
 # start_coords = drone.location.global_relative_frame
 time.sleep(2)
 
 nav.send_status_message("Executing landing pad search")
-lander.generateSpiralSearch(4)
+lander.generateSpiralSearch(1)
 
 nav.send_status_message(lander.route)
 
 bounding_boxes = lander.executeSearch(10)
 
+bounding_boxes_meters = bounding_boxes
 
 bounding_boxes = inference_georeference.meters_to_LonLat(origin, bounding_boxes)
 
@@ -91,6 +92,10 @@ kml.generate("out.kml")
 nav.send_status_message("Generated KML File!")
 
 nav.send_status_message("Bounding Box coordinates: " + str(bounding_boxes))
+
+nav.send_status_message("Boudning Box Coordinates (meters): " + str(bounding_boxes_meters))
+
+
 
 nav.return_to_launch()
 
