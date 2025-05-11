@@ -2,7 +2,8 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 import os
 
 from src.modules.imaging.camera import RPiCamera
-# from src.modules.imaging.camera import WebcamCamera
+
+import RPi.GPIO as GPIO
 
 from src.modules.autopilot import navigator
 from dronekit import connect
@@ -15,6 +16,9 @@ drone = connect(CONN_STR, wait_ready=False)
 nav = navigator.Navigator(drone, MESSENGER_PORT)
 
 STEP_SIZE = 0.1
+
+GPIO_PIN = 23
+
 
 class MyHandler(SimpleHTTPRequestHandler):
 
@@ -54,6 +58,7 @@ class MyHandler(SimpleHTTPRequestHandler):
             self.send_response(200)
             self.end_headers()
             nav.set_position_relative(-STEP_SIZE, 0)
+
         elif self.path == '/ascend':
             self.send_response(200)
             self.end_headers()
@@ -63,6 +68,16 @@ class MyHandler(SimpleHTTPRequestHandler):
             self.send_response(200)
             self.end_headers()
             nav.set_altitude_relative(-STEP_SIZE)
+
+        elif self.path == '/activate_pump':
+            self.send_response(200)
+            self.end_headers()
+            GPIO.output(GPIO_PIN, GPIO.HIGH)
+
+        elif self.path == '/deactivate_pump':
+            self.send_response(200)
+            self.end_headers()
+            GPIO.output(GPIO_PIN, GPIO.LOW)
 
         else:
             print("invalid thingy")
@@ -82,15 +97,18 @@ class WebServer:
         self.server.serve_forever()
 
 if __name__ == "__main__":
-    img_interval = 1 # seconds
-
     IMG_DIR = "tmp/current_img.webp"
+
+    # set up GPIO for bucket
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(GPIO_PIN, GPIO.OUT)
+    GPIO.output(23, GPIO.LOW)
+
 
     # make sure directory exists
     os.makedirs("video_server/tmp/", exist_ok=True)
     
     cam = RPiCamera(0)
-    # cam = WebcamCamera()
 
 
     # start the webserver
