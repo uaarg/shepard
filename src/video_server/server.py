@@ -4,6 +4,17 @@ import os
 # from src.modules.imaging.camera import RPiCamera
 from src.modules.imaging.camera import WebcamCamera
 
+from src.modules.autopilot import navigator
+from dronekit import connect
+
+CONN_STR = "tcp:127.0.0.1:14650"
+MESSENGER_PORT = 14550
+
+# drone = connect(CONN_STR, wait_ready=False)
+
+# nav = navigator.Navigator(drone, MESSENGER_PORT)
+
+STEP_SIZE = 0.1
 
 class MyHandler(SimpleHTTPRequestHandler):
 
@@ -20,6 +31,33 @@ class MyHandler(SimpleHTTPRequestHandler):
         print(self.path)
 
         return super().do_GET()
+    
+    def do_POST(self):
+        print('POST', self.path)
+
+        if self.path == '/left':
+            self.send_response(200)
+            self.end_headers()
+            print("left")
+
+            # nav.set_position_relative(0, -STEP_SIZE)
+        elif self.path == '/right':
+            self.send_response(200)
+            self.end_headers()
+            print("right")
+            # nav.set_position_relative(0, STEP_SIZE)
+        elif self.path == '/up':
+            self.send_response(200)
+            self.end_headers()            
+            print("up")
+            # nav.set_position_relative(STEP_SIZE, 0)
+        elif self.path == '/down':
+            self.send_response(200)
+            self.end_headers()
+            print("down")
+            # nav.set_position_relative(-STEP_SIZE, 0)
+        else:
+            print("invalid thingy")
 
 class WebServer:
 

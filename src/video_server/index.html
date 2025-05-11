@@ -18,10 +18,12 @@
     }
 
     .center {
+      position: absolute;
+      top: 0;
+      left: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-
       width: 100vw;
       height: 100vh;
     }
@@ -31,13 +33,32 @@
     }
 
     #controls {
-      display: flex;
-      gap: 8px;
       position: absolute;
       top: 0;
       left: 0;
-      width: 100vw;
+      width: auto;
       padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    #dpad {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .horizontal {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    button {
+      padding: 6px 12px;
+      font-size: 14px;
     }
   </style>
 </head>
@@ -49,9 +70,17 @@
     </div>
 
     <div id="controls">
-      <button id="startstop">
-        Start
-      </button>
+      <button id="startstop">Start</button>
+
+      <div id="dpad">
+        <button onclick="move_up()">↑</button> <!-- Up -->
+        <div class="horizontal">
+          <button onclick="move_left()">←</button> <!-- Left -->
+          <div style="width: 60px;"></div>           <!-- Spacer -->
+          <button onclick="move_right()">→</button> <!-- Right -->
+        </div>
+        <button onclick="move_down()">↓</button> <!-- Down -->
+      </div>
     </div>
 
     <script>
@@ -64,6 +93,7 @@
         const startStop = document.getElementById('startstop');
 
         let intervalId;
+
         function start() {
           const fetch = () => {
             img.src = 'tmp/current_img.webp?nonce=' + new Date().getTime().toString() + (10000 * Math.random()).toString();
@@ -71,13 +101,12 @@
 
           fetch();
           intervalId = setInterval(fetch, 500);
-
           startStop.innerHTML = 'Stop';
         }
+
         function stop() {
           clearInterval(intervalId);
           intervalId = null;
-
           startStop.innerHTML = 'Start';
         }
 
@@ -87,9 +116,41 @@
           } else {
             start();
           }
-        })
+        });
       });
 
+      window.addEventListener('keydown', function (event) {
+        switch(event.key) {
+          case 'ArrowUp':
+            move_up();
+            break;
+          case 'ArrowDown':
+            move_down();
+            break;
+          case 'ArrowLeft':
+            move_left();
+            break;
+          case 'ArrowRight':
+            move_right();
+            break;
+        };
+      });
+
+      function move_left() {
+        fetch('/left', { method: 'POST' });
+      }
+
+      function move_up() {
+        fetch('/up', { method: 'POST' });
+      }
+
+      function move_right() {
+        fetch('/right', { method: 'POST' });
+      }
+
+      function move_down() {
+        fetch('/down', { method: 'POST' });
+      }
     </script>
   </main>
 </body>
