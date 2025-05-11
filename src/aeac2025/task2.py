@@ -23,9 +23,8 @@ import os
 
 import RPi.GPIO as GPIO
 
-CONN_STR = "udp:127.0.0.1:14551"
-MESSENGER_PORT = 14552
-mavlink_str = "udp:127.0.0.1:14553"
+CONN_STR = "tcp:127.0.0.1:14550"
+MESSENGER_PORT = 14550
 GPIO_PIN = 23
 
 SOURCE = [50.09800088902783, -110.73675825983138]
@@ -38,10 +37,9 @@ TARGET_3 = [50.09844193444824, -110.73416636293038]
 
 
 drone = connect(CONN_STR, wait_ready=False)
-
+print("Task2 script connected!")
 nav = navigator.Navigator(drone, MESSENGER_PORT)
-mavlink = MAVLinkDelegate(conn_str = mavlink_str)
-
+print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(GPIO_PIN, GPIO.OUT)

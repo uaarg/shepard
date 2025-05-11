@@ -10,8 +10,8 @@ import RPi.GPIO as GPIO
 from src.modules.autopilot import navigator
 from dronekit import connect
 
-CONN_STR = "udp:127.0.0.1:14554"
-MESSENGER_PORT = 14552
+CONN_STR = "tcp:127.0.0.1:14550"
+MESSENGER_PORT = 14550
 
 drone = connect(CONN_STR, wait_ready=False)
 
