@@ -159,8 +159,11 @@ def pixel_to_rel_position(camera_attributes: 'CameraAttributes',
 
     offset = calculate_object_offsets()
 
-    direction_vector[0] = x_comp + offset[0]
-    direction_vector[1] = y_comp + offset[1]
+    # NOTE: This correction was made because of the camera being upside down
+    # This corrects the issues regarding the autopilot navigating to the wrong direction
+
+    direction_vector[1] = -1*(x_comp + offset[0])
+    direction_vector[0] = y_comp + offset[1]
 
     return direction_vector
 

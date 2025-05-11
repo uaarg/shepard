@@ -28,6 +28,14 @@ MESSENGER_PORT = 14552
 mavlink_str = "udp:127.0.0.1:14553"
 GPIO_PIN = 23
 
+SOURCE = [50.09800088902783, -110.73675825983138]
+TARGET_1 = [50.098703093054226, -110.73533184525492]
+
+
+# These are if we are feeling quite daring
+TARGET_2 = [50.098799215198234, -110.73433402333168]
+TARGET_3 = [50.09844193444824, -110.73416636293038]
+
 
 drone = connect(CONN_STR, wait_ready=False)
 
@@ -37,22 +45,12 @@ mavlink = MAVLinkDelegate(conn_str = mavlink_str)
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(GPIO_PIN, GPIO.OUT)
-GPIO.output(23, GPIO.HIGH)
-
-time.sleep(2)
-
 GPIO.output(23, GPIO.LOW)
 
 
 bucket_avg = [[], []]
-big_bucket_height = 1
-
-
-os.makedirs("tmp/log", exist_ok=True)
-dirs = os.listdir("tmp/log")
-ft_num = len(dirs)
-os.makedirs(f"tmp/log/{ft_num}")
-
+big_bucket_height = 3
+small_bucket_height = 3 
 
 def moving_bucket_avg(_, pos):
 
@@ -75,10 +73,11 @@ def moving_bucket_avg(_, pos):
             bucket_avg[1].append(pos[1])
         
         time.sleep(1)
+def clear_bucket_avg():
+    bucket_avg = [[], []]
 
 
-
-camera = DebugCamera("photos/375.png")
+camera = RPiCamera(0) 
 
 model_file = "best.pt"
 
@@ -96,17 +95,11 @@ while not (drone.armed and drone.mode == VehicleMode("GUIDED")):
 time.sleep(5)
 
 
-nav.takeoff(30)
+nav.send_status_message("Executing")
+nav.takeoff(20)
 
 type_mask = nav.generate_typemask([0, 1, 2])
 
-nav.send_status_message("Executing")
-current_alt = nav.get_local_position_ned()[2]
-
-
-
-delta = 0.5
-sleep_time = 2
 def bucket_descent(target_height):
     
 
@@ -118,26 +111,41 @@ def bucket_descent(target_height):
 
     time.sleep(5)
     alt = nav.get_local_position_ned()[2]
-    i = 0
-    while -(alt) >= 11:
-        print(i) 
-
+    while -(alt) >= 10:
         alt = nav.get_local_position_ned()[2]
-
         print(alt)
-        nav.set_position_target_local_ned(x = float(bucket_avg[0][-1] - bucket_avg[0][0]), y = float(bucket_avg[1][-1] - bucket_avg[1][0]), z = 5, type_mask = type_mask, coordinate_frame = coordinate_frame)
-        i += 1
+        nav.set_position_target_local_ned(x = float(bucket_avg[0][-1] - bucket_avg[0][0]), y = float(bucket_avg[1][-1] - bucket_avg[1][0]), z = 1, type_mask = type_mask, coordinate_frame = coordinate_frame)
         time.sleep(5)
 
-    # Full Commit, drone is set to hover at the target height
-    # NOTE: COORDINATE SYSTEM HAS CHANGED. IT IS IN NED, DOWN IS POSITIVE
 
-    nav.send_status_message("Comitting to bucket")
-    coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_NED
-    current_local_pos = nav.get_local_position_ned()
-    
-    nav.set_position_target_local_ned(x = current_local_pos[0], y = current_local_pos[1], z = -target_height, type_mask = type_mask, coordinate_frame = coordinate_frame)
 
+    nav.send_status_message("Ready to continue autonomous descent?")
+    while True:
+        response = input("Type Done or skip")
+        if response.lower() == "done":
+                        
+            # Full Commit, drone is set to hover at the target height
+            # NOTE: COORDINATE SYSTEM HAS CHANGED. IT IS IN NED, DOWN IS POSITIVE
+
+            nav.send_status_message("Comitting to bucket")
+            coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_NED
+            current_local_pos = nav.get_local_position_ned()
+            for i in range(5):
+
+                nav.set_position_target_local_ned(x = current_local_pos[0], y = current_local_pos[1], z = -(10 - i), type_mask = type_mask, coordinate_frame = coordinate_frame)
+
+                time.sleep(5)
+   
+            nav.set_position_target_local_ned(x = current_local_pos[0], y = current_local_pos[1], z = -3, type_mask = type_mask, coordinate_frame = coordinate_frame)
+
+
+
+            break
+
+        elif response.lower() == "skip":
+            break
+        else:
+            pass
 
 def ActivatePump(duration):
     coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_NED
@@ -161,26 +169,57 @@ def ActivatePump(duration):
 
     GPIO.output(GPIO_PIN, GPIO.LOW)
 
+while True: 
+    nav.send_status_message("Flying to water source")
+    nav.set_position(*SOURCE)
 
-nav.send_status_message("Descending to bucket")
-analysis.start()
-time.sleep(5)
-if len(bucket_avg[0]) > 0 and len(bucket_avg[1]) > 0:
-   bucket_descent(big_bucket_height)
-else:
+    nav.send_status_message("Descending to source")
+    analysis.start()
     time.sleep(5)
-    bucket_descent(big_bucket_height)
-analysis.stop()
-nav.send_status_message("Stopped the analysis")
+    if len(bucket_avg[0]) > 0 and len(bucket_avg[1]) > 0:
+       bucket_descent(big_bucket_height)
+    else:
+        time.sleep(5)
+        bucket_descent(big_bucket_height)
+    analysis.stop()
+    nav.send_status_message("Stopped the analysis")
 
-nav.send_status_message("Activating Pump")
+    nav.send_status_message("Filling up!")
 
-ActivatePump(5)
+    ActivatePump(10)
+
+    nav.send_status_message("Flying to target")
+
+    nav.set_altitude(20)
+
+    nav.set_position(*TARGET_1)
+
+    nav.send_status_message("Descending to target")
+    analysis.start()
+    clear_bucket_avg()    
+    time.sleep(5)
+    if len(bucket_avg[0]) > 0 and len(bucket_avg[1]) > 0:
+       bucket_descent(big_bucket_height)
+    else:
+        time.sleep(5)
+        bucket_descent(big_bucket_height)
+    analysis.stop()
+    nav.send_status_message("Stopped the analysis")
+
+    nav.send_status_message("Filling up!")
+
+    ActivatePump(10)
+    clear_bucket_avg()    
+
+    response = input("Next/end")
+    if response.lower() == "next":
+        pass
+    else:
+        break
+
 
 nav.return_to_launch()
-
 drone.close()
-
 nav.send_status_message("Flight test script execution terminated")
 
 

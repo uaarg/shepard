@@ -1,5 +1,5 @@
 from src.modules.imaging.bucket_detector import BucketDetector
-from src.modules.imaging.camera import DebugCameraFromDir, RPiCamera
+from src.modules.imaging.camera import DebugCameraFromDir, RPiCamera, DebugCamera
 from src.modules.imaging.location import DebugLocationProvider
 from src.modules.imaging.analysis import ImageAnalysisDelegate
 
@@ -10,10 +10,10 @@ import cv2
 from PIL import Image
 import time
 
-cam = RPiCamera(0) 
+cam = RPiCamera(0)
 model_path = 'samples/models'
 models = os.listdir(model_path)
-models = ["n640.pt"]
+models = ["best.pt"]
 for file in models:
     model = YOLO(os.path.join(model_path, file))
     i = len(os.listdir("photos"))

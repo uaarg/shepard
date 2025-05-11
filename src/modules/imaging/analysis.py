@@ -79,6 +79,7 @@ class ImageAnalysisDelegate:
         """
         Will start the image analysis process in another thread.
         """
+        self.loop = True
         self.thread = threading.Thread(target=self._analysis_loop)
         # process = Process(target=self._analysis_loop)
         self.thread.start()
