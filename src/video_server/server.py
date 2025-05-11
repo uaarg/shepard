@@ -61,7 +61,7 @@ class MyHandler(SimpleHTTPRequestHandler):
         elif self.path == '/down':
             self.send_response(200)
             self.end_headers()
-#            nav.set_position_relative(-STEP_SIZE, 0)
+            # nav.set_position_relative(-STEP_SIZE, 0)
             nav.set_position_target_local_ned(x = -STEP_SIZE, y = 0, z = 0, type_mask = type_mask, coordinate_frame = coordinate_frame)
 
         elif self.path == '/ascend':
@@ -73,7 +73,7 @@ class MyHandler(SimpleHTTPRequestHandler):
         elif self.path == '/descend':
             self.send_response(200)
             self.end_headers()
-#            nav.set_altitude_relative(-STEP_SIZE)
+            # nav.set_altitude_relative(-STEP_SIZE)
             nav.set_position_target_local_ned(x = 0, y = 0, z = STEP_SIZE, type_mask = type_mask, coordinate_frame = coordinate_frame)
 
         elif self.path == '/activate_pump':
