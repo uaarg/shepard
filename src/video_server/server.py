@@ -54,6 +54,15 @@ class MyHandler(SimpleHTTPRequestHandler):
             self.send_response(200)
             self.end_headers()
             nav.set_position_relative(-STEP_SIZE, 0)
+        elif self.path == '/ascend':
+            self.send_response(200)
+            self.end_headers()
+            nav.set_altitude_relative(STEP_SIZE)
+
+        elif self.path == '/descend':
+            self.send_response(200)
+            self.end_headers()
+            nav.set_altitude_relative(-STEP_SIZE)
 
         else:
             print("invalid thingy")
