@@ -96,10 +96,44 @@
         <button onclick="ascend()">up</button>
         <button onclick="descend()">down</button>
       </div>
+      <div style="height: 20px;"></div>
+      <button id="activate_pump">activate pump</button>
+      
+      <!-- <div style="height: 20px;"></div>
+      <button onclick="fly_to_src()">fly to source</button>
+      <button onclick="fly_to_target()">fly to target</button>
+      <button onclick="rtl()">RTL</button> -->
     </div>
 
 
     <script>
+      let is_pump_activated = false;
+      document.getElementById("activate_pump").addEventListener('click', function () {
+        // on click activate pump
+        pump_button = document.getElementById("activate_pump");
+
+        // if pump is activated then we must deactivate
+        if (is_pump_activated) {
+          fetch('/deactivate_pump', { method: 'POST' })
+            .then(response => {
+              if (response.ok) {
+                is_pump_activated = false
+                pump_button.innerHTML = "activate pump"
+              }
+            })
+        }
+        else {
+          fetch('/activate_pump', { method: 'POST' })
+            .then(response => {
+              if (response.ok) {
+                is_pump_activated = true
+                pump_button.innerHTML = "deactivate pump"
+              }
+            })
+        }
+        
+      })
+
       window.addEventListener('load', function () {
 
         /** @type {HTMLImageElement} img */
@@ -112,7 +146,7 @@
 
         function start() {
           const fetch = () => {
-            img.src = 'tmp/current_img.webp?nonce=' + new Date().getTime().toString() + (10000 * Math.random()).toString();
+            img.src = 'tmp/video_server/current_img.webp?nonce=' + new Date().getTime().toString() + (10000 * Math.random()).toString();
           };
 
           fetch();
@@ -156,6 +190,7 @@
           case 'D':
           case 'd':
             descend();
+            break;
         };
       });
 

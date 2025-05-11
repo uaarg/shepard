@@ -4,7 +4,8 @@ import os
 from pymavlink import mavutil
 
 from src.modules.imaging.camera import RPiCamera
-# from src.modules.imaging.camera import WebcamCamera
+
+import RPi.GPIO as GPIO
 
 from src.modules.autopilot import navigator
 from dronekit import connect
@@ -17,6 +18,9 @@ drone = connect(CONN_STR, wait_ready=False)
 nav = navigator.Navigator(drone, MESSENGER_PORT)
 nav.POSITION_TOLERANCE = 0.1
 STEP_SIZE = 0.1
+
+GPIO_PIN = 23
+
 
 class MyHandler(SimpleHTTPRequestHandler):
 
@@ -42,17 +46,17 @@ class MyHandler(SimpleHTTPRequestHandler):
         if self.path == '/left':
             self.send_response(200)
             self.end_headers()
-#            nav.set_position_relative(0, -STEP_SIZE)
+            # nav.set_position_relative(0, -STEP_SIZE)
             nav.set_position_target_local_ned(x = 0, y = -STEP_SIZE, z = 0, type_mask = type_mask, coordinate_frame = coordinate_frame)
         elif self.path == '/right':
             self.send_response(200)
             self.end_headers()
-           # nav.set_position_relative(0, STEP_SIZE)
+            # nav.set_position_relative(0, STEP_SIZE)
             nav.set_position_target_local_ned(x = 0, y = STEP_SIZE, z = 0, type_mask = type_mask, coordinate_frame = coordinate_frame)
         elif self.path == '/up':
             self.send_response(200)
             self.end_headers()            
-           # nav.set_position_relative(STEP_SIZE, 0)
+            # nav.set_position_relative(STEP_SIZE, 0)
             nav.set_position_target_local_ned(x = STEP_SIZE, y = 0, z = 0, type_mask = type_mask, coordinate_frame = coordinate_frame)
         elif self.path == '/down':
             self.send_response(200)
@@ -63,7 +67,7 @@ class MyHandler(SimpleHTTPRequestHandler):
         elif self.path == '/ascend':
             self.send_response(200)
             self.end_headers()
-#            nav.set_altitude_relative(STEP_SIZE)
+            # nav.set_altitude_relative(STEP_SIZE)
             nav.set_position_target_local_ned(x = 0, y = 0, z = -STEP_SIZE, type_mask = type_mask, coordinate_frame = coordinate_frame)
 
         elif self.path == '/descend':
@@ -71,6 +75,16 @@ class MyHandler(SimpleHTTPRequestHandler):
             self.end_headers()
 #            nav.set_altitude_relative(-STEP_SIZE)
             nav.set_position_target_local_ned(x = 0, y = 0, z = STEP_SIZE, type_mask = type_mask, coordinate_frame = coordinate_frame)
+
+        elif self.path == '/activate_pump':
+            self.send_response(200)
+            self.end_headers()
+            GPIO.output(GPIO_PIN, GPIO.HIGH)
+
+        elif self.path == '/deactivate_pump':
+            self.send_response(200)
+            self.end_headers()
+            GPIO.output(GPIO_PIN, GPIO.LOW)
 
         else:
             print("invalid thingy")
@@ -90,12 +104,16 @@ class WebServer:
         self.server.serve_forever()
 
 if __name__ == "__main__":
-    img_interval = 1 # seconds
+    IMG_DIR = "tmp/video_server/current_img.webp"
 
-    IMG_DIR = "tmp/current_img.webp"
+    # set up GPIO for bucket
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(GPIO_PIN, GPIO.OUT)
+    GPIO.output(23, GPIO.LOW)
+
 
     # make sure directory exists
-    os.makedirs("video_server/tmp/", exist_ok=True)
+    os.makedirs("tmp/video_server/", exist_ok=True)
     
     cam = RPiCamera(1)
     # cam = WebcamCamera()
