@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Shepard video feed</title>
+
+  <style>
+    html, body {
+      padding: 0;
+      margin: 0;
+      overflow: hidden;
+      max-width: 100vw;
+      max-height: 100vh;
+    }
+
+    .center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      width: 100vw;
+      height: 100vh;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <div class="center">
+<img id="Image" src="tmp/current_img.jpg" alt="Image" width="1080">
+    </div>
+    
+
+    <script>
+      window.addEventListener('load', function () {
+
+        /** @type {HTMLImageElement} img */
+        const img = document.getElementById('Image');
+
+        setInterval(() => {
+          img.src = 'tmp/current_img.jpg?nonce=' + new Date().getTime();
+        }, 2000);
+      });
+
+    </script>
+  </main>
+</body>
+
+</html>
