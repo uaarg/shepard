@@ -97,7 +97,7 @@ class WebServer:
         self.server.serve_forever()
 
 if __name__ == "__main__":
-    IMG_DIR = "tmp/current_img.webp"
+    IMG_DIR = "tmp/video_server/current_img.webp"
 
     # set up GPIO for bucket
     GPIO.setmode(GPIO.BCM)
@@ -106,7 +106,7 @@ if __name__ == "__main__":
 
 
     # make sure directory exists
-    os.makedirs("video_server/tmp/", exist_ok=True)
+    os.makedirs("tmp/video_server/", exist_ok=True)
     
     cam = RPiCamera(0)
 
