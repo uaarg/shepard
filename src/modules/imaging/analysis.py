@@ -7,12 +7,12 @@ from .camera import CameraProvider
 from .debug import ImageAnalysisDebugger
 from ..georeference.inference_georeference import get_object_location
 from .location import LocationProvider
+from ..autopilot.navigator import Navigator
 from PIL import Image
-
 import os
 
-class CameraAttributes:
 
+class CameraAttributes:
     def __init__(self):
         self.focal_length = 0.0034
         self.angle = 0  # in radians
@@ -20,7 +20,6 @@ class CameraAttributes:
 
 
 class Inference:
-
     def __init__(self, bounding_box: BoundingBox, relative_alt):
         camera_attributes = CameraAttributes()
         position = bounding_box.position
@@ -48,21 +47,34 @@ class ImageAnalysisDelegate:
     def __init__(self,
                  detector: LandingPadDetector,
                  camera: CameraProvider,
-                 location_provider: LocationProvider,
-                 debugger: Optional[ImageAnalysisDebugger] = None,
-                 ):
+                 location_provider: LocationProvider = None,
+                 navigation_provider: Navigator = None,
+                 debugger: Optional[ImageAnalysisDebugger] = None):
         self.detector = detector
         self.camera = camera
         self.debugger = debugger
-        self.location_provider = location_provider
+
+        if location_provider is None and navigation_provider is None:
+            raise ValueError("Either location_provider or navigation_provider must be provided.")
+
+        if location_provider is not None:
+            self.location_provider = location_provider
+        if navigation_provider is not None:
+            self.navigation_provider = navigation_provider
+
         self.subscribers: List[Callable[[Image.Image, float, float], Any]] = []
         self.camera_attributes = CameraAttributes()
-        
 
     def get_inference(self, bounding_box: BoundingBox) -> Inference:
-        inference = Inference(bounding_box, self.location_provider.altitude())
-        return inference
+        if self.location_provider is not None:
+            altitude = self.location_provider.altitude()
+        elif self.navigation_provider is not None:
+            altitude = self.navigation_provider.get_local_position_ned()[2]
+        else:
+            raise ValueError("No altitude information provider available.")
 
+        inference = Inference(bounding_box, altitude)
+        return inference
 
     def start(self):
         """
@@ -73,7 +85,6 @@ class ImageAnalysisDelegate:
         thread.start()
         # process.start()
         # Use `threading` to start `self._analysis_loop` in another thread.
-
 
     def _analyze_image(self):
         """
