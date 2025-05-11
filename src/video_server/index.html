@@ -8,7 +8,8 @@
   <title>Shepard video feed</title>
 
   <style>
-    html, body {
+    html,
+    body {
       padding: 0;
       margin: 0;
       overflow: hidden;
@@ -24,15 +25,34 @@
       width: 100vw;
       height: 100vh;
     }
+
+    .bg-grey {
+      background-color: grey;
+    }
+
+    #controls {
+      display: flex;
+      gap: 8px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      padding: 8px;
+    }
   </style>
 </head>
 
 <body>
   <main>
-    <div class="center">
-<img id="Image" src="tmp/current_img.jpg" alt="Image" width="1080">
+    <div class="center bg-grey">
+      <img id="Image" alt="Image" width="1080">
     </div>
-    
+
+    <div id="controls">
+      <button id="startstop">
+        Start
+      </button>
+    </div>
 
     <script>
       window.addEventListener('load', function () {
@@ -40,9 +60,34 @@
         /** @type {HTMLImageElement} img */
         const img = document.getElementById('Image');
 
-        setInterval(() => {
-          img.src = 'tmp/current_img.jpg?nonce=' + new Date().getTime();
-        }, 2000);
+        /** @type {HTMLButtonElement} startStop */
+        const startStop = document.getElementById('startstop');
+
+        let intervalId;
+        function start() {
+          const fetch = () => {
+            img.src = 'tmp/current_img.webp?nonce=' + new Date().getTime().toString() + (10000 * Math.random()).toString();
+          };
+
+          fetch();
+          intervalId = setInterval(fetch, 500);
+
+          startStop.innerHTML = 'Stop';
+        }
+        function stop() {
+          clearInterval(intervalId);
+          intervalId = null;
+
+          startStop.innerHTML = 'Start';
+        }
+
+        startStop.addEventListener('click', function () {
+          if (intervalId) {
+            stop();
+          } else {
+            start();
+          }
+        })
       });
 
     </script>

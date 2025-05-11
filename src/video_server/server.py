@@ -13,7 +13,8 @@ class MyHandler(SimpleHTTPRequestHandler):
             self.path = 'src/video_server/index.html'
         else:
             img = cam.capture()
-            img.resize((960, 540))
+            # img.resize((960, 540))
+            img.resize((480, 270))
             img.save(IMG_DIR)
 
         print(self.path)
@@ -37,7 +38,7 @@ class WebServer:
 if __name__ == "__main__":
     img_interval = 1 # seconds
 
-    IMG_DIR = "tmp/current_img.jpg"
+    IMG_DIR = "tmp/current_img.webp"
 
     # make sure directory exists
     os.makedirs("video_server/tmp/", exist_ok=True)
