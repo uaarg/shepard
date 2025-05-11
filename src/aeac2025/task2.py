@@ -27,7 +27,8 @@ import RPi.GPIO as GPIO
 import threading
 
 os.makedirs("tmp/video_server/", exist_ok=True)
-cam = RPiCamera(1)
+cam1 = RPiCamera(1)
+cam0 = RPiCamera(0)
 
 IMG_DIR = "current_img.webp"
 STEP_SIZE = 0.1
@@ -43,17 +44,15 @@ class MyHandler(SimpleHTTPRequestHandler):
         if self.path == '/':
             self.path = 'src/aeac2025/index.html'
         else:
-            img = cam.capture()
+            img = cam1.capture()
             # img.resize((960, 540))
             img.resize((480, 270))
             img.save(IMG_DIR)
 
-        print(self.path)
 
         return super().do_GET()
     
     def do_POST(self):
-        print('POST', self.path)
         type_mask = nav.generate_typemask([0, 1, 2])
         coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED
 
@@ -103,6 +102,9 @@ class MyHandler(SimpleHTTPRequestHandler):
         else:
             print("invalid thingy")
 
+    def log_message(self, format, *args):
+        return
+
 class WebServer:
 
     def __init__(self, port):
@@ -140,7 +142,6 @@ TARGET_3 = [50.09844193444824, -110.73416636293038]
 drone = connect(CONN_STR, wait_ready=False)
 print("Task2 script connected!")
 nav = navigator.Navigator(drone, MESSENGER_PORT)
-print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(GPIO_PIN, GPIO.OUT)
@@ -178,14 +179,13 @@ def clear_bucket_avg():
     bucket_avg = [[], []]
 
 
-camera = RPiCamera(0) 
 
 model_file = "best.pt"
 
 detector = BucketDetector(f"samples/models/{model_file}")
 
 
-analysis = ImageAnalysisDelegate(detector, camera, navigation_provider = nav)
+analysis = ImageAnalysisDelegate(detector, cam0, navigation_provider = nav)
 analysis.subscribe(moving_bucket_avg)
 
 nav.send_status_message("Shepard is online")
