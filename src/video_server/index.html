@@ -60,6 +60,16 @@
       padding: 6px 12px;
       font-size: 14px;
     }
+
+    #altCTL {
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+    }
+
+    #altCTL button {
+      flex: 1;
+    }
   </style>
 </head>
 
@@ -76,12 +86,18 @@
         <button onclick="move_up()">↑</button> <!-- Up -->
         <div class="horizontal">
           <button onclick="move_left()">←</button> <!-- Left -->
-          <div style="width: 60px;"></div>           <!-- Spacer -->
+          <div style="width: 60px;"></div> <!-- Spacer -->
           <button onclick="move_right()">→</button> <!-- Right -->
         </div>
         <button onclick="move_down()">↓</button> <!-- Down -->
       </div>
+
+      <div id="altCTL">
+        <button onclick="ascend()">up</button>
+        <button onclick="descend()">down</button>
+      </div>
     </div>
+
 
     <script>
       window.addEventListener('load', function () {
@@ -120,7 +136,7 @@
       });
 
       window.addEventListener('keydown', function (event) {
-        switch(event.key) {
+        switch (event.key) {
           case 'ArrowUp':
             move_up();
             break;
@@ -133,6 +149,13 @@
           case 'ArrowRight':
             move_right();
             break;
+          case 'A':
+          case 'a':
+            ascend();
+            break;
+          case 'D':
+          case 'd':
+            descend();
         };
       });
 
@@ -150,6 +173,14 @@
 
       function move_down() {
         fetch('/down', { method: 'POST' });
+      }
+
+      function ascend() {
+        fetch('/ascend', { method: 'POST' });
+      }
+
+      function descend() {
+        fetch('/descend', { method: 'POST' });
       }
     </script>
   </main>
