@@ -10,8 +10,8 @@ class MAVLinkDelegate:
     MAVLink connection delegate which forwards messages to subscribers.
     """
 
-    def __init__(self, port: int = 14550):
-        self._conn = mavutil.mavlink_connection(device=f"udp:127.0.0.1:{port}",
+    def __init__(self, conn_str: str = "tcp:127.0.0.1:14550"):
+        self._conn = mavutil.mavlink_connection(device=conn_str,
                                                 source_system=255,
                                                 source_component=42)
 

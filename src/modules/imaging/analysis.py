@@ -53,23 +53,22 @@ class ImageAnalysisDelegate:
         self.detector = detector
         self.camera = camera
         self.debugger = debugger
-
+        
         if location_provider is None and navigation_provider is None:
             raise ValueError("Either location_provider or navigation_provider must be provided.")
 
-        if location_provider is not None:
-            self.location_provider = location_provider
-        if navigation_provider is not None:
-            self.navigation_provider = navigation_provider
-
+        self.location_provider = location_provider
+        self.navigation_provider = navigation_provider
+        
         self.subscribers: List[Callable[[Image.Image, float, float], Any]] = []
         self.camera_attributes = CameraAttributes()
-
+        self.thread = None
+        self.loop = True
     def get_inference(self, bounding_box: BoundingBox) -> Inference:
         if self.location_provider is not None:
             altitude = self.location_provider.altitude()
         elif self.navigation_provider is not None:
-            altitude = self.navigation_provider.get_local_position_ned()[2]
+            altitude = -1*self.navigation_provider.get_local_position_ned()[2]
         else:
             raise ValueError("No altitude information provider available.")
 
@@ -80,11 +79,15 @@ class ImageAnalysisDelegate:
         """
         Will start the image analysis process in another thread.
         """
-        thread = threading.Thread(target=self._analysis_loop)
+        self.thread = threading.Thread(target=self._analysis_loop)
         # process = Process(target=self._analysis_loop)
-        thread.start()
+        self.thread.start()
         # process.start()
         # Use `threading` to start `self._analysis_loop` in another thread.
+
+    def stop(self):
+        self.loop = False
+        self.thread.join()
 
     def _analyze_image(self):
         """
@@ -115,7 +118,7 @@ class ImageAnalysisDelegate:
         Indefinitely run image analysis. This should be run in another thread;
         use `start()` to do so.
         """
-        while True:
+        while self.loop:
             self._analyze_image()
 
     def subscribe(self, callback: Callable):

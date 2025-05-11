@@ -15,7 +15,7 @@ class BucketDetector(LandingPadDetector):
         self.model = YOLO(model_path)
 
     def predict(self, image: Image.Image) -> Optional[BoundingBox]:
-        results = self.model(image)
+        results = self.model(image, verbose = False)
 
         result = results[0] # because one image
 
@@ -25,7 +25,7 @@ class BucketDetector(LandingPadDetector):
             best_box = boxes[boxes.conf.argmax()]
             (x1, y1, x2, y2) = best_box.xyxy[0].tolist()  # box [x1, y1, x2, y2]
             conf = best_box.conf.item() # confidence threshold
-            if conf < 0.5:
+            if conf < 0.75:
                 return None
             else:
                 return BoundingBox(Vec2(x1, y1), Vec2(x2, y2))

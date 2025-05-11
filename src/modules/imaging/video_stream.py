@@ -13,7 +13,7 @@ cam = WebcamCamera()
 # cam = RPiCamera(0)
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect(('localhost', 8080))
+client_socket.connect(('127.0.0.1', 8080))
 
 while True:
     img = cam.capture()

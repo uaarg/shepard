@@ -3,7 +3,8 @@ from src.modules.imaging.detector import IrDetector
 import time
 from src.modules.imaging.analysis import ImageAnalysisDelegate
 from src.modules.imaging.camera import RPiCamera
-from src.modules.imaging.location import DebugLocationProvider
+from src.modules.imaging.location import DebugLocationProvider, MAVLinkLocationProvider
+from src.modules.imaging.mavlink import MAVLinkDelegate
 from dep.labeller.benchmarks.detector import BoundingBox, LandingPadDetector
 from src.modules.georeference import inference_georeference
 from src.modules.imaging.kml import KMLGenerator, LatLong
@@ -24,6 +25,7 @@ MESSENGER_PORT = 14552
 drone = connect(CONN_STR, wait_ready=False)
 
 nav = navigator.Navigator(drone, MESSENGER_PORT)
+mavlink = MAVLinkDelegate(conn_str = CONN_STR))
 
 time.sleep(2)
 
