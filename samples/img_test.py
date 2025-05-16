@@ -1,4 +1,4 @@
-from src.modules.imaging.detector import IrDetector
+from src.modules.imaging.detectors.IR_detector import IrDetector
 from src.modules.imaging.analysis import ImageAnalysisDelegate
 from src.modules.imaging.camera import RPiCamera
 from src.modules.imaging.location import DebugLocationProvider
@@ -11,7 +11,6 @@ location = DebugLocationProvider()
 
 def test(img, _):
     print("Image taken")
-
 
 
 analysis = ImageAnalysisDelegate(detector, camera, location)

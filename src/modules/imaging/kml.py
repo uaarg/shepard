@@ -2,19 +2,20 @@ from dataclasses import dataclass
 import copy
 from typing import List, Optional
 
+
 @dataclass
 class LatLong:
     latitude: float
     longitude: float
 
+
 class KMLGenerator:
 
     def __init__(self) -> None:
-        self.hotspots: List[LatLong]= []
+        self.hotspots: List[LatLong] = []
         self.length = 0
         self.source = ""
         self.source_coords: LatLong
-
 
     def push(self, coords: LatLong):
         """push hotspot onto stack"""
@@ -29,12 +30,12 @@ class KMLGenerator:
             self.hotspots.pop()
             self.length -= 1
 
-    def read(self, index:int) -> Optional[LatLong]:
+    def read(self, index: int) -> Optional[LatLong]:
         """reads value in stack at index position
         return None if index does not exist"""
 
         try:
-            return copy.deepcopy(self.hotspots[index]) 
+            return copy.deepcopy(self.hotspots[index])
 
         except IndexError:
             return None
@@ -52,7 +53,7 @@ class KMLGenerator:
             f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
             f.write('<kml xmlns="http://www.opengis.net/kml/2.2">\n')
             f.write('  <Document>\n')
-    
+
             # add source
             f.write('    <Placemark>\n')
             f.write('      <name>Source</name>\n')
@@ -75,5 +76,3 @@ class KMLGenerator:
 
             f.write('</Document>\n')
             f.write('</kml>\n')
-
-

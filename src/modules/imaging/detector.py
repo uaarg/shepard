@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from functools import cached_property, lru_cache
 
-from enum import Enum
 from typing import Optional
 
 from PIL import Image

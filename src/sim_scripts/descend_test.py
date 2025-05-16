@@ -1,8 +1,6 @@
 import time
-import datetime
-from numpy import random
 
-from dronekit import connect, VehicleMode, LocationGlobal
+from dronekit import connect, VehicleMode
 
 from src.modules.autopilot import navigator
 from src.modules.autopilot import lander
@@ -36,7 +34,7 @@ hover_alt = 10
 
 print(current_alt)
 
-points = [(0, 0), (0,1), (1,1), (1,0)]
+points = [(0, 0), (0, 1), (1, 1), (1, 0)]
 i = 0
 j = 0
 

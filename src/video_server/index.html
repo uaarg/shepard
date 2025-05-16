@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Shepard video feed</title>
+
+  <style>
+    html,
+    body {
+      padding: 0;
+      margin: 0;
+      overflow: hidden;
+      max-width: 100vw;
+      max-height: 100vh;
+    }
+
+    .center {
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .bg-grey {
+      background-color: grey;
+    }
+
+    #controls {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: auto;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    #dpad {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .horizontal {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    button {
+      padding: 6px 12px;
+      font-size: 14px;
+    }
+
+    #altCTL {
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+    }
+
+    #altCTL button {
+      flex: 1;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <div class="center bg-grey">
+      <img id="Image" alt="Image" width="1080">
+    </div>
+
+    <div id="controls">
+      <button id="startstop">Start</button>
+
+      <div id="dpad">
+        <button onclick="move_up()">↑</button> <!-- Up -->
+        <div class="horizontal">
+          <button onclick="move_left()">←</button> <!-- Left -->
+          <div style="width: 60px;"></div> <!-- Spacer -->
+          <button onclick="move_right()">→</button> <!-- Right -->
+        </div>
+        <button onclick="move_down()">↓</button> <!-- Down -->
+      </div>
+
+      <div id="altCTL">
+        <button onclick="ascend()">up</button>
+        <button onclick="descend()">down</button>
+      </div>
+      <div style="height: 20px;"></div>
+      <button id="activate_pump">activate pump</button>
+      
+      <!-- <div style="height: 20px;"></div>
+      <button onclick="fly_to_src()">fly to source</button>
+      <button onclick="fly_to_target()">fly to target</button>
+      <button onclick="rtl()">RTL</button> -->
+    </div>
+
+
+    <script>
+      let is_pump_activated = false;
+      document.getElementById("activate_pump").addEventListener('click', function () {
+        // on click activate pump
+        pump_button = document.getElementById("activate_pump");
+
+        // if pump is activated then we must deactivate
+        if (is_pump_activated) {
+          fetch('/deactivate_pump', { method: 'POST' })
+            .then(response => {
+              if (response.ok) {
+                is_pump_activated = false
+                pump_button.innerHTML = "activate pump"
+              }
+            })
+        }
+        else {
+          fetch('/activate_pump', { method: 'POST' })
+            .then(response => {
+              if (response.ok) {
+                is_pump_activated = true
+                pump_button.innerHTML = "deactivate pump"
+              }
+            })
+        }
+        
+      })
+
+      window.addEventListener('load', function () {
+
+        /** @type {HTMLImageElement} img */
+        const img = document.getElementById('Image');
+
+        /** @type {HTMLButtonElement} startStop */
+        const startStop = document.getElementById('startstop');
+
+        let intervalId;
+
+        function start() {
+          const fetch = () => {
+            img.src = 'current_img.webp?nonce=' + new Date().getTime().toString() + (10000 * Math.random()).toString();
+          };
+
+          fetch();
+          intervalId = setInterval(fetch, 500);
+          startStop.innerHTML = 'Stop';
+        }
+
+        function stop() {
+          clearInterval(intervalId);
+          intervalId = null;
+          startStop.innerHTML = 'Start';
+        }
+
+        startStop.addEventListener('click', function () {
+          if (intervalId) {
+            stop();
+          } else {
+            start();
+          }
+        });
+      });
+
+      window.addEventListener('keydown', function (event) {
+        switch (event.key) {
+          case 'ArrowUp':
+            move_up();
+            break;
+          case 'ArrowDown':
+            move_down();
+            break;
+          case 'ArrowLeft':
+            move_left();
+            break;
+          case 'ArrowRight':
+            move_right();
+            break;
+          case 'A':
+          case 'a':
+            ascend();
+            break;
+          case 'D':
+          case 'd':
+            descend();
+            break;
+        };
+      });
+
+      function move_left() {
+        fetch('/left', { method: 'POST' });
+      }
+
+      function move_up() {
+        fetch('/up', { method: 'POST' });
+      }
+
+      function move_right() {
+        fetch('/right', { method: 'POST' });
+      }
+
+      function move_down() {
+        fetch('/down', { method: 'POST' });
+      }
+
+      function ascend() {
+        fetch('/ascend', { method: 'POST' });
+      }
+
+      function descend() {
+        fetch('/descend', { method: 'POST' });
+      }
+    </script>
+  </main>
+</body>
+
+</html>
