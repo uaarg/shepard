@@ -125,9 +125,13 @@ class RPiCamera(CameraProvider):
     source.
     """
 
-    def __init__(self, cam_num: int):
+    def __init__(self, cam_num: int = -1):
         from picamera2 import Picamera2
-        self.camera = Picamera2(cam_num)
+        if cam_num == -1:
+            self.camera = Picamera2()
+        else:
+            assert cam_num >= 0 and cam_num <= 1
+            self.camera = Picamera2(cam_num)
         self.size = (640, 480)
         self.configure_camera()
         self.camera.start()
