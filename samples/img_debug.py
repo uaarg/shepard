@@ -2,7 +2,7 @@ from PIL import Image, ImageOps
 import time
 
 from src.modules.imaging.debug import ImageAnalysisDebugger
-from benchmarks.detector import BoundingBox, Vec2
+from src.modules.imaging.detector import BoundingBox, Vec2
 
 im = Image.open("res/test-image.jpeg")
 bb = BoundingBox(Vec2(200, 120), Vec2(100, 100))

@@ -2,14 +2,14 @@ from src.modules.imaging import analysis
 from src.modules.imaging import camera
 from src.modules.imaging import debug
 from src.modules.imaging import location
-from dep.labeller.benchmarks import yolo
+from ultralytics import YOLO
 
 mavlink_delegate = location.MAVLinkDelegate()
 location_provider = location.MAVLinkLocationProvider(mavlink_delegate)
 location_provider = location.DebugLocationProvider()
 location_provider.debug_change_location(altitude=1)
 
-detector = yolo.YoloDetector(weights="landing_nano.pt")
+detector = YOLO(weights="landing_nano.pt")
 cam = camera.RPiCamera()
 debugger = debug.ImageAnalysisDebugger()
 debugger = None

@@ -5,7 +5,7 @@
 import time
 
 from src.modules import imaging
-from dep.labeller.benchmarks.colorfilter import ColorFilterDetector
+from src.modules.imaging.detector import ColorFilterDetector
 
 detector = ColorFilterDetector()
 camera = imaging.camera.DebugCamera("./res/test-image.jpeg")
