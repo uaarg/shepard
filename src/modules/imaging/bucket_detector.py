@@ -3,12 +3,11 @@ from typing import Optional
 from PIL import Image
 import numpy as np
 
-from dep.labeller.loader import Vec2
-from dep.labeller.benchmarks.detector import BoundingBox, LandingPadDetector
+from detector import BoundingBox, Detector, Vec2
 
 from ultralytics import YOLO
 
-class BucketDetector(LandingPadDetector):
+class BucketDetector(Detector):
     
     def __init__(self, model_path):
         print(f"model: {model_path}")
