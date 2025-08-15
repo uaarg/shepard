@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Dummy Image</title>
+</head>
+<body>
+    <h1>Live Dummy Image Feed</h1>
+    <img id="liveFeed" src="/capture.jpg" alt="Live Feed" width="640">
+
+    <script>
+        function refreshImage() {
+            const img = document.getElementById("liveFeed");
+            img.src = "/capture.jpg?t=" + new Date().getTime(); // Prevents caching issues
+        }
+
+        setInterval(refreshImage, 2000); // Refresh every 2 seconds
+    </script>
+</body>
+</html>
