@@ -1,0 +1,5 @@
+train: landing_pad_dataset/images/images_train
+val: landing_pad_dataset/images/images_val
+
+nc: 1         
+names: ['orange_landing_pad']  
