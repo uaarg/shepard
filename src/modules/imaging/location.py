@@ -2,6 +2,8 @@ from typing import Optional
 from dataclasses import dataclass
 import math
 from src.modules.imaging.mavlink import MAVLinkDelegate
+import pymavlink.dialects.v20.all as dialect
+import json
 
 
 @dataclass
@@ -13,6 +15,9 @@ class LatLng:
     lat: float
     lng: float
 
+    def to_json(self):
+        return {"lat": self.lat, "lng": self.lng}
+
 
 @dataclass
 class Heading:
@@ -22,6 +27,9 @@ class Heading:
     """
 
     heading: float
+
+    def to_json(self):
+        return self.heading
 
 
 @dataclass
@@ -33,6 +41,13 @@ class Rotation:
     pitch: float
     roll: float
     yaw: float
+
+    def to_json(self):
+        return {
+            "pitch": self.pitch,
+            "roll": self.roll,
+            "yaw": self.yaw,
+        }
 
 
 class LocationProvider:
@@ -65,8 +80,22 @@ class LocationProvider:
         """
         raise NotImplementedError()
 
+    def dump_to(self, path: str):
+        try:
+            dump = {
+                "location": self.location().to_json(),
+                "heading": self.heading().to_json(),
+                "altitude": self.altitude(),
+                "orientation": self.orientation().to_json(),
+            }
 
-class DebugLocationProvider:
+            with open(path, "w") as f:
+                json.dump(dump, f)
+        except ValueError:
+            pass  # Raised if we cannot get any location data
+
+
+class DebugLocationProvider(LocationProvider):
     """
     Will return a series of given locations and orientations.
     """
@@ -74,7 +103,7 @@ class DebugLocationProvider:
     def __init__(self) -> None:
         self._current_location = LatLng(0.0, 0.0)
         self._current_heading = Heading(0.0)
-        self._current_altitude = 0.0
+        self._current_altitude = 10.0
         self._current_orientation = Rotation(0.0, 0.0, 0.0)
 
     def location(self) -> LatLng:
@@ -134,7 +163,7 @@ class DebugLocationProvider:
             self._current_orientation = Rotation(pitch, roll, yaw)
 
 
-class MAVLinkLocationProvider:
+class MAVLinkLocationProvider(LocationProvider):
     """
     Will provide location information based on information received as MAVLink messages.
     """
@@ -148,6 +177,32 @@ class MAVLinkLocationProvider:
 
         # Subscribe to the delegate's messages
         self.mavlink_delegate.subscribe(self._process_message)
+        self.mavlink_delegate.send(
+            dialect.MAVLink_command_long_message(
+                target_system=1,
+                target_component=1,
+                command=dialect.MAV_CMD_SET_MESSAGE_INTERVAL,
+                confirmation=0,
+                param1=33,  # param1: send GLOBAL_POSITION_INT message
+                param2=500000,  # param2: send every 5e5 us
+                param3=0,
+                param4=0,
+                param5=0,
+                param6=0,
+                param7=1))  # param7: send messaged to requester
+        self.mavlink_delegate.send(
+            dialect.MAVLink_command_long_message(
+                target_system=1,
+                target_component=1,
+                command=dialect.MAV_CMD_SET_MESSAGE_INTERVAL,
+                confirmation=0,
+                param1=30,  # param1: send ATTITUDE message
+                param2=500000,  # param2: send every 5e5 us
+                param3=0,
+                param4=0,
+                param5=0,
+                param6=0,
+                param7=1))  # param7: send messaged to requester
 
     def _process_message(self, message):
         # This callback processes incoming MAVLink messages and updates the internal state

@@ -10,10 +10,10 @@ class MAVLinkDelegate:
     MAVLink connection delegate which forwards messages to subscribers.
     """
 
-    def __init__(self, port: int = 14550):
-        self._conn = mavutil.mavlink_connection(device=f"tcp:127.0.0.1:{port}",
-                                                source_system=1,
-                                                source_component=1)
+    def __init__(self, conn_str: str = "tcp:127.0.0.1:14550"):
+        self._conn = mavutil.mavlink_connection(device=conn_str,
+                                                source_system=255,
+                                                source_component=42)
 
         self._listeners: List[Callable] = []
 
@@ -33,6 +33,7 @@ class MAVLinkDelegate:
         """
         Start the mavlink delegate. Will never return.
         """
+        last_heartbeat = time.time()
         while True:
             msg = self._conn.recv_match(blocking=False)
             if msg:
@@ -40,6 +41,11 @@ class MAVLinkDelegate:
                     listener(msg)
 
                 continue  # Check for more messages immediately
+
+            now = time.time()
+            if now - last_heartbeat > 1:
+                last_heartbeat = now
+                self.send(dialect.MAVLink_heartbeat_message(0, 0, 0, 0, 0, 0))
 
             time.sleep(0.0001)  # 100 us
 

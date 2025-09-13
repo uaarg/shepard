@@ -60,6 +60,38 @@ class DebugCamera(CameraProvider):
     def capture(self) -> Image.Image:
         return self.im
 
+class DebugCameraFromDir(CameraProvider):
+    """
+    Debug camera that returns an image from directory 'image_dir'
+    containing only images
+    """
+    def __init__(self, image_dir: str | pathlib.Path):
+        import os # used to get images in folder
+        self.image_dir = image_dir
+        self.imgs = os.listdir(image_dir)
+        self.imgs = [ os.path.join(image_dir, file) for file in self.imgs ]
+        if len(self.imgs) == 0:
+            raise ValueError('no files in directory')
+        self.index = 0
+        
+        # set size at first based on first image
+        im = Image.open(self.imgs[self.index])
+        self.size = (im.width, im.height)
+    
+    def set_size(self, size: Tuple[int, int]):
+        # set size as each image is resized on load
+        self.size = size 
+
+    def capture(self) -> Image.Image:
+        # return the next image in the directory
+        filename = self.imgs[self.index]
+        print(filename)
+        self.index = (self.index + 1) % len(self.imgs)
+
+        return Image.open(filename).resize(self.size)
+ 
+
+
 
 class WebcamCamera(CameraProvider):
     """
@@ -93,11 +125,14 @@ class RPiCamera(CameraProvider):
     source.
     """
 
-    def __init__(self):
+    def __init__(self, cam_num: int):
         from picamera2 import Picamera2
-        self.camera = Picamera2()
+        self.camera = Picamera2(cam_num)
         self.size = (640, 480)
         self.configure_camera()
+        self.camera.start()
+        print(self.camera.capture_metadata()['ScalerCrop'])
+        print(self.camera.camera_controls['ScalerCrop'])
 
     def configure_camera(self):
         # Configuring camera properties

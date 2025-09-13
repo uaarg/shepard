@@ -19,7 +19,7 @@ print("The debugger should now be visible")
 print("Because the debugger is not blocking, we can continue to run code.")
 print("Close the window to stop")
 for i in range(10):
-    print(f"Running {10-i} more times")
+    print(f"Running {10 - i} more times")
     print("Flipping image")
     im = ImageOps.flip(im.copy())
     bb.position = Vec2(bb.position.x, im.height - bb.position.y)
