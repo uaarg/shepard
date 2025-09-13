@@ -1,4 +1,4 @@
-from typing import Callable, Optional, List, Callable, Any
+from typing import Callable, Optional, List, Callable, Any, Tuple
 
 import threading
 # from multiprocessing import Process
@@ -19,7 +19,7 @@ class CameraAttributes:
         self.resolution = (1920, 1080)
 
 
-class Inference:
+class ImagingInference:
     def __init__(self, bounding_box: BoundingBox, relative_alt):
         camera_attributes = CameraAttributes()
         position = bounding_box.position
@@ -28,8 +28,53 @@ class Inference:
         self.y = (position.y + size.y / 2) / camera_attributes.resolution[1]
         self.relative_alt = relative_alt
 
+class AnalysisDelegate:
 
-class ImageAnalysisDelegate:
+    def __init__(self) -> None:
+        self.thread: threading.Thread
+        self.loop = False
+        self.subscribers: List[Callable] = []
+
+    def _analyze_unit(self):
+        """Analyse and subscribe the result of analysis to subscribers"""
+        raise NotImplementedError
+
+    def start(self):
+        """
+        Will start the analysis process in another thread.
+        """
+        self.loop = True
+        self.thread = threading.Thread(target=self._analysis_loop)
+        self.thread.start()
+
+    def stop(self):
+        self.loop = False
+        assert self.thread is not None
+        self.thread.join()
+
+    def _analysis_loop(self):
+        """
+        Indefinitely run analysis. This should be run in another thread;
+        use `start()` to do so.
+        """
+        while self.loop:
+            self._analyze_unit()
+
+    def subscribe(self, callback: Callable):
+        """
+        Subscribe to analysis updates. For example:
+
+            def myhandler(image: Image.Image, bounding_box: BoundingBox):
+                if bounding_box is None:
+                    print("No bounding box detected")
+                else:
+                    print("Bounding box detected")
+
+            imaging_process.subscribe(myhandler)
+        """
+        self.subscribers.append(callback)
+
+class ImageAnalysisDelegate(AnalysisDelegate):
     """
     Implements an imaging inference loops and provides several methods which
     can be used to query the latest image analysis results.
@@ -40,15 +85,13 @@ class ImageAnalysisDelegate:
 
     Pass an `ImageAnalysisDebugger` when constructing to see a window with live
     results.
-
-    TODO: geolocate the landing pad using the drone's location.
     """
 
     def __init__(self,
                  detector: LandingPadDetector,
                  camera: CameraProvider,
-                 location_provider: LocationProvider = None,
-                 navigation_provider: Navigator = None,
+                 location_provider: Optional[LocationProvider] = None,
+                 navigation_provider: Optional[Navigator] = None,
                  debugger: Optional[ImageAnalysisDebugger] = None):
         self.detector = detector
         self.camera = camera
@@ -60,11 +103,11 @@ class ImageAnalysisDelegate:
         self.location_provider = location_provider
         self.navigation_provider = navigation_provider
         
-        self.subscribers: List[Callable[[Image.Image, float, float], Any]] = []
         self.camera_attributes = CameraAttributes()
-        self.thread = None
-        self.loop = True
-    def get_inference(self, bounding_box: BoundingBox) -> Inference:
+
+        super().__init__()
+
+    def get_inference(self, bounding_box: BoundingBox) -> ImagingInference:
         if self.location_provider is not None:
             altitude = self.location_provider.altitude()
         elif self.navigation_provider is not None:
@@ -72,23 +115,11 @@ class ImageAnalysisDelegate:
         else:
             raise ValueError("No altitude information provider available.")
 
-        inference = Inference(bounding_box, altitude)
+        inference = ImagingInference(bounding_box, altitude)
         return inference
 
-    def start(self):
-        """
-        Will start the image analysis process in another thread.
-        """
-        self.loop = True
-        self.thread = threading.Thread(target=self._analysis_loop)
-        # process = Process(target=self._analysis_loop)
-        self.thread.start()
-        # process.start()
-        # Use `threading` to start `self._analysis_loop` in another thread.
-
-    def stop(self):
-        self.loop = False
-        self.thread.join()
+    def _analyze_unit(self):
+        self._analyze_image()
 
     def _analyze_image(self):
         """
@@ -114,24 +145,20 @@ class ImageAnalysisDelegate:
             else:
                 subscriber(im, None)
 
-    def _analysis_loop(self):
-        """
-        Indefinitely run image analysis. This should be run in another thread;
-        use `start()` to do so.
-        """
-        while self.loop:
-            self._analyze_image()
+class BeaconAnalysisDelegate(AnalysisDelegate):
 
-    def subscribe(self, callback: Callable):
+    def __init__(self, beaconCoordinate: Tuple[float, float]) -> None:
         """
-        Subscribe to image analysis updates. For example:
-
-            def myhandler(image: Image.Image, bounding_box: BoundingBox):
-                if bounding_box is None:
-                    print("No bounding box detected")
-                else:
-                    print("Bounding box detected")
-
-            imaging_process.subscribe(myhandler)
+        Parameters:
+            beaconCoordinate: Coordinates of the beacon you wish to assign. format: (latitude, longitude)
         """
-        self.subscribers.append(callback)
+        super().__init__()
+        self.beaconCoordinate = beaconCoordinate
+
+    def _analyze_unit(self):
+        for subscriber in self.subscribers:
+        #TODO: Implement logic to calculate offset between drones current position and beacon coordinates
+            pass
+
+    def set_beacon_coordinate(self, beaconCoordinate: Tuple[float, float]) -> None:
+        self.beaconCoordinate = beaconCoordinate
