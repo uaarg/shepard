@@ -87,6 +87,11 @@ class AnalysisDelegate:
                 print("Error in analysis loop: ", e)
                 self.loop = False
 
+    def subscriberService(self, analysis_result: AnalysisResult):
+        """Service function that subscribes the reult to every subscriber"""
+        for subscriber in self.subscribers:
+            subscriber(analysis_result)
+
     def subscribe(self, callback: Callable[[AnalysisResult], None]):
         """
         Subscribe to analysis updates. For example:
@@ -162,14 +167,13 @@ class ImageAnalysisDelegate(AnalysisDelegate):
             if bounding_box is not None:
                 self.debugger.set_bounding_box(bounding_box)
 
-        for subscriber in self.subscribers:
-            if bounding_box:
-                inference = self.get_inference(bounding_box)
-                if inference:
-                    x, y = get_object_location(self.camera_attributes,
-                                                   inference)
-                    analysis_result = AnalysisResult(front=y, right=x)
-                    subscriber(analysis_result)
+        if bounding_box:
+            inference = self.get_inference(bounding_box)
+            if inference:
+                x, y = get_object_location(self.camera_attributes,
+                                                inference)
+                analysis_result = AnalysisResult(front=y, right=x)
+                self.subscriberService(analysis_result)
 
 class BeaconAnalysisDelegate(AnalysisDelegate):
 
