@@ -1,9 +1,9 @@
 from typing import Callable, Literal
-from src.modules.mavctl.mavctl.messages import Navigator
-from src.modules.imaging.analysis import AnalysisDelegate 
+from src.modules.mavctl.mavctl.messages.navigator import Navigator, LandingTarget
+from src.modules.imaging.analysis import AnalysisDelegate, AnalysisResult
 
 def do_precision_landing(master: Navigator,
-                         analysis_subscriber: Callable,
+                         analysisDelegate: AnalysisDelegate, 
                          mode: Literal["REQUIRED", "OPPORTUNISTIC"]) -> None:
     """
     This function sets the drone into precision landing mode.
@@ -22,12 +22,16 @@ def do_precision_landing(master: Navigator,
                 The vehicle uses precision landing only if the target is visible
                 at landing initiation; otherwise it performs a normal landing.
     """
-    def callback(coords):
-        altitude = master.get_altitude().terrain # Gets the altitude above the terrain (as seen by an altimeter)
-        target = Navigator.LandingTarget(x=coords[0], y=coords[1], z=altitude)
-        master.broadcast_landing_target(target)
+    def callback(position: AnalysisResult):
+        if position:
+            altitude = master.get_altitude().terrain # Gets the altitude above the terrain (as seen by an altimeter)
+            target = LandingTarget(right=position.right,
+                                            forward=position.front, 
+                                            altitude=altitude)
 
-    analysis_subscriber(callback)
+            master.broadcast_landing_target(target)
+
+    analysisDelegate.subscribe(callback)
 
     if mode == "OPPORTUNISTIC":
         master.land(land_mode=1)

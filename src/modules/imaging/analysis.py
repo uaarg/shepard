@@ -1,3 +1,5 @@
+from abc import abstractmethod
+from dataclasses import dataclass
 from typing import Callable, Optional, List, Callable, Any, Tuple
 
 import threading
@@ -28,13 +30,33 @@ class ImagingInference:
         self.y = (position.y + size.y / 2) / camera_attributes.resolution[1]
         self.relative_alt = relative_alt
 
+@dataclass
+class AnalysisResult:
+    """
+    Represents the result of an analysis performed by an `AnalysisDelegate`.
+
+    This data class stores the relative position of the detected target
+    with respect to the drone's current location and orientation.
+
+    Attributes:
+        front (float): The forward offset of the target in meters.
+            Positive values indicate the target is ahead of the drone,
+            negative values indicate it is behind.
+        left (float): The lateral offset of the target in meters.
+            Positive values indicate the target is to the right of the drone,
+            negative values indicate it is to the left.
+    """
+    front: float
+    right: float
+
 class AnalysisDelegate:
 
     def __init__(self) -> None:
         self.thread: threading.Thread
         self.loop = False
-        self.subscribers: List[Callable] = []
+        self.subscribers: List[Callable[[AnalysisResult], None]] = []
 
+    @abstractmethod
     def _analyze_unit(self):
         """Analyse and subscribe the result of analysis to subscribers"""
         raise NotImplementedError
@@ -43,9 +65,10 @@ class AnalysisDelegate:
         """
         Will start the analysis process in another thread.
         """
-        self.loop = True
-        self.thread = threading.Thread(target=self._analysis_loop)
-        self.thread.start()
+        if self.loop is False:
+            self.loop = True
+            self.thread = threading.Thread(target=self._analysis_loop)
+            self.thread.start()
 
     def stop(self):
         self.loop = False
@@ -58,9 +81,13 @@ class AnalysisDelegate:
         use `start()` to do so.
         """
         while self.loop:
-            self._analyze_unit()
+            try:
+                self._analyze_unit()
+            except Exception as e:
+                print("Error in analysis loop: ", e)
+                self.loop = False
 
-    def subscribe(self, callback: Callable):
+    def subscribe(self, callback: Callable[[AnalysisResult], None]):
         """
         Subscribe to analysis updates. For example:
 
@@ -141,9 +168,8 @@ class ImageAnalysisDelegate(AnalysisDelegate):
                 if inference:
                     x, y = get_object_location(self.camera_attributes,
                                                    inference)
-                    subscriber(im, (x, y))
-            else:
-                subscriber(im, None)
+                    analysis_result = AnalysisResult(front=y, right=x)
+                    subscriber(analysis_result)
 
 class BeaconAnalysisDelegate(AnalysisDelegate):
 
