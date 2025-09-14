@@ -3,16 +3,17 @@ from dataclasses import dataclass
 from typing import Callable, Optional, List, Callable, Any, Tuple
 
 import threading
+
+from pymavlink.mavutil import location
 # from multiprocessing import Process
 from dep.labeller.benchmarks.detector import LandingPadDetector, BoundingBox
+from src.modules.mavctl.mavctl.messages.location import LocationGlobal
 from .camera import CameraProvider
 from .debug import ImageAnalysisDebugger
 from ..georeference.inference_georeference import get_object_location
 from .location import LocationProvider
-from ..autopilot.navigator import Navigator
 from PIL import Image
-import os
-
+from src.modules.mavctl.mavctl.messages.navigator import Navigator
 
 class CameraAttributes:
     def __init__(self):
@@ -81,11 +82,8 @@ class AnalysisDelegate:
         use `start()` to do so.
         """
         while self.loop:
-            try:
-                self._analyze_unit()
-            except Exception as e:
-                print("Error in analysis loop: ", e)
-                self.loop = False
+            print("loop started")
+            self._analyze_unit()
 
     def subscriberService(self, analysis_result: AnalysisResult):
         """Service function that subscribes the reult to every subscriber"""
@@ -177,18 +175,22 @@ class ImageAnalysisDelegate(AnalysisDelegate):
 
 class BeaconAnalysisDelegate(AnalysisDelegate):
 
-    def __init__(self, beaconCoordinate: Tuple[float, float]) -> None:
+    def __init__(self, beaconCoordinate: LocationGlobal, navigator: Navigator) -> None:
         """
         Parameters:
             beaconCoordinate: Coordinates of the beacon you wish to assign. format: (latitude, longitude)
         """
+        print("beacon has been inited")
         super().__init__()
         self.beaconCoordinate = beaconCoordinate
+        self.navigator = navigator 
 
     def _analyze_unit(self):
-        for subscriber in self.subscribers:
-        #TODO: Implement logic to calculate offset between drones current position and beacon coordinates
-            pass
+        geovector = self.navigator.get_geovector(self.beaconCoordinate)
+        print(geovector)
+        result = AnalysisResult(front=geovector[1], right=geovector[0])
+        self.subscriberService(result)
+        pass
 
     def set_beacon_coordinate(self, beaconCoordinate: Tuple[float, float]) -> None:
         self.beaconCoordinate = beaconCoordinate

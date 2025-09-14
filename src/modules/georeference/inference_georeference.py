@@ -10,6 +10,7 @@ This maps traditional Latitude and Longitude into an X Y coordinate grid
 where X, Y are in meters
 """
 # TODO: Requires a circular-import... but we only need these for type annotations
+from dataclasses import dataclass
 import numpy as np
 from math import cos, tan, atan, radians, degrees, sqrt
 import pyproj
@@ -21,6 +22,16 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ..imaging.analysis import CameraAttributes, Inference
 
+@dataclass
+class Coordinate:
+    '''
+    Data Class for storing global coordinates
+
+    '''
+
+    lat: float
+    lon: float
+    
 
 def LonLat_To_XY(lon, lat, zone=12):
     """

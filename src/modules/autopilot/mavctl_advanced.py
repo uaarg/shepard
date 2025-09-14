@@ -5,6 +5,7 @@ from src.modules.imaging.analysis import AnalysisDelegate, AnalysisResult
 def do_precision_landing(master: Navigator,
                          analysisDelegate: AnalysisDelegate, 
                          mode: Literal["REQUIRED", "OPPORTUNISTIC"]) -> None:
+    print("do_precision_landing start point")
     """
     This function sets the drone into precision landing mode.
 
@@ -30,8 +31,11 @@ def do_precision_landing(master: Navigator,
                                             altitude=altitude)
 
             master.broadcast_landing_target(target)
+    print("after the callback func def")
 
     analysisDelegate.subscribe(callback)
+    
+    print("subscription occurred")
 
     if mode == "OPPORTUNISTIC":
         master.land(land_mode=1)
