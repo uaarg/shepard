@@ -1,4 +1,4 @@
-from http.server import HTTPServer, SimpleHTTPRequestHandler 
+from http.server import HTTPServer, SimpleHTTPRequestHandler
 import os
 
 from pymavlink import mavutil
@@ -33,11 +33,9 @@ class MyHandler(SimpleHTTPRequestHandler):
             # img.resize((960, 540))
             img.resize((480, 270))
             img.save(IMG_DIR)
-
         print(self.path)
-
         return super().do_GET()
-    
+
     def do_POST(self):
         print('POST', self.path)
         type_mask = nav.generate_typemask([0, 1, 2])
@@ -55,7 +53,7 @@ class MyHandler(SimpleHTTPRequestHandler):
             nav.set_position_target_local_ned(x = 0, y = STEP_SIZE, z = 0, type_mask = type_mask, coordinate_frame = coordinate_frame)
         elif self.path == '/up':
             self.send_response(200)
-            self.end_headers()            
+            self.end_headers()
             # nav.set_position_relative(STEP_SIZE, 0)
             nav.set_position_target_local_ned(x = STEP_SIZE, y = 0, z = 0, type_mask = type_mask, coordinate_frame = coordinate_frame)
         elif self.path == '/down':
@@ -89,19 +87,20 @@ class MyHandler(SimpleHTTPRequestHandler):
         else:
             print("invalid thingy")
 
-class WebServer:
 
+class WebServer:
     def __init__(self, port):
 
         self.port = port
         self.server = None
-    
+
     def run(self):
 
         #setup server
-        self.server = HTTPServer(('0.0.0.0', self.port), MyHandler) # Empty string means localhost
+        self.server = HTTPServer(('0.0.0.0', self.port), MyHandler)  # Empty string means localhost
         print(f"Server running on http://localhost:{self.port}")
         self.server.serve_forever()
+
 
 if __name__ == "__main__":
     IMG_DIR = "tmp/video_server/current_img.webp"
@@ -111,13 +110,11 @@ if __name__ == "__main__":
     GPIO.setup(GPIO_PIN, GPIO.OUT)
     GPIO.output(23, GPIO.LOW)
 
-
     # make sure directory exists
     os.makedirs("tmp/video_server/", exist_ok=True)
-    
+
     cam = RPiCamera(1)
     # cam = WebcamCamera()
-
 
     # start the webserver
     server = WebServer(8081)
