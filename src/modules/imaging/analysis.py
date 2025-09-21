@@ -9,7 +9,6 @@ from ..georeference.inference_georeference import get_object_location
 from .location import LocationProvider
 from ..autopilot.navigator import Navigator
 from PIL import Image
-import os
 
 
 class CameraAttributes:
@@ -53,22 +52,23 @@ class ImageAnalysisDelegate:
         self.detector = detector
         self.camera = camera
         self.debugger = debugger
-        
+
         if location_provider is None and navigation_provider is None:
             raise ValueError("Either location_provider or navigation_provider must be provided.")
 
         self.location_provider = location_provider
         self.navigation_provider = navigation_provider
-        
+
         self.subscribers: List[Callable[[Image.Image, float, float], Any]] = []
         self.camera_attributes = CameraAttributes()
         self.thread = None
         self.loop = True
+
     def get_inference(self, bounding_box: BoundingBox) -> Inference:
         if self.location_provider is not None:
             altitude = self.location_provider.altitude()
         elif self.navigation_provider is not None:
-            altitude = -1*self.navigation_provider.get_local_position_ned()[2]
+            altitude = -1 * self.navigation_provider.get_local_position_ned()[2]
         else:
             raise ValueError("No altitude information provider available.")
 
@@ -109,7 +109,7 @@ class ImageAnalysisDelegate:
                 inference = self.get_inference(bounding_box)
                 if inference:
                     x, y = get_object_location(self.camera_attributes,
-                                                   inference)
+                                               inference)
                     subscriber(im, (x, y))
             else:
                 subscriber(im, None)

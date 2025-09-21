@@ -42,13 +42,13 @@ class DebugImageAnalysisDelegate:
         self.location_provider = location_provider
         self.subscribers: List[Callable[[Image.Image, float, float], Any]] = []
         self.camera_attributes = CameraAttributes()
-        
+
         # log pictures taken
         os.makedirs("tmp/log", exist_ok=True)
         dirs = os.listdir("tmp/log")
         current_path = f"tmp/log/{len(dirs)}"
         os.makedirs(current_path)
-        
+
         # path to store images taken during flight
         self.img_path = f"{current_path}/images"
         os.makedirs(self.img_path)
@@ -64,7 +64,6 @@ class DebugImageAnalysisDelegate:
         inference = Inference(bounding_box, self.location_provider.altitude())
         return inference
 
-
     def start(self):
         """
         Will start the image analysis process in another thread.
@@ -74,7 +73,6 @@ class DebugImageAnalysisDelegate:
         thread.start()
         # process.start()
         # Use `threading` to start `self._analysis_loop` in another thread.
-
 
     def _analyze_image(self):
         """
@@ -90,9 +88,9 @@ class DebugImageAnalysisDelegate:
         if bounding_box:
             draw = ImageDraw.Draw(im)
             bb = (bounding_box.position.x, bounding_box.position.y,
-                       bounding_box.size.x, bounding_box.size.y)
+                  bounding_box.size.x, bounding_box.size.y)
             draw.rectangle(bb)
-        
+
         im.save(os.path.join(self.bb_img_path, f"{self.i}.png"))
 
         self.i += 1
@@ -107,7 +105,7 @@ class DebugImageAnalysisDelegate:
                 inference = self.get_inference(bounding_box)
                 if inference:
                     x, y = get_object_location(self.camera_attributes,
-                                                   inference)
+                                               inference)
                     subscriber(im, (x, y))
             else:
                 subscriber(im, None)
