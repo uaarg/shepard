@@ -4,7 +4,7 @@ from dronekit import connect
 
 from src.modules.autopilot import navigator
 from src.modules.autopilot.altimeter_xm125 import XM125
-from src.modules.autopilot.altimeter_mavlink import MavlinkAltimeterProvider
+# from src.modules.autopilot.altimeter_mavlink import MavlinkAltimeterProvider
 
 import json
 
@@ -43,7 +43,6 @@ if not radar_sensor.begin():
     exit(1)
 
 
-
 nav.send_status_message("SHEPARD: XM125 Altimeter test starting")
 
 try:
@@ -58,7 +57,6 @@ try:
         current_time = time.time()
         if current_time - last_status_time >= STATUS_INTERVAL:
 
-
             # Get the latest altimeter reading and log
             result = radar_sensor.measure()
             if result:
@@ -66,7 +64,7 @@ try:
 
                 if average:
                     AltimeterData.append(average[0])
-        
+
             # Get the latest altitude reading and log
             altitude_m = float(drone.location.global_relative_frame.alt)
             if altitude_m is not None:
@@ -75,7 +73,6 @@ try:
                 PixHawkData.append(altitude_m)
                 Delta.append(float(altitude_m) - float(average[0]))
 
-                
             else:
                 nav.send_status_message("No valid altitude reading")
 
