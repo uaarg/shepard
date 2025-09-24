@@ -8,7 +8,7 @@ import src.modules.autopilot.mavctl_advanced as mavctl_advanced
 import time
 
 CONN_STR = "udp:127.0.0.1:14551"
-landing_target = LandingTarget(0.52, 0.52, 10) 
+landing_target = LandingTarget(0.52, 0.52, 0) 
 print(landing_target)
 
 mav = conn.connect(CONN_STR)
@@ -18,12 +18,11 @@ messenger.send("MAVCTL: Online")
 
 while master.set_mode_wait() and master.wait_vehicle_armed():
     pass
-
 master.takeoff(10)
 time.sleep(5)
 print("Takeoff complete after sleeping 5 seconds")
-master.broadcast_landing_target(landing_target=landing_target)
-msg = master.mav.recv_match(type="COMMAND_ACK", blocking=True)
-print(msg)
-print("Landing Target Broadcasted")
-time.sleep(2)
+master.land(2)
+while True:
+    master.broadcast_landing_target(landing_target=landing_target)
+    print("Landing Target Broadcasted")
+    time.sleep(1)
