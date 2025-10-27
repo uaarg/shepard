@@ -27,7 +27,7 @@ class CameraProvider:
         # Should be implemented by deriving classes.
         raise NotImplementedError()
 
-    def caputure_to(self, path: str | pathlib.Path):
+    def capture_to(self, path: str | pathlib.Path):
         """
         Captures a single image and saves it to `path`.
         """
