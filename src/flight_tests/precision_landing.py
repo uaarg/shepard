@@ -8,11 +8,14 @@ import src.modules.autopilot.mavctl_advanced as mavctl_advanced
 import time
 
 CONN_STR = "udp:127.0.0.1:14550"
-landing_target = LandingTarget(0.5, 0.5, 5) 
-print(landing_target)
+beaconCoordinate = LocationGlobal(53.495534, -113.538215, 10)
+
 
 connect = Connect(ip=CONN_STR)
 master = Navigator(connect.mav)
+
+beacon = BeaconAnalysisDelegate(beaconCoordinate=beaconCoordinate, navigator=master)
+
 
 
 while master.set_mode_wait() and master.wait_vehicle_armed():
