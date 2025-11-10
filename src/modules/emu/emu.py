@@ -2,16 +2,16 @@ import threading
 import queue
 
 import asyncio
+from typing import Callable
 
 from websockets.asyncio.server import serve
 from websockets.exceptions import ConnectionClosed, ConnectionClosedOK
 from websockets.asyncio.server import ServerConnection
 
-
 import json
 
 
-class EmuConnection():
+class Emu():
     """
     class representation of a connection to Emu
     """
@@ -24,10 +24,12 @@ class EmuConnection():
         self._recv_queue = queue.Queue()
 
         # set default onConnect to be a no-op
-        self.onConnect = lambda: None
+        self._on_connect = lambda: None
+        self._is_connected = False
 
-        self.comms_thread = threading.Thread(target=self._start_comms_loop)
-        self.comms_thread.start()
+    def start_comms(self):
+        self._comms_thread = threading.Thread(target=self._start_comms_loop)
+        self._comms_thread.start()
 
     def send_image(self, path: str):
         """
@@ -38,7 +40,7 @@ class EmuConnection():
         """
         pass
 
-    def send_log(self, message: str, severity: str=""):
+    def send_log(self, message: str, severity: str="normal"):
         """
         sends a log message to Emu
         message: string of flog
@@ -50,6 +52,9 @@ class EmuConnection():
             "severity": severity
         }
         self._send_queue.put(json.dumps(content))
+
+    def set_on_connect(self, func: Callable):
+        self._on_connect = func
 
     def _start_comms_loop(self):
         """
@@ -72,15 +77,15 @@ class EmuConnection():
         manages a single client connection. websocket represents the specific client connection.
         When a client disconnects the handler stops. This does not stop the server
         """
-        if self.isConnected:
+        if self._is_connected:
             print("Connection refused: already connected")
             await websocket.close(code=1000, reason="Already connected")
             return
-        self.isConnected = True
+        self._is_connected = True
         print("Connected to client")
         
         # specified function to do on startup, likely for sending UAV status in bulk
-        self.onConnect()
+        self._on_connect()
 
         # exit and close websocket as soon as either task terminates
         consumer_task = asyncio.create_task(self._consumer_handler(websocket))
@@ -94,7 +99,7 @@ class EmuConnection():
         for task in pending:
             task.cancel()
         print("Client disconnected")
-        self.isConnected = False
+        self.is_connected = False
 
     
     async def _consumer_handler(self, websocket: ServerConnection):
