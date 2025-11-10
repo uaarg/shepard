@@ -16,9 +16,9 @@ class Emu():
     class representation of a connection to Emu
     """
     
-    def __init__(self, hostname: str, port: int):
-        self.hostname = hostname
-        self.port = port
+    def __init__(self):
+        self.hostname = "127.0.0.1"
+        self.port = 14555
 
         self._send_queue = queue.Queue()
         self._recv_queue = queue.Queue()
@@ -28,7 +28,7 @@ class Emu():
         self._is_connected = False
 
     def start_comms(self):
-        self._comms_thread = threading.Thread(target=self._start_comms_loop)
+        self._comms_thread = threading.Thread(target=self._start_comms_loop, daemon=True)
         self._comms_thread.start()
 
     def send_image(self, path: str):
@@ -53,6 +53,12 @@ class Emu():
         }
         self._send_queue.put(json.dumps(content))
 
+    def send_msg(self, message: str):
+        """
+        sends message as it is, follow the proper JSON API messages
+        """
+        self._send_queue.put(message)
+
     def set_on_connect(self, func: Callable):
         self._on_connect = func
 
@@ -60,15 +66,16 @@ class Emu():
         """
         starts connection loop with asyncio
         """
+        print("start_comms loop")
         asyncio.run(self._connect())
-        pass
 
     async def _connect(self):
         """
         starts the server and waits for clients to connect. Once they do,
         self._handler handles each client
         """
-        async with serve(self._handler, self.hostname, self.port) as server:
+        print("connect")
+        async with serve(self._handler, "", self.port) as server:
             await server.serve_forever()
     
 
