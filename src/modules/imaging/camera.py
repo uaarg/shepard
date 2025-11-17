@@ -1,5 +1,5 @@
 from typing import Tuple
-
+import time
 import pathlib
 from PIL import Image
 import numpy as np
