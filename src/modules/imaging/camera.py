@@ -105,7 +105,7 @@ class GazeboCamera(CameraProvider):
             "rtph264depay ! "
             "avdec_h264 ! "
             "videoconvert ! "
-            "appsink"
+            "appsink max-buffers=1 drop=true sync=false"
         )
         self.size = (640, 480) 
         self.cap = cv2.VideoCapture(gst_pipeline, cv2.CAP_GSTREAMER)
