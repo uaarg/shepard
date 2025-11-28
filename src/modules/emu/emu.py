@@ -18,12 +18,12 @@ class Emu():
     """
     class representation of a connection to Emu
     """
-    def __init__(self, hostname: str = "127.0.0.1", port: int = 14555):
-        self.hostname = hostname
-        self.port = port
+    def __init__(self, uav_hostname: str = "127.0.0.1", uav_port: int = 14555):
+        self.hostname = uav_hostname
+        self.port = uav_port
 
-        routes = web.RouteTableDef()
-        routes.get("/")(self._handle_get_image)
+        self.app = web.Application()
+        self.app.add_routes([web.get('/images/{filename}', self._handle_get_image)])
 
         self._send_queue = queue.Queue()
         self._recv_queue = queue.Queue()
@@ -80,8 +80,16 @@ class Emu():
         self._handler handles each client
         """
         print("connect")
-        async with serve(self._handler, "", self.port) as server:
-            await server.serve_forever()
+        runner = web.AppRunner(self.app)
+        await runner.setup()
+        site = web.TCPSite(runner, "localhost", 14556)
+        await site.start()
+        await asyncio.gather(
+            site.start(),
+            serve(self._handler, "", self.port)
+        )
+        # async with serve(self._handler, "", self.port) as server:
+        #     await server.serve_forever()
     
 
     async def _handler(self, websocket: ServerConnection):
@@ -142,9 +150,6 @@ class Emu():
                 await asyncio.sleep(0.1)
 
     async def _handle_get_image(self, request):
-        pass
-
-@routes.get('/')
-async def handle_http(self, request):
-    return web.resonse
-    pass
+        image_name = request.match_info['image_name']
+        print(image_name)
+        return web.Response(text=f"getting {image_name}")
