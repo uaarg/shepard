@@ -4,14 +4,10 @@ import queue
 import asyncio
 from typing import Callable
 
-from websockets.asyncio.server import serve
-from websockets.exceptions import ConnectionClosed, ConnectionClosedOK
-from websockets.asyncio.server import ServerConnection
-
 from aiohttp import web
+import aiohttp
 
 import json
-
 
 
 class Emu():
@@ -23,7 +19,8 @@ class Emu():
         self.port = uav_port
 
         self.app = web.Application()
-        self.app.add_routes([web.get('/images/{filename}', self._handle_get_image)])
+        self.app.add_routes([web.get('/images/{filename}', self.handle_get_image),
+                             web.get('/ws', self.handle_websocket)])
 
         self._send_queue = queue.Queue()
         self._recv_queue = queue.Queue()
@@ -72,84 +69,38 @@ class Emu():
         starts connection loop with asyncio
         """
         print("start_comms loop")
-        asyncio.run(self._connect())
+        web.run_app(self.app, handle_signals=False)
 
-    async def _connect(self):
-        """
-        starts the server and waits for clients to connect. Once they do,
-        self._handler handles each client
-        """
-        print("connect")
-        runner = web.AppRunner(self.app)
-        await runner.setup()
-        site = web.TCPSite(runner, "localhost", 14556)
-        await site.start()
-        await asyncio.gather(
-            site.start(),
-            serve(self._handler, "", self.port)
-        )
-        # async with serve(self._handler, "", self.port) as server:
-        #     await server.serve_forever()
-    
-
-    async def _handler(self, websocket: ServerConnection):
-        """
-        manages a single client connection. websocket represents the specific client connection.
-        When a client disconnects the handler stops. This does not stop the server
-        """
-        if self._is_connected:
-            print("Connection refused: already connected")
-            await websocket.close(code=1000, reason="Already connected")
-            return
-        self._is_connected = True
-        print("Connected to client")
-        
-        # specified function to do on startup, likely for sending UAV status in bulk
-        self._on_connect()
-
-        # exit and close websocket as soon as either task terminates
-        consumer_task = asyncio.create_task(self._consumer_handler(websocket))
-        producer_task = asyncio.create_task(self._producer_handler(websocket))
-        # create two infinite loops. one sends messages in send_queue, other recieves
-        # messages and puts into recv_queue
-        done, pending = await asyncio.wait(
-            [consumer_task, producer_task],
-            return_when=asyncio.FIRST_COMPLETED,
-        )
-        for task in pending:
-            task.cancel()
-        print("Client disconnected")
-        self.is_connected = False
-
-    
-    async def _consumer_handler(self, websocket: ServerConnection):
-        """
-        handles messages received from the client
-        """
-        try:
-            async for message in websocket:
-                # ensure putting does not block event loop
-                self._recv_queue.put_nowait(message)
-        except ConnectionClosed:
-            print("frontend websocket connection lost")
-
-
-    async def _producer_handler(self, websocket: ServerConnection):
+    async def producer_handler(self, ws):
         """
         handles sending messages to the client
         """
-        while True:
-            try:
-                # ensure getting does not block event loop
-                message = self._send_queue.get_nowait()
-                await websocket.send(message)
-            except ConnectionClosedOK:
-                break # will shutdown the program
-            except queue.Empty:
-                # if queue is empty will raise error, catch it and wait
-                await asyncio.sleep(0.1)
-
-    async def _handle_get_image(self, request):
-        image_name = request.match_info['image_name']
+        while not ws.closed:
+            message = "hello"
+            await ws.send_str(message)
+            await asyncio.sleep(2)
+    
+    
+    async def handle_get_image(self, request):
+        image_name = request.match_info['filename']
         print(image_name)
         return web.Response(text=f"getting {image_name}")
+    
+    async def handle_websocket(self, request):
+        ws = web.WebSocketResponse()
+        await ws.prepare(request)
+        producer_task = asyncio.create_task(self.producer_handler(ws))
+        async for msg in ws:
+            if msg.type == aiohttp.WSMsgType.TEXT:
+                if msg.data == 'close':
+                    await ws.close()
+                else:
+                    await ws.send_str(msg.data + '/answer')
+            elif msg.type == aiohttp.WSMsgType.ERROR:
+                print('ws connection closed with exception %s' %
+                    ws.exception())
+    
+        print('websocket connection closed')
+        producer_task.cancel()
+        
+        return ws
