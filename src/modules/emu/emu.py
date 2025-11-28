@@ -8,17 +8,22 @@ from websockets.asyncio.server import serve
 from websockets.exceptions import ConnectionClosed, ConnectionClosedOK
 from websockets.asyncio.server import ServerConnection
 
+from aiohttp import web
+
 import json
+
 
 
 class Emu():
     """
     class representation of a connection to Emu
     """
-    
-    def __init__(self):
-        self.hostname = "127.0.0.1"
-        self.port = 14555
+    def __init__(self, hostname: str = "127.0.0.1", port: int = 14555):
+        self.hostname = hostname
+        self.port = port
+
+        routes = web.RouteTableDef()
+        routes.get("/")(self._handle_get_image)
 
         self._send_queue = queue.Queue()
         self._recv_queue = queue.Queue()
@@ -135,3 +140,11 @@ class Emu():
             except queue.Empty:
                 # if queue is empty will raise error, catch it and wait
                 await asyncio.sleep(0.1)
+
+    async def _handle_get_image(self, request):
+        pass
+
+@routes.get('/')
+async def handle_http(self, request):
+    return web.resonse
+    pass
