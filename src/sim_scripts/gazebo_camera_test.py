@@ -18,15 +18,13 @@ while master.wait_vehicle_armed():
 while not master.set_mode_wait():
     pass
 
-master.takeoff(10)
+advanced.simple_goto_local(master, 0.1, 6, 5)
 time.sleep(5)
-advanced.simple_goto_local(master, -10, 0, 5)
-time.sleep(5)
-advanced.simple_goto_local(master, -10, 1, 5)
+'''advanced.simple_goto_local(master, -10, 1, 5)
 time.sleep(5)
 advanced.simple_goto_local(master, -9, 0, 5)
 time.sleep(5)
 advanced.simple_goto_local(master, -10, -1, 5)
 time.sleep(5)
 advanced.simple_goto_local(master, -11, 0, 5)
-time.sleep(5)
+time.sleep(5)'''

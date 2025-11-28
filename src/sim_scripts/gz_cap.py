@@ -3,7 +3,8 @@ import os
 import threading
 import json
 
-from dronekit import connect
+from src.modules.mavctl.mavctl.connect import conn
+from src.modules.mavctl.mavctl.messages.navigator import Navigator
 
 from src.modules.imaging.camera import RPiCamera, GazeboCamera
 from src.modules.imaging.mavlink import MAVLinkDelegate
@@ -15,7 +16,8 @@ MESSENGER_PORT = 14552
 cam = GazeboCamera()
 #mavlink = MAVLinkDelegate()
 
-drone = connect(CONN_STR)
+mav = conn.Connect(ip = CONN_STR)
+master = Navigator(mav.mav)
 
 os.makedirs("tmp/log", exist_ok=True)
 dirs = os.listdir("tmp/log")
@@ -28,9 +30,11 @@ last_picture = time.time()
 def location_dump_to(path: str):
 
     with open(path, 'w') as file:
+        position = master.get_local_position()
+        heading = master.get_heading()
+        location = { "location" : f"{position.north}, {position.east}, {position.down}",
+                     "heading": str(heading)}
 
-        location = { "location" : str(drone.location.global_relative_frame) }
-        
         json.dump(location, file)
 
 
