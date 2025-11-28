@@ -14,12 +14,9 @@ class Emu():
     """
     class representation of a connection to Emu
     """
-    def __init__(self, uav_hostname: str = "127.0.0.1", uav_port: int = 14555):
-        self.hostname = uav_hostname
-        self.port = uav_port
-
+    def __init__(self, img_dir: str):
         self.app = web.Application()
-        self.app.add_routes([web.get('/images/{filename}', self.handle_get_image),
+        self.app.add_routes([web.static('/images', img_dir),
                              web.get('/ws', self.handle_websocket)])
 
         self._send_queue = queue.Queue()
@@ -40,7 +37,14 @@ class Emu():
         https://websockets.readthedocs.io/en/stable/reference/asyncio/server.html#websockets.asyncio.server.ServerConnection.send
         ensure text=false. this is however done implicitly when passing bytes like object
         """
-        pass
+        print(path)
+        img_url = "/images/" + path
+        print(img_url)
+        content = {
+            "type": "img",
+            "value": img_url
+        }
+        self._send_queue.put(json.dumps(content))
 
     def send_log(self, message: str, severity: str="normal"):
         """
@@ -82,9 +86,8 @@ class Emu():
     
     
     async def handle_get_image(self, request):
-        image_name = request.match_info['filename']
-        print(image_name)
-        return web.Response(text=f"getting {image_name}")
+        filename = request.match_info['filename']
+        print(filename)
     
     async def handle_websocket(self, request):
         ws = web.WebSocketResponse()
@@ -104,3 +107,8 @@ class Emu():
         producer_task.cancel()
         
         return ws
+
+if __name__ == "__main__":
+    emu = Emu("tmp/imgs")
+    emu.start_comms()
+    while (1): pass

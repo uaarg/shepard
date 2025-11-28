@@ -2,7 +2,7 @@ from src.modules.emu import Emu
 import time
 import json
 
-emu = Emu()
+emu = Emu("res")
 
 def onConnect():
     loadCurrent = {
@@ -20,8 +20,8 @@ def onConnect():
 
 emu.set_on_connect(onConnect)
 emu.start_comms()
-
-time.sleep(2)
+print("done start comms")
+time.sleep(0.5)
 
 # test different logs
 for i in range(6):
@@ -32,8 +32,9 @@ for i in range(6):
     time.sleep(0.5)
 
 # send new photo
+emu.send_image("test-image.jpeg")
 
 # change mode
-
+print("asdfasdf")
 while True:
     pass
