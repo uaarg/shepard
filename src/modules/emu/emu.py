@@ -80,14 +80,8 @@ class Emu():
         handles sending messages to the client
         """
         while not ws.closed:
-            message = "hello"
+            message = self._send_queue.get()
             await ws.send_str(message)
-            await asyncio.sleep(2)
-    
-    
-    async def handle_get_image(self, request):
-        filename = request.match_info['filename']
-        print(filename)
     
     async def handle_websocket(self, request):
         ws = web.WebSocketResponse()
