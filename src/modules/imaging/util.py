@@ -1,9 +1,7 @@
 import numpy as np
 
 """
-
 This file provides methods to perform computations that apply to imaging functions
-
 """
 
 def skew(x):
