@@ -39,10 +39,10 @@ def test(drone, altimeter):
         gps_alt = drone.location.global_relative_frame.alt
         if result:
             average = result[0]['averaged']
-
             # Average distance will not be available until at least `average_window` measurements have been taken
             if average:
                 average_distance = average[0]
+                print(average_distance)
                 RangeFinderData.append(average_distance)
                 PixHawkData.append(gps_alt)
 

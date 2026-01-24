@@ -62,7 +62,7 @@ class XM125(Altimeter):
     RETRY_DELAY = 0.5  # seconds
     ERROR_TIMEOUT = 5.0  # seconds
 
-    def __init__(self, sensor_id=0, min_distance=250, max_distance=10000, bus=1, address=0x52, average_window=5):
+    def __init__(self, sensor_id=1, min_distance=250, max_distance=10000, bus=1, address=0x52, average_window=5):
         super().__init__(sensor_id, min_distance, max_distance)
         self.bus = smbus2.SMBus(bus)
         self.address = address

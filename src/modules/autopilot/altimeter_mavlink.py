@@ -37,12 +37,13 @@ class MavlinkAltimeterProvider:
         """Start the altimeter thread."""
         if self._running:
             return
-
+        
         try:
             self._tstart = time.time()
 
             # Initialize MAVLink connection
             self._mavlink_connection = mavutil.mavlink_connection(self.connection_string)
+            print("conecting 123")
             # Wait for a heartbeat to ensure connection is established
             self._mavlink_connection.wait_heartbeat()
             print(f"MAVLink connection established on {self.connection_string}")
