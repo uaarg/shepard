@@ -20,7 +20,7 @@ emu = Emu("res")
 
 # emu.set_on_connect(onConnect)
 emu.start_comms()
-time.sleep(0.5)
+time.sleep(2)
 
 # test different logs
 for i in range(6):

@@ -5,6 +5,7 @@ import asyncio
 from typing import Callable
 
 from aiohttp import web
+from aiohttp import web
 import aiohttp
 
 import json
@@ -15,9 +16,7 @@ class Emu():
     class representation of a connection to Emu
     """
     def __init__(self, img_dir: str):
-        self.app = web.Application()
-        self.app.add_routes([web.static('/images', img_dir),
-                             web.get('/ws', self.handle_websocket)])
+        self.img_dir = img_dir
 
         self._send_queue = queue.Queue()
         self._recv_queue = queue.Queue()
@@ -33,9 +32,8 @@ class Emu():
     def send_image(self, path: str):
         """
         sends the image at specified path to Emu
-        sends as a binary frame
-        https://websockets.readthedocs.io/en/stable/reference/asyncio/server.html#websockets.asyncio.server.ServerConnection.send
-        ensure text=false. this is however done implicitly when passing bytes like object
+        the path sent should be accessable from within self.img_dir so it can be accessed through
+        /images/{filename}
         """
         print(path)
         img_url = "/images/" + path
@@ -73,6 +71,10 @@ class Emu():
         starts connection loop with asyncio
         """
         print("start_comms loop")
+        self.app = web.Application()
+        self.app.add_routes([web.static('/images', self.img_dir),
+                             web.get('/ws', self.handle_websocket)])
+
         web.run_app(self.app, handle_signals=False)
 
     async def producer_handler(self, ws):
