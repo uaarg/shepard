@@ -27,7 +27,7 @@ class CameraProvider:
         # Should be implemented by deriving classes.
         raise NotImplementedError()
 
-    def caputure_to(self, path: str | pathlib.Path):
+    def capture_to(self, path: str | pathlib.Path):
         """
         Captures a single image and saves it to `path`.
         """
@@ -90,6 +90,56 @@ class DebugCameraFromDir(CameraProvider):
         self.index = (self.index + 1) % len(self.imgs)
 
         return Image.open(filename).resize(self.size)
+ 
+
+class GazeboCamera(CameraProvider):
+    """
+    Video sourced from the Gazebo Simulator over UDP
+    """
+
+    def __init__(self):
+        self.port = 5600
+       
+        gst_pipeline = (
+            "udpsrc address=127.0.0.1 port=5600 ! "
+            "application/x-rtp, encoding-name=H264 ! "
+            "rtph264depay ! "
+            "avdec_h264 ! "
+            "videoconvert ! "
+            "appsink"
+        )
+        self.size = (640, 480) 
+        self.cap = cv2.VideoCapture(gst_pipeline, cv2.CAP_GSTREAMER)
+
+        if not self.cap.isOpened():
+            print("Failed to open UDP Stream")
+            exit()
+
+    def set_size(self, size: Tuple[int, int]):
+        self.size = size
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, size[0])
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, size[1])
+
+    def capture(self) -> Image.Image:
+        ret, frame = self.cap.read()
+        if ret:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            return Image.fromarray(frame).resize(self.size)
+        else:
+            raise RuntimeError("Failed to capture image from webcam")
+
+    def show_images(self):
+        while True:
+            ret, frame = self.cap.read()
+            if not ret:
+                print("Frame not received")
+                break
+
+            cv2.imshow("Gazebo Video Stream", frame)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+        self.cap.release()
+        cv2.destroyAllWindows()
 
 
 class WebcamCamera(CameraProvider):
