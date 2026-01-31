@@ -2,7 +2,7 @@ from typing import Callable, Optional, List, Callable, Any
 
 import threading
 # from multiprocessing import Process
-from dep.labeller.benchmarks.detector import LandingPadDetector, BoundingBox
+from .detector import BaseDetector, BoundingBox
 from .camera import CameraProvider
 from .debug import ImageAnalysisDebugger
 from ..georeference.inference_georeference import get_object_location
@@ -30,7 +30,7 @@ class DebugImageAnalysisDelegate:
     """
 
     def __init__(self,
-                 detector: LandingPadDetector,
+                 detector: BaseDetector,
                  camera: CameraProvider,
                  location_provider: LocationProvider,
                  debugger: Optional[ImageAnalysisDebugger] = None,

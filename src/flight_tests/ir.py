@@ -1,10 +1,9 @@
-from src.modules.imaging.detector import IrDetector
+from src.modules.imaging.detector import IrDetector, BoundingBox
 import time
 from typing import Tuple
 from src.modules.imaging.analysis import ImageAnalysisDelegate
 from src.modules.imaging.camera import RPiCamera
 from src.modules.imaging.location import DebugLocationProvider
-from dep.labeller.benchmarks.detector import BoundingBox
 from PIL import Image, ImageDraw
 
 
