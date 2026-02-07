@@ -30,3 +30,4 @@ yapf==0.40.1
 zipp==3.17.0
 ultralytics==8.3.128
 websockets==15.0.1
+aiohttp==3.13.3
