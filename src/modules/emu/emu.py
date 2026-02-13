@@ -81,8 +81,9 @@ class Emu():
         """
         handles sending messages to the client
         """
+        event_loop = asyncio.get_running_loop()
         while not ws.closed:
-            message = self._send_queue.get()
+            message = await event_loop.run_in_executor(None, self._send_queue.get)
             await ws.send_str(message)
     
     async def handle_websocket(self, request):
@@ -103,8 +104,3 @@ class Emu():
         producer_task.cancel()
         
         return ws
-
-if __name__ == "__main__":
-    emu = Emu("tmp/imgs")
-    emu.start_comms()
-    while (1): pass
