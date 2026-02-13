@@ -29,10 +29,10 @@ for i in range(6):
     elif i % 3 == 1: severity = "warning"
     else: severity = "error"
     emu.send_log(f"log text {i}", severity)
-    time.sleep(0.5)
+    time.sleep(1)
 
-# send new photo
-print("sending image")
-emu.send_image("test-image.jpeg")
-
-time.sleep(500)
+while True:
+    print("sending image")
+    emu.send_log("sending image")
+    emu.send_image("test-image.jpeg")
+    time.sleep(2)
