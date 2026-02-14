@@ -88,7 +88,7 @@ class Emu():
         handles sending messages to the client
         """
         while not ws.closed:
-            message = self._send_queue.get()
+            message = await asyncio.to_thread(self._send_queue.get)
             await ws.send_str(message)
 
     async def consumer_handler(self, ws):

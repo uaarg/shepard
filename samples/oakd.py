@@ -6,7 +6,8 @@ import threading
 
 from src.modules.imaging.camera import DepthCapture, OakdCamera
 
-emu = Emu("res")
+emu = Emu("tmp")
+i = 0
 
 def print_conn():
     print("connecton made")
@@ -23,20 +24,27 @@ camera_thread = threading.Thread(target=camera.start(), daemon=True)
 camera_thread.start()
 
 def send_img(message):
+    global latest_capture, i
+
     msg = json.loads(message)
 
     if msg["type"] == "image" and msg["message"] == "capture":
         print("sending image")
-        latest_capture = camera.capture()
+        latest_capture = camera.capture_with_depth()
         im = Image.fromarray(latest_capture.rgb)
 
-        im.save("../tmp/sample.jpeg")
-        emu.send_image("../tmp/sample.jpeg")
+        im.save(f"./tmp/{i}.jpeg")
+        emu.send_image(f"{i}.jpeg")
+
+        i += 1
 
 def measure(message):
+    global latest_capture
+
     msg = json.loads(message)
 
     if msg["type"] == "getDistance":
+        print("getting distance")
         points = msg["message"]
 
         p1 = points["p1"]
@@ -49,6 +57,7 @@ def measure(message):
                 "message": distance
             }
             emu.send_msg(json.dumps(send))
+            print(f"distance sent: {send}")
 
 
 emu.subscribe(send_img)
