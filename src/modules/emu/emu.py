@@ -87,8 +87,10 @@ class Emu():
         """
         handles sending messages to the client
         """
+        event_loop = asyncio.get_running_loop()
         while not ws.closed:
             message = await asyncio.to_thread(self._send_queue.get)
+
             await ws.send_str(message)
 
     async def consumer_handler(self, ws):
@@ -122,8 +124,3 @@ class Emu():
         self._is_connected = False
         
         return ws
-
-if __name__ == "__main__":
-    emu = Emu("tmp/imgs")
-    emu.start_comms()
-    while (1): pass
