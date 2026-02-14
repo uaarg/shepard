@@ -19,7 +19,11 @@ class Navigator:
     def __init__(self, vehicle, messenger_port):
         self.vehicle = vehicle
         self.mavlink_messenger = Messenger(messenger_port)
-        
+
+ 
+
+    def send_message(self, msg):
+        self.__message(msg)
 
     def send_status_message(self, message):
         self.__message(message)
@@ -403,122 +407,30 @@ class Navigator:
         # send command to vehicle
         self.vehicle.send_mavlink(msg)
 
-    @staticmethod
-    def time_left(string_land_time):
-        """
-        Calculates the time between now and the time passed as a string arguement.
 
-        :param string_land_time: the target landing time as a string in the format "HH:MM:SS"
+    def send_land_message(angle_x, angle_y, distance, size_x, size_y):
 
-        :return: time left in seconds
-        """
-        time_now = datetime.now().time()
+        """Sends a precision landing message to MAVlink
+        
+        https://mavlink.io/en/messages/common.html#LANDING_TARGET
 
-        land_time = datetime.strptime(string_land_time, "%H:%M:%S")
+        https://mavlink.io/en/services/landing_target.html
 
-        seconds_now = (time_now.hour * 360) + (time_now.minute *
-                                               60) + (time_now.second)
+        :param angle_x: The x angular offset of landing zone from the center of a downward facing camera                        [Units: radians]
+        :param angle_y: the y angular offset of the landing zone from the center of a downward facing camera                    [Units: radians]
+        :param distance: The distance between the drone and the landing zone (the OVERALL distance not the x or y distance)     [Units: meters]
+        :param size_x: The size of the landing target with respect to the x axis.                                               [Units: radians]
+        :param size_y: the size of the landing target with respect to the y axis                                                [Units: radians]"""
 
-        seconds_land = (land_time.hour * 360) + (land_time.minute *
-                                                 60) + (land_time.second)
 
-        return seconds_land - seconds_now
-
-    def optimum_speed(self, time_left, waypoints):
-        """
-        Finds the optimum horizontal speed required to go from current position to all waypoints and land within the given time
-
-        :param time_left: The time left to land in [seconds], initially the land time minus the takeoff time.
-        :param waypoints: List of all remaining way points to go to.
-        :return: required ground speed in [m/s].
-        """
-
-        self.__message("Calculating optimum horizontal speed")
-
-        total_distance = self.__get_distance_metres(
-            self.vehicle.location.global_relative_frame, waypoints[0])
-        for i in range(1, len(waypoints)):
-            total_distance += self.__get_distance_metres(
-                waypoints[i - 1], waypoints[i])
-
-        speed_required = total_distance / time_left
-        self.__message(
-            f"Speed required to travel {total_distance} m in {time_left} s is {speed_required} m/s"
+        
+        msg = self.vehicle.message_factory.landing_target_encode(
+        angle_x,
+        angle_y,
+        distance,
+        size_x,
+        size_y
+        
         )
-
-        return speed_required
-
-    def sufficient_battery(self, battery, voltage_required=10.0):
-        """
-        Returns True or False based on whether or not the drone has enough battery to do another lap.
-        Each lap is when drone starts at Alpha, goes to Bravo and comes back to Alpha.
-        So we check if drone has little more battery than what is required for twice the distance between Alpha and Bravo.
-
-        :param voltage_required: value of voltage required to travel the lap distance
-        (Distance between Alpha and Bravo in Alma is 3km, so hard code this to voltage required for 6km of flight)
-        :param battery: instance of the MAVLinkBatteryStatusProvider
-
-        :return: a Boolean value, True indicating the drone has sufficient battery for another lap.
-        """
-
-        self.__message("Attempting to read voltage reading")
-        while True:
-            try:
-                voltage = battery.voltage()
-                break
-            except ValueError:
-                pass
-            time.sleep(0.1)
-
-        self.__message(f"Current battery voltage is {voltage} V")
-
-        if voltage < voltage_required:
-            return False
-
-        return True
-
-
-    def generate_typemask(self, keeps):
-        # Generates typemask based on which values to be included
-        mask = 0
-        for bit in keeps:
-            mask |= (0 << bit)
-        return mask
-
-    def set_position_target_local_ned(self, time_boot_ms=0, coordinate_frame=mavutil.mavlink.MAV_FRAME_LOCAL_NED, type_mask=0x07FF, x=0, y=0, z=0, vx=0, vy=0, vz=0, afx=0, afy=0, afz=0, yaw=0, yaw_rate=0):
-        msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
-            time_boot_ms, # Time since system boot
-            0, # Target System ID
-            0, # Target Component ID
-            coordinate_frame, # Coordinate Frame
-            type_mask, # Typemask of POSITION_TARGET_TYPEMASK
-            x,
-            y,
-            z,
-            vx,
-            vy,
-            vz,
-            afx,
-            afy,
-            afz,
-            yaw,
-            yaw_rate
-        )
-
         self.vehicle.send_mavlink(msg)
-
-
-'''
-    def cancel_command(self, command_id=mavutil.mavlink.SET_POSITION_TARGET_LOCAL_NED):
-        msg = self.vehicle.message_factory.command_long_encode(
-            0,
-            0,
-            mavutil.mavlink.COMMAND_CANCEL,
-            0,
-            0,
-            command_id
-        )
-
-        self.vehicle.send_mavlink(msg)'''
-
-
+        self.vehicle.flush()
