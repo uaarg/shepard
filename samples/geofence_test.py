@@ -37,5 +37,3 @@ print(lander.geofence_check(point4))
 print(lander.geofence_check(point5))
 print(lander.geofence_check(point6))
 print(lander.geofence_check(point7))
-
-

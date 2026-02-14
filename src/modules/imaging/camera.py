@@ -42,6 +42,7 @@ class CameraProvider:
         """
         return np.array(self.capture())
 
+
 @dataclass
 class DepthCapture:
     rgb: np.ndarray
@@ -149,7 +150,6 @@ class OakdCamera(CameraProvider):
         img = Image.fromarray(capture.rgb, "RGB")
         return img
 
-
     def start(self):
         """Start the depth-perception process on the OAK-D"""
         print("Starting OAK-D Connection")
@@ -160,6 +160,7 @@ class OakdCamera(CameraProvider):
         """Stop the depth-perception process"""
         self.device.close()
         self.queue = None
+
 
 class DebugCamera(CameraProvider):
     """
@@ -210,7 +211,7 @@ class DebugCameraFromDir(CameraProvider):
         self.index = (self.index + 1) % len(self.imgs)
 
         return Image.open(filename).resize(self.size)
- 
+
 
 class GazeboCamera(CameraProvider):
     """
@@ -219,7 +220,7 @@ class GazeboCamera(CameraProvider):
 
     def __init__(self):
         self.port = 5600
-       
+
         gst_pipeline = (
             "udpsrc address=127.0.0.1 port=5600 ! "
             "application/x-rtp, encoding-name=H264 ! "
@@ -228,7 +229,7 @@ class GazeboCamera(CameraProvider):
             "videoconvert ! "
             "appsink"
         )
-        self.size = (640, 480) 
+        self.size = (640, 480)
         self.cap = cv2.VideoCapture(gst_pipeline, cv2.CAP_GSTREAMER)
 
         if not self.cap.isOpened():
@@ -294,7 +295,7 @@ class RPiCamera(CameraProvider):
     source.
     """
 
-    def __init__(self, cam_num: int):
+    def __init__(self, cam_num: int = 0):
         from picamera2 import Picamera2
         self.camera = Picamera2(cam_num)
         self.size = (640, 480)

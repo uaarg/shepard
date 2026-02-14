@@ -10,19 +10,22 @@ import json
 
 
 class ModelStats:
+
     def __init__(self):
         self.n = 0
         self.mean = 0.0
         self.M2 = 0.0
+
     def update(self, t):
         self.n += 1
-        delta = t-self.mean
+        delta = t - self.mean
         self.mean += delta / self.n
         delta2 = t - self.mean
         self.M2 += delta * delta2
+
     def get_mean(self):
-       return self.mean
-    
+        return self.mean
+
     def get_stddev(self):
         return math.sqrt(self.M2 / self.n) if self.n > 1 else 0.0
 
@@ -30,7 +33,7 @@ class ModelStats:
 models = os.listdir("models")
 
 images = os.listdir("images")
-images = [ os.path.join("images", file_name) for file_name in images ]
+images = [os.path.join("images", file_name) for file_name in images]
 
 stats = {}
 
