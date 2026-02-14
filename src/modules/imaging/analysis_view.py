@@ -1,6 +1,6 @@
 from mavlink import MAVLinkDelegate
 import pymavlink.dialects.v20.all as dialect
-from dep.labeller.benchmarks.detector import BoundingBox
+from .detector import BoundingBox
 
 
 class AnalysisView:

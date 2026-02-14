@@ -9,12 +9,12 @@ Note for this analysis, we use UTM coordinates.
 This maps traditional Latitude and Longitude into an X Y coordinate grid
 where X, Y are in meters
 """
+
 # TODO: Requires a circular-import... but we only need these for type annotations
 import numpy as np
-from math import cos, tan, atan, radians, degrees, sqrt
+from math import cos, tan, atan, radians, sqrt
 import pyproj
 from pyproj import Geod
-import time
 
 from typing import TYPE_CHECKING
 
@@ -45,12 +45,13 @@ def XY_To_LonLat(x, y, zone=12):
 
     return P(x, y, inverse=True)
 
+
 def Geofence_to_XY(origin, geofence):
     # Returns a new geofence which consists of position vectors in meters
     # Guys the Earth is like mostly flat right??
 
-    try: 
-        R = 6378137 # Radius of the Earth in meters
+    try:
+        R = 6378137  # Radius of the Earth in meters
 
         new_fence = []
 
@@ -61,22 +62,24 @@ def Geofence_to_XY(origin, geofence):
         origin_lat_rad = radians(origin_lat)
 
         for point in geofence:
-            
+
             point_lon_rad = radians(point[0])
             point_lat_rad = radians(point[1])
-            
+
             delta_lat = point_lat_rad - origin_lat_rad
             delta_lon = point_lon_rad - origin_lon_rad
 
             x = delta_lat * R
             y = delta_lon * cos((origin_lat_rad + point_lat_rad) / 2) * R
-            
+
             new_fence.append((x, y))
 
         return new_fence
 
     except TypeError:
         return None
+
+
 '''
 def meters_to_LonLat(origin, points):
 
@@ -91,10 +94,10 @@ def meters_to_LonLat(origin, points):
     origin_lat_rad = radians(origin_lat)
 
     for point in points:
-        
+
         point_x = point[0]
         point_y = point[1]
-        
+
         delta_lat = point_x / R
         delta_lon = point_y / (cos(origin_lat_rad + delta_lat / 2) * R)
 
@@ -103,9 +106,10 @@ def meters_to_LonLat(origin, points):
 
         new_points.append((delta_lat + origin_lat, delta_lon + origin_lon))
 
-
     return new_points
 '''
+
+
 def meters_to_LonLat(origin, points):
     g = Geod(ellps='clrk66')
     new_points = []
@@ -162,7 +166,7 @@ def pixel_to_rel_position(camera_attributes: 'CameraAttributes',
     # NOTE: This correction was made because of the camera being upside down
     # This corrects the issues regarding the autopilot navigating to the wrong direction
 
-    direction_vector[1] = -1*(x_comp + offset[0])
+    direction_vector[1] = -1 * (x_comp + offset[0])
     direction_vector[0] = y_comp + offset[1]
 
     return direction_vector
