@@ -2,7 +2,7 @@ import threading
 import queue
 
 import asyncio
-from typing import Callable
+from typing import Callable, List
 
 from aiohttp import web
 from aiohttp import web
@@ -20,6 +20,9 @@ class Emu():
 
         self._send_queue = queue.Queue()
         self._recv_queue = queue.Queue()
+
+        # All messages in ._recv_queue are advertised to subscribers
+        self._subscribers: List[Callable] = []
 
         # set default onConnect to be a no-op
         self._on_connect = lambda: None
@@ -77,30 +80,47 @@ class Emu():
 
         web.run_app(self.app, handle_signals=False)
 
+    def subscribe(self, subscriber: Callable):
+        self._subscribers.append(subscriber)
+
     async def producer_handler(self, ws):
         """
         handles sending messages to the client
         """
         event_loop = asyncio.get_running_loop()
         while not ws.closed:
-            message = await event_loop.run_in_executor(None, self._send_queue.get)
+            message = await asyncio.to_thread(self._send_queue.get)
+
             await ws.send_str(message)
+
+    async def consumer_handler(self, ws):
+        async for msg in ws:
+            if msg.type == aiohttp.WSMsgType.TEXT:
+                for subscriber in self._subscribers:
+                    subscriber(msg.data)
+
+            elif msg.type == aiohttp.WSMsgType.ERROR:
+                print("WebSocket error:", ws.exception())
     
     async def handle_websocket(self, request):
         ws = web.WebSocketResponse()
         await ws.prepare(request)
+
+        self._is_connected = True
+        self._on_connect()
+
+        consumer_task = asyncio.create_task(self.consumer_handler(ws))
         producer_task = asyncio.create_task(self.producer_handler(ws))
-        async for msg in ws:
-            if msg.type == aiohttp.WSMsgType.TEXT:
-                if msg.data == 'close':
-                    await ws.close()
-                else:
-                    await ws.send_str(msg.data + '/answer')
-            elif msg.type == aiohttp.WSMsgType.ERROR:
-                print('ws connection closed with exception %s' %
-                    ws.exception())
-    
+
+        _, pending = await asyncio.wait(
+            [producer_task, consumer_task],
+            return_when=asyncio.FIRST_COMPLETED,
+        )
+
+        for task in pending:
+            task.cancel()
+
         print('websocket connection closed')
-        producer_task.cancel()
+        self._is_connected = False
         
         return ws
