@@ -47,8 +47,8 @@ class ImageAnalysisDelegate:
                  detector: BaseDetector,
                  camera: CameraProvider,
                  location_provider: LocationProvider | None = None,
-                 navigation_provider: Navigator | None = None,
-                 debugger: ImageAnalysisDebugger | None = None):
+                 debugger: ImageAnalysisDebugger | None = None,
+                 navigation_provider: Navigator | None = None):
         self.detector = detector
         self.camera = camera
         self.debugger = debugger
