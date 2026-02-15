@@ -61,7 +61,7 @@ class ImageAnalysisDelegate:
 
         self.subscribers: List[Callable[[Image.Image, tuple[float, float] | None], Any]] = []
         self.camera_attributes = CameraAttributes()
-        
+
         self.loop = True
 
     def get_inference(self, bounding_box: BoundingBox) -> Inference:

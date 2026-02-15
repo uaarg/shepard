@@ -131,7 +131,7 @@ class OakdCamera(CameraProvider):
         NOTE: .start() must have been called first. If it has not, this will raise Exception."""
         if not self.device or self.device.isClosed():
             raise Exception("No oakD connection, perhaps you forgot to call the .start() function")
-        if self.queue == None:
+        if self.queue is None:
             raise Exception("Queue does not exist")
         msg = self.queue.get()
         rgbFrame = msg["rgb"]
