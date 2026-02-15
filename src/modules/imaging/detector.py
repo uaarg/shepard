@@ -98,7 +98,7 @@ class IrDetector(BaseDetector):
         img = np.array(image)
 
         gray_img = cv2.cvtColor(img, cv2.COLOR_RGBA2GRAY)
-        max_val = np.max(gray_img)  # returns maximum value of brightness
+        max_val = int(np.max(gray_img))  # returns maximum value of brightness
         if max_val < 200:
             return None  # lower threshold for intensity
         _, thresh = cv2.threshold(gray_img, max_val - 10, 255, cv2.THRESH_BINARY)

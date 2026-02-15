@@ -1,4 +1,4 @@
-from typing import Callable, Optional, List, Callable, Any
+from typing import Callable, List, Callable, Any
 
 import threading
 # from multiprocessing import Process
@@ -46,9 +46,9 @@ class ImageAnalysisDelegate:
     def __init__(self,
                  detector: BaseDetector,
                  camera: CameraProvider,
-                 location_provider: LocationProvider = None,
-                 navigation_provider: Navigator = None,
-                 debugger: Optional[ImageAnalysisDebugger] = None):
+                 location_provider: LocationProvider | None = None,
+                 navigation_provider: Navigator | None = None,
+                 debugger: ImageAnalysisDebugger | None = None):
         self.detector = detector
         self.camera = camera
         self.debugger = debugger
@@ -59,9 +59,9 @@ class ImageAnalysisDelegate:
         self.location_provider = location_provider
         self.navigation_provider = navigation_provider
 
-        self.subscribers: List[Callable[[Image.Image, float, float], Any]] = []
+        self.subscribers: List[Callable[[Image.Image, tuple[float, float] | None], Any]] = []
         self.camera_attributes = CameraAttributes()
-        self.thread = None
+        
         self.loop = True
 
     def get_inference(self, bounding_box: BoundingBox) -> Inference:
@@ -75,6 +75,14 @@ class ImageAnalysisDelegate:
         inference = Inference(bounding_box, altitude)
         return inference
 
+    def _analysis_loop(self):
+        """
+        Indefinitely run image analysis. This should be run in another thread;
+        use `start()` to do so.
+        """
+        while self.loop:
+            self._analyze_image()
+
     def start(self):
         """
         Will start the image analysis process in another thread.
@@ -87,8 +95,9 @@ class ImageAnalysisDelegate:
         # Use `threading` to start `self._analysis_loop` in another thread.
 
     def stop(self):
-        self.loop = False
-        self.thread.join()
+        if self.thread is not None:
+            self.loop = False
+            self.thread.join()
 
     def _analyze_image(self):
         """
@@ -113,14 +122,6 @@ class ImageAnalysisDelegate:
                     subscriber(im, (x, y))
             else:
                 subscriber(im, None)
-
-    def _analysis_loop(self):
-        """
-        Indefinitely run image analysis. This should be run in another thread;
-        use `start()` to do so.
-        """
-        while self.loop:
-            self._analyze_image()
 
     def subscribe(self, callback: Callable):
         """

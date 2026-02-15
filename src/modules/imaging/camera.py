@@ -131,7 +131,8 @@ class OakdCamera(CameraProvider):
         NOTE: .start() must have been called first. If it has not, this will raise Exception."""
         if not self.device or self.device.isClosed():
             raise Exception("No oakD connection, perhaps you forgot to call the .start() function")
-
+        if self.queue == None:
+            raise Exception("Queue does not exist")
         msg = self.queue.get()
         rgbFrame = msg["rgb"]
         cv_frame = rgbFrame.getCvFrame()
@@ -146,7 +147,7 @@ class OakdCamera(CameraProvider):
         return capture
 
     def capture(self) -> Image.Image:
-        capture = self.capture_with_depth
+        capture = self.capture_with_depth()
         img = Image.fromarray(capture.rgb, "RGB")
         return img
 
