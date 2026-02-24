@@ -7,7 +7,8 @@ from .camera import CameraProvider
 from .debug import ImageAnalysisDebugger
 from ..georeference.inference_georeference import get_object_location
 from .location import LocationProvider
-from ..autopilot.navigator import Navigator
+#from ..autopilot.navigator import Navigator
+from mavctl.messages.navigator import Navigator
 from PIL import Image
 
 
@@ -68,7 +69,7 @@ class ImageAnalysisDelegate:
         if self.location_provider is not None:
             altitude = self.location_provider.altitude()
         elif self.navigation_provider is not None:
-            altitude = -1 * self.navigation_provider.get_local_position_ned()[2]
+            altitude = -1 * self.navigation_provider.get_local_position().down
         else:
             raise ValueError("No altitude information provider available.")
 
