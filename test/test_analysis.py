@@ -36,9 +36,12 @@ def test_analysis_subscriber():
     global detected
     detected = None
 
-    def _callback(_image, lon, lat):
+    def _callback(_image, lon_lat):
         global detected
-        detected = Vec2(lon, lat)
+
+        detected = None
+        if lon_lat:
+            detected = Vec2(lon_lat[0], lon_lat[1])
 
     analysis.subscribe(_callback)
 
@@ -47,6 +50,9 @@ def test_analysis_subscriber():
     assert detected is None
     detector.bounding_box = BoundingBox(Vec2(20, 20), Vec2(50, 50))
     analysis._analyze_image()
+    assert detected is not None
+    print(detected)
+    print(Vec2(-115.48873916832288, 5.483286467459389e-06))
     assert (detected -
             Vec2(-115.48873916832288, 5.483286467459389e-06)).norm < 0.01
 
