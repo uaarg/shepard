@@ -12,18 +12,17 @@ from src.modules.imaging.analysis import ImageAnalysisDelegate
 from src.modules.imaging.camera import DebugCamera
 from src.modules.imaging.location import DebugLocationProvider
 from src.modules.imaging.debug import ImageAnalysisDebugger
-from dep.labeller.benchmarks.detector import LandingPadDetector, BoundingBox
-from dep.labeller.loader.label import Vec2
+from src.modules.imaging.detector import BaseDetector, BoundingBox, Vec2
 
 
-class DebugLandingPadDetector(LandingPadDetector):
+class DebugLandingPadDetector(BaseDetector):
 
     def __init__(self,
                  vector: Optional[Vec2] = None,
                  bb: Optional[BoundingBox] = None):
         self.bounding_box = bb
 
-    def predict(self, _image: Image.Image) -> Optional[BoundingBox]:
+    def predict(self, image: Image.Image) -> Optional[BoundingBox]:
         return self.bounding_box
 
 

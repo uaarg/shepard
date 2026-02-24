@@ -9,8 +9,10 @@ from src.modules.imaging.camera import DepthCapture, OakdCamera
 emu = Emu("tmp")
 i = 0
 
+
 def print_conn():
     print("connecton made")
+
 
 emu.set_on_connect(print_conn)
 latest_capture: DepthCapture | None = None
@@ -22,6 +24,7 @@ camera = OakdCamera()
 
 camera_thread = threading.Thread(target=camera.start(), daemon=True)
 camera_thread.start()
+
 
 def send_img(message):
     global latest_capture, i
@@ -38,6 +41,7 @@ def send_img(message):
 
         i += 1
 
+
 def measure(message):
     global latest_capture
 
@@ -53,7 +57,7 @@ def measure(message):
         if latest_capture is not None:
             distance = latest_capture.distance_between_points(p1["x"], p1["y"], p2["x"], p2["y"])
             send = {
-                "type": "distance", 
+                "type": "distance",
                 "message": distance
             }
             emu.send_msg(json.dumps(send))
