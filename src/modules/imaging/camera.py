@@ -93,7 +93,6 @@ class OakdCamera(CameraProvider):
         depth = pipeline.create(dai.node.StereoDepth)
         pointcloud = pipeline.create(dai.node.PointCloud)
         sync = pipeline.create(dai.node.Sync)
-        xOut = pipeline.create(dai.node.XLinkOut)
 
         camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
         camRgb.setBoardSocket(dai.CameraBoardSocket.CAM_A)
@@ -108,7 +107,7 @@ class OakdCamera(CameraProvider):
         monoRight.setCamera("right")
         monoRight.setFps(fps)
 
-        depth.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
+        depth.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DETAIL)
         depth.setLeftRightCheck(True)
         depth.setSubpixel(True)
         depth.setDepthAlign(dai.CameraBoardSocket.CAM_A)
@@ -120,20 +119,18 @@ class OakdCamera(CameraProvider):
         camRgb.isp.link(sync.inputs["rgb"])
         pointcloud.outputPointCloud.link(sync.inputs["pcl"])
 
-        sync.out.link(xOut.input)
-        xOut.setStreamName("out")
-
+        self.queue = sync.out.createOutputQueue()
         self.pipeline = pipeline
 
     def capture_with_depth(self) -> DepthCapture:
         """Capture a current 3D frame on the OAK-D.
 
         NOTE: .start() must have been called first. If it has not, this will raise Exception."""
-        if not self.device or self.device.isClosed():
+        if not self.pipeline.isRunning():
             raise Exception("No oakD connection, perhaps you forgot to call the .start() function")
         if self.queue is None:
             raise Exception("Queue does not exist")
-        msg = self.queue.get()
+        msg : dai.MessageGroup = self.queue.get().
         rgbFrame = msg["rgb"]
         cv_frame = rgbFrame.getCvFrame()
         rgb_frame = cv2.cvtColor(cv_frame, cv2.COLOR_BGR2RGB)
@@ -154,12 +151,11 @@ class OakdCamera(CameraProvider):
     def start(self):
         """Start the depth-perception process on the OAK-D"""
         print("Starting OAK-D Connection")
-        self.device = dai.Device(self.pipeline)
-        self.queue = self.device.getOutputQueue("out", maxSize=1, blocking=False)
+        self.pipeline.start()
 
     def stop(self):
         """Stop the depth-perception process"""
-        self.device.close()
+        self.pipeline.stop()
         self.queue = None
 
 
