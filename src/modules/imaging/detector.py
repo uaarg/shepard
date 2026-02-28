@@ -86,6 +86,9 @@ class BoundingBox:
         iou = intersection / self.union(pred)
         return iou
 
+    def __repr__(self) -> str:
+        return f"pos: {self.position}, size: {self.size}"
+
 
 class BaseDetector:
     def predict(self, image: Image.Image) -> Optional[BoundingBox]:
