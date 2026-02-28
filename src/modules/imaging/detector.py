@@ -85,6 +85,9 @@ class BoundingBox:
             return 0
         iou = intersection / self.union(pred)
         return iou
+    
+    def __repr__(self) -> str:
+        return f"pos: {self.position}, size: {self.size}"
 
 
 class BaseDetector:
