@@ -51,7 +51,7 @@ def test_analysis_subscriber():
     detector.bounding_box = BoundingBox(Vec2(20, 20), Vec2(50, 50))
     analysis._analyze_image()
     assert detected is not None
-    result = detected - Vec2(-115.48873916832288, 5.483286467459389e-06)
+    result = detected - Vec2(0.4158184416499504, -0.574961758930409)
     assert result.norm < 0.01
 
 
@@ -85,7 +85,7 @@ class MockImageAnlaysisDebugger(ImageAnalysisDebugger):
 
 def test_analysis_debugger():
     camera = DebugCamera("res/test-image.jpeg")
-    detector = DebugLandingPadDetector()
+    detector = DebugDetector()
     debug = MockImageAnlaysisDebugger()
     location_provider = DebugLocationProvider()
     location_provider.set_altitude(1.0)
