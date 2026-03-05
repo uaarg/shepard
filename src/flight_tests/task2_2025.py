@@ -5,8 +5,8 @@ from src.modules.imaging.camera import DebugCamera
 from src.modules.imaging.mavlink import MAVLinkDelegate
 from pymavlink import mavutil
 
-from src.modules.autopilot import navigator
-from dronekit import connect, VehicleMode
+from mavctl import Navigator
+from src.modules.autopilot.messenger import Messenger
 import os
 import RPi.GPIO as GPIO
 
@@ -16,10 +16,9 @@ MESSENGER_PORT = 14552
 mavlink_str = "udp:127.0.0.1:14553"
 GPIO_PIN = 23
 
-drone = connect(CONN_STR, wait_ready=False)
-
-nav = navigator.Navigator(drone, MESSENGER_PORT)
-mavlink = MAVLinkDelegate(conn_str = mavlink_str)
+drone = Navigator(ip=CONN_STR)
+messenger = Messenger(MESSENGER_PORT)
+mavlink = MAVLinkDelegate(conn_str=mavlink_str)
 
 
 GPIO.setmode(GPIO.BCM)
@@ -69,22 +68,22 @@ model_file = "best.pt"
 
 detector = BucketDetector(f"samples/models/{model_file}")
 
-analysis = ImageAnalysisDelegate(detector, camera, navigation_provider = nav)
+analysis = ImageAnalysisDelegate(detector, camera, navigation_provider=drone)
 analysis.subscribe(moving_bucket_avg)
 
-nav.send_status_message("Shepard is online")
+messenger.send("Shepard is online")
 
-while not (drone.armed and drone.mode == VehicleMode("GUIDED")):
+while not drone.wait_for_mode_and_arm():
     pass
 
 time.sleep(5)
 
-nav.takeoff(30)
+drone.takeoff(30)
 
-type_mask = nav.generate_typemask([0, 1, 2])
+type_mask = drone.generate_typemask([0, 1, 2])
 
-nav.send_status_message("Executing")
-current_alt = nav.get_local_position_ned()[2]
+messenger.send("Executing")
+current_alt = drone.get_local_position_ned()[2]
 
 delta = 0.5
 sleep_time = 2
@@ -95,53 +94,61 @@ def bucket_descent(target_height):
 
     coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED
 
-    nav.set_position_target_local_ned(x = bucket_avg[0][-1],
-                                      y = bucket_avg[1][-1],
-                                      z = 0,
-                                      type_mask = type_mask,
-                                      coordinate_frame = coordinate_frame)
+    drone.set_position_target_local_ned(
+        x=bucket_avg[0][-1],
+        y=bucket_avg[1][-1],
+        z=0,
+        type_mask=type_mask,
+        coordinate_frame=coordinate_frame,
+    )
 
     time.sleep(5)
-    alt = nav.get_local_position_ned()[2]
+    alt = drone.get_local_position_ned()[2]
     i = 0
     while -(alt) >= 11:
         print(i)
 
-        alt = nav.get_local_position_ned()[2]
+        alt = drone.get_local_position_ned()[2]
 
         print(alt)
-        nav.set_position_target_local_ned(x = float(bucket_avg[0][-1] - bucket_avg[0][0]),
-                                          y = float(bucket_avg[1][-1] - bucket_avg[1][0]),
-                                          z = 5,
-                                          type_mask = type_mask,
-                                          coordinate_frame = coordinate_frame)
+        drone.set_position_target_local_ned(
+            x=float(bucket_avg[0][-1] - bucket_avg[0][0]),
+            y=float(bucket_avg[1][-1] - bucket_avg[1][0]),
+            z=5,
+            type_mask=type_mask,
+            coordinate_frame=coordinate_frame,
+        )
         i += 1
         time.sleep(5)
 
     # Full Commit, drone is set to hover at the target height
     # NOTE: COORDINATE SYSTEM HAS CHANGED. IT IS IN NED, DOWN IS POSITIVE
 
-    nav.send_status_message("Comitting to bucket")
+    messenger.send("Comitting to bucket")
     coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_NED
-    current_local_pos = nav.get_local_position_ned()
+    current_local_pos = drone.get_local_position_ned()
 
-    nav.set_position_target_local_ned(x = current_local_pos[0],
-                                      y = current_local_pos[1],
-                                      z = -target_height,
-                                      type_mask = type_mask,
-                                      coordinate_frame = coordinate_frame)
+    drone.set_position_target_local_ned(
+        x=current_local_pos[0],
+        y=current_local_pos[1],
+        z=-target_height,
+        type_mask=type_mask,
+        coordinate_frame=coordinate_frame,
+    )
 
 
 def ActivatePump(duration):
     coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_NED
-    current_local_pos = nav.get_local_position_ned()
+    current_local_pos = drone.get_local_position_ned()
     # Runs the pump that is connected to GPIO 23 for a specified amount of time
 
-    nav.set_position_target_local_ned(x = current_local_pos[0],
-                                      y = current_local_pos[1],
-                                      z = current_local_pos[2],
-                                      type_mask = type_mask,
-                                      coordinate_frame = coordinate_frame)
+    drone.set_position_target_local_ned(
+        x=current_local_pos[0],
+        y=current_local_pos[1],
+        z=current_local_pos[2],
+        type_mask=type_mask,
+        coordinate_frame=coordinate_frame,
+    )
 
     GPIO.output(GPIO_PIN, GPIO.HIGH)
 
@@ -149,24 +156,28 @@ def ActivatePump(duration):
     # Adjusts the drones position every half second, and the duration is equivalent to the duration passed to ActivatePump()
     for _ in range(duration - 1):
 
-        nav.set_position_target_local_ned(x = current_local_pos[0],
-                                          y = current_local_pos[1],
-                                          z = current_local_pos[2],
-                                          type_mask = type_mask,
-                                          coordinate_frame = coordinate_frame)
+        drone.set_position_target_local_ned(
+            x=current_local_pos[0],
+            y=current_local_pos[1],
+            z=current_local_pos[2],
+            type_mask=type_mask,
+            coordinate_frame=coordinate_frame,
+        )
         time.sleep(0.5)
 
-        nav.set_position_target_local_ned(x = current_local_pos[0],
-                                          y = current_local_pos[1],
-                                          z = current_local_pos[2],
-                                          type_mask = type_mask,
-                                          coordinate_frame = coordinate_frame)
+        drone.set_position_target_local_ned(
+            x=current_local_pos[0],
+            y=current_local_pos[1],
+            z=current_local_pos[2],
+            type_mask=type_mask,
+            coordinate_frame=coordinate_frame,
+        )
         time.sleep(0.5)
 
     GPIO.output(GPIO_PIN, GPIO.LOW)
 
 
-nav.send_status_message("Descending to bucket")
+messenger.send("Descending to bucket")
 analysis.start()
 time.sleep(5)
 if len(bucket_avg[0]) > 0 and len(bucket_avg[1]) > 0:
@@ -175,14 +186,12 @@ else:
     time.sleep(5)
     bucket_descent(big_bucket_height)
 analysis.stop()
-nav.send_status_message("Stopped the analysis")
+messenger.send("Stopped the analysis")
 
-nav.send_status_message("Activating Pump")
+messenger.send("Activating Pump")
 
 ActivatePump(5)
 
-nav.return_to_launch()
+drone.return_to_launch()
 
-drone.close()
-
-nav.send_status_message("Flight test script execution terminated")
+messenger.send("Flight test script execution terminated")

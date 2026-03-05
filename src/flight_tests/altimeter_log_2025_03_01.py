@@ -1,17 +1,14 @@
 import time
-
-from dronekit import connect
-
-from src.modules.autopilot import navigator
-from src.modules.autopilot.altimeter_xm125 import XM125
-# from src.modules.autopilot.altimeter_mavlink import MavlinkAltimeterProvider
-
 import json
 
+from mavctl import Navigator
+
+from src.modules.autopilot.altimeter_xm125 import XM125
+from src.modules.autopilot.messenger import Messenger
+
 # Connection settings
-CONN_STR = "tcp:127.0.0.1:14550"
+CONN_STR = "udp:127.0.0.1:14550"
 MESSENGER_PORT = 14550
-MAVLINK_ALTITUDE_CONN_STR = "tcp:127.0.0.1:14550"
 
 AltimeterData = []
 PixHawkData = []
@@ -21,12 +18,10 @@ Delta = []
 STATUS_INTERVAL = 2.0  # seconds
 TEST_DURATION = 600  # 10 minutes
 
-# Connect to the drone
-drone = connect(CONN_STR, wait_ready=False)
-
-# Initialize navigator
-nav = navigator.Navigator(drone, MESSENGER_PORT)
-nav.send_status_message("SHEPARD: Altimeter test initializing")
+# Connect to the drone using mavctl
+drone = Navigator(ip=CONN_STR)
+messenger = Messenger(MESSENGER_PORT)
+messenger.send("SHEPARD: Altimeter test initializing")
 
 # Initialize the XM125 radar altimeter
 radar_sensor = XM125(
@@ -36,17 +31,15 @@ radar_sensor = XM125(
     average_window=5
 )
 
-
 if not radar_sensor.begin():
-    nav.send_status_message("ERROR: Failed to initialize radar sensor")
-    drone.close()
-    exit(1)
+    messenger.send("ERROR: Failed to initialize radar sensor")
+    raise SystemExit(1)
 
 
-nav.send_status_message("SHEPARD: XM125 Altimeter test starting")
+messenger.send("SHEPARD: XM125 Altimeter test starting")
 
 try:
-    nav.send_status_message("Forwarding altitude data to Pixhawk")
+    messenger.send("Forwarding altitude data to Pixhawk")
 
     # Main loop - forward altitude data and print status
     last_status_time = time.time()
@@ -66,15 +59,15 @@ try:
                     AltimeterData.append(average[0])
 
             # Get the latest altitude reading and log
-            altitude_m = float(drone.location.global_relative_frame.alt)
+            altitude_m = float(drone.get_global_position().alt or 0.0)
             if altitude_m is not None:
                 status_msg = f"Radar Altitude: {altitude_m:.2f} m"
-                nav.send_status_message(status_msg)
+                messenger.send(status_msg)
                 PixHawkData.append(altitude_m)
                 Delta.append(float(altitude_m) - float(average[0]))
 
             else:
-                nav.send_status_message("No valid altitude reading")
+                messenger.send("No valid altitude reading")
 
             last_status_time = current_time
 
@@ -82,12 +75,12 @@ try:
         time.sleep(0.5)
 
 except KeyboardInterrupt:
-    nav.send_status_message("Test interrupted by user")
-except Exception as e:
-    nav.send_status_message(f"ERROR: {str(e)}")
+    messenger.send("Test interrupted by user")
+except Exception as e:  # pylint: disable=broad-exception-caught
+    messenger.send(f"ERROR: {str(e)}")
 finally:
     # Clean up
-    nav.send_status_message("Stopping altitude provider")
+    messenger.send("Stopping altitude provider")
 
     # Log altimeter data to json file
     with open("./logs/log1.json", "w", encoding="utf-8") as file:
@@ -100,5 +93,4 @@ finally:
 
         file.write(data)
 
-    nav.send_status_message("SHEPARD: Altimeter test completed")
-    drone.close()
+    messenger.send("SHEPARD: Altimeter test completed")

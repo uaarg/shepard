@@ -1,21 +1,17 @@
 import time
 import os
 import threading
-
-from dronekit import connect
 import json
 
-from src.modules.imaging.camera import RPiCamera
-# from src.modules.imaging.mavlink import MAVLinkDelegate
-# from src.modules.imaging.location import MAVLinkLocationProvider
+from mavctl import Navigator
 
-CONN_STR = "tcp:127.0.0.1:14550"
-MESSENGER_PORT = 14552
+from src.modules.imaging.camera import RPiCamera
+
+CONN_STR = "udp:127.0.0.1:14550"
 
 cam = RPiCamera()
-#mavlink = MAVLinkDelegate()
 
-drone = connect(CONN_STR, wait_read=False)
+drone = Navigator(ip=CONN_STR)
 
 os.makedirs("tmp/log", exist_ok=True)
 dirs = os.listdir("tmp/log")
@@ -28,7 +24,7 @@ last_picture = time.time()
 
 def location_dump_to(path: str):
     with open(path, 'w') as file:
-        location = {"location": str(drone.location.global_relative_frame)}
+        location = {"location": str(drone.get_global_position())}
         json.dump(location, file)
 
 
@@ -48,7 +44,7 @@ def picture_loop(sleep):
         time.sleep(sleep)
 
 
-thread_1 = threading.thread(picture_loop, 3)
+thread_1 = threading.Thread(target=picture_loop, args=(3,))
 
 thread_1.start()
 
