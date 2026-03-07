@@ -1,4 +1,4 @@
-from src.modules.emu import Emu
+from src.modules.emu.emu import Emu
 import time
 
 emu = Emu("res")
