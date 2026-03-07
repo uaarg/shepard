@@ -155,7 +155,9 @@ class OakdCamera(CameraProvider):
         """Start the depth-perception process on the OAK-D"""
         print("Starting OAK-D Connection")
         self.device = dai.Device(self.pipeline)
-        self.queue = self.device.getOutputQueue("out", maxSize=1, blocking=False)
+        self.queue = self.device.getOutputQueue("out")
+        self.queue.setBlocking(False)
+        self.queue.setMaxSize(1)
 
     def stop(self):
         """Stop the depth-perception process"""
