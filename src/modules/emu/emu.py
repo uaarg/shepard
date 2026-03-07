@@ -1,5 +1,7 @@
+from email import message
 import threading
 import queue
+import time
 
 import asyncio
 from typing import Callable, List
@@ -8,8 +10,21 @@ from aiohttp import web
 from aiohttp import web
 import aiohttp
 
+# Import servo control
+try:
+    from Aiming.servo import set_servo_angle
+except ImportError:
+    def set_servo_angle(angle):
+        print(f"Mock servo: setting angle to {angle}°")
+
+# Import navigator for yaw control (will be set later)
+navigator = None
+
 import json
 
+# Global variables for aiming
+servo_angle = 90
+yaw_angle = 0
 
 class Emu():
     """
@@ -23,6 +38,13 @@ class Emu():
 
         # All messages in ._recv_queue are advertised to subscribers
         self._subscribers: List[Callable] = []
+        
+        # Subscribe to handle incoming messages
+        self.subscribe(self.on_emu_message)
+        
+        # Start monitoring thread for servo and yaw updates
+        self._monitoring_thread = threading.Thread(target=self._monitor_aiming_values, daemon=True)
+        self._monitoring_thread.start()
 
         # set default onConnect to be a no-op
         self._on_connect = lambda: None
@@ -83,6 +105,29 @@ class Emu():
     def subscribe(self, subscriber: Callable):
         self._subscribers.append(subscriber)
 
+    def set_navigator(self, nav):
+        global navigator
+        navigator = nav
+
+    def _monitor_aiming_values(self):
+        """Monitor servo_angle and yaw_angle globals and update hardware accordingly."""
+        global servo_angle, yaw_angle
+        last_servo = servo_angle
+        last_yaw = yaw_angle
+        
+        while True:
+            if servo_angle != last_servo:
+                set_servo_angle(servo_angle)
+                last_servo = servo_angle
+                print(f"Servo updated to {servo_angle}°")
+            
+            if yaw_angle != last_yaw and navigator is not None:
+                navigator.set_heading(yaw_angle)
+                last_yaw = yaw_angle
+                print(f"Yaw updated to {yaw_angle}°")
+            
+            time.sleep(0.1)  # Check every 100ms
+
     async def producer_handler(self, ws):
         """
         handles sending messages to the client
@@ -124,3 +169,13 @@ class Emu():
         self._is_connected = False
         
         return ws
+    
+    def on_emu_message(self, message):
+        global servo_angle, yaw_angle
+    
+        data = json.loads(message)
+
+        if data["type"] == "aim":
+            servo_angle = data["vertical"]
+            yaw_angle = data["horizontal"]
+            print(f"Aiming values updated - Servo: {servo_angle}°, Yaw: {yaw_angle}°")
