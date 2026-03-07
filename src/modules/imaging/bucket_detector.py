@@ -2,7 +2,7 @@ from typing import Optional
 
 from PIL import Image
 
-from .detector import Vec2, BoundingBox, BaseDetector 
+from .detector import Vec2, BoundingBox, BaseDetector
 
 from ultralytics import YOLO
 

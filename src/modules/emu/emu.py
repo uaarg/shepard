@@ -47,7 +47,7 @@ class Emu():
         }
         self._send_queue.put(json.dumps(content))
 
-    def send_log(self, message: str, severity: str="normal"):
+    def send_log(self, message: str, severity: str = "normal"):
         """
         sends a log message to Emu
         message: string of flog
@@ -87,7 +87,6 @@ class Emu():
         """
         handles sending messages to the client
         """
-        event_loop = asyncio.get_running_loop()
         while not ws.closed:
             message = await asyncio.to_thread(self._send_queue.get)
 
@@ -101,7 +100,7 @@ class Emu():
 
             elif msg.type == aiohttp.WSMsgType.ERROR:
                 print("WebSocket error:", ws.exception())
-    
+
     async def handle_websocket(self, request):
         ws = web.WebSocketResponse()
         await ws.prepare(request)
@@ -122,5 +121,5 @@ class Emu():
 
         print('websocket connection closed')
         self._is_connected = False
-        
+
         return ws
