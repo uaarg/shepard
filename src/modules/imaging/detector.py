@@ -4,6 +4,7 @@ from typing import Optional
 from PIL import Image
 import numpy as np
 import cv2
+from cv2 import aruco
 
 
 @dataclass
@@ -112,3 +113,33 @@ class IrDetector(BaseDetector):
             x, y, w, h = cv2.boundingRect(cnt)
 
         return BoundingBox(Vec2(x, y), Vec2(w, h))
+
+
+class ArucoDetector():
+
+    def predict(self, image: Image.Image) -> Optional[BoundingBox]:
+        img  = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+
+        aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
+
+        params = cv2.aruco.DetectorParemeters()
+
+        corners, ids, rejected = cv2.aruco.detectMarkers(img, aruco_dict, parameters=params)
+        
+        if ids:
+            for c in zip(corners, ids):
+                
+                pts = c[0]
+
+                x_min = pts[:, 0].min()
+                x_max = pts[:, 0].max()
+                y_min = pts[:, 1].min()
+                y_max = pts[:, 1].max()
+
+                x = (x_min + x_max) / 2
+                y = (y_min + y_max) / 2
+                w = (x_max - x_min)
+                h = (y_max - y_min)
+         
+                return BoundingBox(Vec2(x, y), Vec2(w, h))
+
