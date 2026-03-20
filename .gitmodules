@@ -1,9 +1,3 @@
-[submodule "third_party/yolov5"]
-	path = third_party/yolov5
-	url = https://github.com/ultralytics/yolov5
-[submodule "dep/labeller"]
-	path = dep/labeller
-	url = git@github.com:uaarg/labeller.git
 [submodule "src/modules/mavctl"]
 	path = src/modules/mavctl
 	url = git@github.com:uaarg/mavctl-python.git

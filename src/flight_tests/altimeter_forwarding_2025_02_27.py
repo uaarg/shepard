@@ -6,8 +6,6 @@ from src.modules.autopilot import navigator
 from src.modules.autopilot.altimeter_xm125 import XM125
 from src.modules.autopilot.altimeter_mavlink import MavlinkAltimeterProvider
 
-import json
-
 # Connection settings
 CONN_STR = "tcp:127.0.0.1:14550"
 MESSENGER_PORT = 14550
@@ -60,7 +58,6 @@ try:
         current_time = time.time()
         if current_time - last_status_time >= STATUS_INTERVAL:
 
-
             # Get the latest altimeter reading and log
             result = radar_sensor.measure()
             if result:
@@ -68,7 +65,7 @@ try:
 
                 if average:
                     AltimeterData.append(average[0])
-        
+
             # Get the latest altitude reading and log
             altitude_m = mavlink_altimeter.get_latest_altitude_meters()
             if altitude_m is not None:
@@ -77,7 +74,6 @@ try:
                 PixHawkData.append(altitude_m)
                 Delta.append(float(altitude_m) - float(average[0]))
 
-                
             else:
                 nav.send_status_message("No valid altitude reading")
 

@@ -6,20 +6,19 @@ import dronekit
 from pymavlink import mavutil
 
 from src.modules.autopilot.messenger import Messenger
-from src.modules import imaging
+
 
 class Navigator:
     """
     A class to handle navigation.
     """
 
-    vehicle: dronekit.Vehicle = None
+    vehicle: dronekit.Vehicle | None = None
     POSITION_TOLERANCE = 1
 
     def __init__(self, vehicle, messenger_port):
         self.vehicle = vehicle
         self.mavlink_messenger = Messenger(messenger_port)
-        
 
     def send_status_message(self, message):
         self.__message(message)
@@ -272,29 +271,25 @@ class Navigator:
         self.__message("Landing")
         self.vehicle.mode = dronekit.VehicleMode("LAND")
 
-
     def precision_landing(self, lat, long, alt):
         """
-
         Experimenting with precision landing and utilizing the PyMavlink precision landing function.
-
         Creates and sends a precision landing message to the mavlink
-
         Requires landing target data
         """
-        
+
         abort_land_alt = 5
 
-        msg = self.vehicle.message_factory.mav_cmd_nav_land(abort_land_alt, # minimum altitude if landing is aborted
-                                                            2, # Enable precision landing mode
-                                                            0, # blank
-                                                            0, # Desired Yaw Angle
-                                                            lat, # Latitude of target
-                                                            long, # Longitude of the target
-                                                            alt  # Altitude of the ground in the current reference frame
-                                                            )
+        msg = self.vehicle.message_factory.mav_cmd_nav_land(
+            abort_land_alt,  # minimum altitude if landing is aborted
+            2,               # Enable precision landing mode
+            0,               # blank
+            0,               # Desired Yaw Angle
+            lat,             # Latitude of target
+            long,            # Longitude of the target
+            alt              # Altitude of the ground in the current reference frame
+        )
         self.vehicle.send_mavlink(msg)
-
 
     def return_to_launch(self):
         """
@@ -305,8 +300,6 @@ class Navigator:
 
         self.__message("Returning to launch")
         self.vehicle.mode = dronekit.VehicleMode("RTL")
-
-            
 
     def set_speed(self, speed):
         """
@@ -477,7 +470,6 @@ class Navigator:
 
         return True
 
-
     def generate_typemask(self, keeps):
         # Generates typemask based on which values to be included
         mask = 0
@@ -485,13 +477,21 @@ class Navigator:
             mask |= (0 << bit)
         return mask
 
-    def set_position_target_local_ned(self, time_boot_ms=0, coordinate_frame=mavutil.mavlink.MAV_FRAME_LOCAL_NED, type_mask=0x07FF, x=0, y=0, z=0, vx=0, vy=0, vz=0, afx=0, afy=0, afz=0, yaw=0, yaw_rate=0):
+    def set_position_target_local_ned(
+                                      self,
+                                      time_boot_ms=0,
+                                      coordinate_frame=mavutil.mavlink.MAV_FRAME_LOCAL_NED,
+                                      type_mask=0x07FF,
+                                      x=0, y=0, z=0,
+                                      vx=0, vy=0, vz=0,
+                                      afx=0, afy=0, afz=0,
+                                      yaw=0, yaw_rate=0):
         msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
-            time_boot_ms, # Time since system boot
-            0, # Target System ID
-            0, # Target Component ID
-            coordinate_frame, # Coordinate Frame
-            type_mask, # Typemask of POSITION_TARGET_TYPEMASK
+            time_boot_ms,       # Time since system boot
+            0,                  # Target System ID
+            0,                  # Target Component ID
+            coordinate_frame,   # Coordinate Frame
+            type_mask,          # Typemask of POSITION_TARGET_TYPEMASK
             x,
             y,
             z,
@@ -507,8 +507,7 @@ class Navigator:
 
         self.vehicle.send_mavlink(msg)
 
-
-'''
+    '''
     def cancel_command(self, command_id=mavutil.mavlink.SET_POSITION_TARGET_LOCAL_NED):
         msg = self.vehicle.message_factory.command_long_encode(
             0,
@@ -519,6 +518,5 @@ class Navigator:
             command_id
         )
 
-        self.vehicle.send_mavlink(msg)'''
-
-
+        self.vehicle.send_mavlink(msg)
+    '''
