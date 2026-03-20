@@ -13,7 +13,6 @@ def test(img, _):
     print("Image taken")
 
 
-
 analysis = ImageAnalysisDelegate(detector, camera, location)
 analysis.subscribe(test)
 
