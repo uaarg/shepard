@@ -133,7 +133,8 @@ class ArucoDetector(BaseDetector):
         aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
         params = cv2.aruco.DetectorParameters()
 
-        corners, ids, _ = cv2.aruco.detectMarkers(gray, aruco_dict, parameters=params)
+        detector = cv2.aruco.ArucoDetector(aruco_dict, params)
+        corners, ids, _ = detector.detectMarkers(gray)
 
         if ids is None:
             return None
@@ -154,8 +155,5 @@ class ArucoDetector(BaseDetector):
         # Draw bounding box directly here
         img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         cv2.rectangle(img_bgr, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
-        cv2.imshow("Aruco Detection", img_bgr)
-        cv2.waitKey(1)
 
         return BoundingBox(Vec2(x, y), Vec2(w, h))

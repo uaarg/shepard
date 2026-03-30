@@ -145,7 +145,7 @@ class OakdCamera(CameraProvider):
         return capture
 
     def capture(self) -> Image.Image:
-        capture = self.capture_with_depth
+        capture = self.capture_with_depth()
         img = Image.fromarray(capture.rgb, "RGB")
         return img
 
