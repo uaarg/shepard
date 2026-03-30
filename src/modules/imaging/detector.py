@@ -115,30 +115,44 @@ class IrDetector(BaseDetector):
         return BoundingBox(Vec2(x, y), Vec2(w, h))
 
 
-class ArucoDetector():
+class ArucoDetector(BaseDetector):
 
     def predict(self, image: Image.Image) -> Optional[BoundingBox]:
-        img  = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+        img = np.array(image)
 
+        # Convert to grayscale
+        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+
+        # ArUco setup
         aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
+        params = cv2.aruco.DetectorParameters()
 
-        params = cv2.aruco.DetectorParemeters()
+        corners, ids, _ = cv2.aruco.detectMarkers(gray, aruco_dict, parameters=params)
 
-        corners, ids, rejected = cv2.aruco.detectMarkers(img, aruco_dict, parameters=params)
-        
-        if ids:
-            for c in zip(corners, ids):
-                
-                pts = c[0]
+        if ids is None:
+            return None
 
-                x_min = pts[:, 0].min()
-                x_max = pts[:, 0].max()
-                y_min = pts[:, 1].min()
-                y_max = pts[:, 1].max()
+        # Take first detected marker
+        pts = corners[0][0]  # shape (4,2)
 
-                x = (x_min + x_max) / 2
-                y = (y_min + y_max) / 2
-                w = (x_max - x_min)
+        x_min = pts[:, 0].min()
+        x_max = pts[:, 0].max()
+        y_min = pts[:, 1].min()
+        y_max = pts[:, 1].max()
+
+        x = int(x_min)
+        y = int(y_min)
+        w = int(x_max - x_min)
+        h = int(y_max - y_min)
+
+        # Draw bounding box directly here
+        img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        cv2.rectangle(img_bgr, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+        cv2.imshow("Aruco Detection", img_bgr)
+        cv2.waitKey(1)
+
+        return BoundingBox(Vec2(x, y), Vec2(w, h))
                 h = (y_max - y_min)
          
                 return BoundingBox(Vec2(x, y), Vec2(w, h))
