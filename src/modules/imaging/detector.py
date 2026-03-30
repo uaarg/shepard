@@ -1,10 +1,12 @@
-from functools import lru_cache
+from functools import cached_property, lru_cache
 from typing import Optional
+from dataclasses import dataclass
 
 from PIL import Image
 import numpy as np
 import cv2
 from cv2 import aruco
+import math
 
 
 @dataclass
@@ -86,6 +88,9 @@ class BoundingBox:
         iou = intersection / self.union(pred)
         return iou
 
+    def __str__(self) -> str:
+        return f"Bounding Box: [position: {self.position}, size: {self.size}]"
+
 
 class BaseDetector:
     def predict(self, image: Image.Image) -> Optional[BoundingBox]:
@@ -118,6 +123,7 @@ class IrDetector(BaseDetector):
 class ArucoDetector(BaseDetector):
 
     def predict(self, image: Image.Image) -> Optional[BoundingBox]:
+        # Convert to numpy array
         img = np.array(image)
 
         # Convert to grayscale
@@ -153,7 +159,3 @@ class ArucoDetector(BaseDetector):
         cv2.waitKey(1)
 
         return BoundingBox(Vec2(x, y), Vec2(w, h))
-                h = (y_max - y_min)
-         
-                return BoundingBox(Vec2(x, y), Vec2(w, h))
-
