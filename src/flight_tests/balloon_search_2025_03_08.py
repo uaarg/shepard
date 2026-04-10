@@ -1,6 +1,6 @@
 import math
 import os
-import threading
+# import threading
 import time
 
 from dronekit import connect, VehicleMode
@@ -9,7 +9,7 @@ from src.modules.autopilot import navigator
 from src.modules.autopilot.altimeter_xm125 import XM125
 from src.modules.autopilot.altimeter_mavlink import MavlinkAltimeterProvider
 
-from src.modules.imaging.camera import RPiCamera
+# from src.modules.imaging.camera import RPiCamera
 from src.modules.imaging.detector import Detector
 
 # Connection settings
@@ -59,7 +59,7 @@ try:
     nav.send_status_message("Starting balloon search")
 
     current_pic = 0
-    
+
     dirs = os.listdir("tmp/log")
     ft_num = len(dirs)
 
@@ -68,7 +68,8 @@ try:
         last_pic = current_pic
         distance, direction, current_pic = detector.process_image_directory(directory_path=f"tmp/log/{ft_num}")
 
-        if current_pic == last_pic: continue
+        if current_pic == last_pic:
+            continue
 
         if direction is not None:
             nav.send_status_message(f"Balloon detected: Move {direction}, Distance: {distance:.2f}")

@@ -18,7 +18,6 @@ client_socket.connect(('127.0.0.1', 8080))
 while True:
     img = cam.capture()
     data = pickle.dumps(img)
-    # 
     message = struct.pack("Q", len(data)) + data
 
     client_socket.sendall(message)
