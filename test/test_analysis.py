@@ -37,9 +37,12 @@ def test_analysis_subscriber():
     global detected
     detected = None
 
-    def _callback(_image, lon, lat):
+    def _callback(_image, bounding_box, pos):
         global detected
-        detected = Vec2(lon, lat)
+        if pos is not None:
+            detected = Vec2(pos[0], pos[1])
+        else:
+            detected = None
 
     analysis.subscribe(_callback)
 
@@ -87,7 +90,7 @@ def test_analysis_debugger():
     location_provider = DebugLocationProvider()
     location_provider.set_altitude(1.0)
     analysis = ImageAnalysisDelegate(detector, camera, location_provider,
-                                     debug)
+                                     debugger=debug)
 
     def run_analysis():
         detector.bounding_box = BoundingBox(Vec2(0, 0), Vec2(100, 100))

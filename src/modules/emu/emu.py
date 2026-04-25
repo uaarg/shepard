@@ -2,9 +2,8 @@ import threading
 import queue
 
 import asyncio
-from typing import Callable, List
+from typing import Callable, List, Optional
 
-from aiohttp import web
 from aiohttp import web
 import aiohttp
 
@@ -28,6 +27,9 @@ class Emu():
         self._on_connect = lambda: None
         self._is_connected = False
 
+        self._latest_video_frame: Optional[bytes] = None
+        self._video_lock = threading.Lock()
+
     def start_comms(self):
         self._comms_thread = threading.Thread(target=self._start_comms_loop, daemon=True)
         self._comms_thread.start()
@@ -38,9 +40,7 @@ class Emu():
         the path sent should be accessable from within self.img_dir so it can be accessed through
         /images/{filename}
         """
-        print(path)
         img_url = "/images/" + path
-        print(img_url)
         content = {
             "type": "img",
             "value": img_url
@@ -66,6 +66,14 @@ class Emu():
         """
         self._send_queue.put(message)
 
+    def send_video_frame(self, jpeg_bytes: bytes):
+        """
+        Update the latest video frame served at /video (MJPEG stream).
+        Call this from a background thread with raw JPEG bytes.
+        """
+        with self._video_lock:
+            self._latest_video_frame = jpeg_bytes
+
     def set_on_connect(self, func: Callable):
         self._on_connect = func
 
@@ -75,8 +83,11 @@ class Emu():
         """
         print("start_comms loop")
         self.app = web.Application()
-        self.app.add_routes([web.static('/images', self.img_dir),
-                             web.get('/ws', self.handle_websocket)])
+        self.app.add_routes([
+            web.static('/images', self.img_dir),
+            web.get('/ws', self.handle_websocket),
+            web.get('/video', self.handle_video_stream),
+        ])
 
         web.run_app(self.app, handle_signals=False)
 
@@ -102,6 +113,36 @@ class Emu():
             elif msg.type == aiohttp.WSMsgType.ERROR:
                 print("WebSocket error:", ws.exception())
     
+    async def handle_video_stream(self, request):
+        """
+        MJPEG stream endpoint. Connect with: <img src="http://HOST:PORT/video">
+        No frontend JS needed — the browser handles multipart natively.
+        """
+        response = web.StreamResponse(headers={
+            'Content-Type': 'multipart/x-mixed-replace; boundary=frame',
+            'Cache-Control': 'no-cache',
+        })
+        await response.prepare(request)
+
+        try:
+            while True:
+                with self._video_lock:
+                    frame = self._latest_video_frame
+
+                if frame is not None:
+                    await response.write(
+                        b'--frame\r\n'
+                        b'Content-Type: image/jpeg\r\n\r\n' +
+                        frame +
+                        b'\r\n'
+                    )
+
+                await asyncio.sleep(1 / 15)
+        except (ConnectionResetError, asyncio.CancelledError):
+            pass
+
+        return response
+
     async def handle_websocket(self, request):
         ws = web.WebSocketResponse()
         await ws.prepare(request)

@@ -1,5 +1,7 @@
-from functools import lru_cache
+from functools import lru_cache, cached_property
 from typing import Optional
+from dataclasses import dataclass
+import math
 
 from PIL import Image
 import numpy as np
@@ -56,35 +58,35 @@ class Vec2:
 
 class BoundingBox:
 
-def __init__(self, position: Vec2, size: Vec2):
-    self.position = position
-    self.size = size
+    def __init__(self, position: Vec2, size: Vec2):
+        self.position = position
+        self.size = size
 
-@lru_cache(maxsize=2)
-def intersection(self, other: 'BoundingBox') -> float:
-    top_left = Vec2.max(self.position, other.position)
-    bottom_right = Vec2.min(self.position + self.size,
-                            other.position + other.size)
+    @lru_cache(maxsize=2)
+    def intersection(self, other: 'BoundingBox') -> float:
+        top_left = Vec2.max(self.position, other.position)
+        bottom_right = Vec2.min(self.position + self.size,
+                                other.position + other.size)
 
-    size = bottom_right - top_left
+        size = bottom_right - top_left
 
-    intersection = size.x * size.y
-    return max(intersection, 0)
+        intersection = size.x * size.y
+        return max(intersection, 0)
 
-def union(self, other: 'BoundingBox') -> float:
-    intersection = self.intersection(other)
-    if intersection == 0:
-        return 0
+    def union(self, other: 'BoundingBox') -> float:
+        intersection = self.intersection(other)
+        if intersection == 0:
+            return 0
 
-    union = self.size.x * self.size.y + other.size.x * other.size.y - intersection
-    return union
+        union = self.size.x * self.size.y + other.size.x * other.size.y - intersection
+        return union
 
-def intersection_over_union(self, pred: 'BoundingBox') -> Optional[float]:
-    intersection = self.intersection(pred)
-    if intersection == 0:
-        return 0
-    iou = intersection / self.union(pred)
-    return iou
+    def intersection_over_union(self, pred: 'BoundingBox') -> Optional[float]:
+        intersection = self.intersection(pred)
+        if intersection == 0:
+            return 0
+        iou = intersection / self.union(pred)
+        return iou
 
 
 class BaseDetector:
@@ -115,16 +117,17 @@ class IrDetector(BaseDetector):
         return BoundingBox(Vec2(x, y), Vec2(w, h))
 
 
-class ArucoDetector():
+class ArucoDetector(BaseDetector):
 
     def predict(self, image: Image.Image) -> Optional[BoundingBox]:
         img  = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
 
         aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
 
-        params = cv2.aruco.DetectorParemeters()
+        params = cv2.aruco.DetectorParameters()
 
-        corners, ids, rejected = cv2.aruco.detectMarkers(img, aruco_dict, parameters=params)
+        detector = cv2.aruco.ArucoDetector(aruco_dict, params)
+        corners, ids, rejected = detector.detectMarkers(img)
         
         if ids:
             for c in zip(corners, ids):
