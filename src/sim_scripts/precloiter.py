@@ -1,8 +1,8 @@
-from modules.autopilot import navigator
-from src.modules.imaging.location import DebugLocationProvider
-from src.modules.imaging.camera import DebugCamera, GazeboCamera
-from src.modules.imaging.detector import ArucoDetector
-from src.modules.imaging.analysis import ImageAnalysisDelegate
+from src.modules.autopilot import navigator
+#from src.modules.imaging.location import DebugLocationProvider
+#from src.modules.imaging.camera import DebugCamera, GazeboCamera
+#from src.modules.imaging.detector import ArucoDetector
+#from src.modules.imaging.analysis import ImageAnalysisDelegate
 from src.modules.mavctl.mavctl.messages.navigator import Navigator, LandingTarget
 from dep.labeller.loader import Vec2
 
@@ -22,9 +22,13 @@ alpha = 0.3
 focal_length_px = (image_width / 2) / math.tan(math.radians(hfov / 2))
 standoff_distance = 0.25 # meters
 
+target = (3, 3, -5)
 
 drone = Navigator(ip="udp:127.0.0.1:14551")
 
+drone.set_message_interval()
+
+origin = (drone.get_local_position().north, drone.get_local_position().east, drone.get_local_position().down)
 
 depth_image = None
 
@@ -32,8 +36,13 @@ def depth_callback(msg):
     global depth_image
     depth_image = np.frombuffer(msg.data, dtype=np.float32).reshape(msg.heigth, msg.width)
 
+def beacon_compute():
+    position = (drone.get_local_position().north - origin[0], drone.get_local_position().east - origin[1], drone.get_local_position().down - origin[2])
 
-print(drone.master.mavlink20())
+    offset = (target[0] - position[0], target[1] - position[1], target[2] - position[2])
+
+    return offset
+    
 
 angle_x = 0
 angle_y = 0
@@ -76,6 +85,12 @@ def broadcast_landing_target(image, bounding_box):
                 landing_target = LandingTarget(forward = raw_angle_x, right = -raw_angle_y, altitude = dist)
                 drone.broadcast_landing_target(landing_target=landing_target)
 
+def broadcast_beacon_target():
+    offset = beacon_compute()
+
+    landing_target = LandingTarget(forward = offset[0], right = offset[1], altitude = offset[2])
+    drone.broadcast_landing_target(landing_target = landing_target)
+
 def get_depth_frame():
     result = subprocess.run(
         ['gz', 'topic', '-e', '-t', '/depth_camera', '-n', '1'],
@@ -109,15 +124,19 @@ def depth_thread():
             with depth_lock:
                 latest_depth = depth
 
-threading.Thread(target=depth_thread, daemon=True).start()
+while True:
+    broadcast_beacon_target()
 
-camera = GazeboCamera()
-detector = ArucoDetector()
-location = DebugLocationProvider()
 
-analysis = ImageAnalysisDelegate(detector, camera, location)
-analysis.subscribe(broadcast_landing_target)
+#threading.Thread(target=depth_thread, daemon=True).start()
 
-analysis.start()
+#camera = GazeboCamera()
+#detector = ArucoDetector()
+#location = DebugLocationProvider()
+
+#analysis = ImageAnalysisDelegate(detector, camera, location)
+#analysis.subscribe(broadcast_beacon_target)
+
+#analysis.start()
 
 print("Starting analysis")

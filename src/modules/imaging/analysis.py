@@ -109,13 +109,8 @@ class ImageAnalysisDelegate:
                 inference = self.get_inference(bounding_box)
                 if inference:
                     x, y = get_object_location(self.camera_attributes,
-<<<<<<< HEAD
                                                    inference)
                     subscriber(im, bounding_box)
-=======
-                                               inference)
-                    subscriber(im, (x, y))
->>>>>>> 77f8cd283fc402677c542d2fee1bdf8c01828842
             else:
                 subscriber(im, None)
 
