@@ -1,3 +1,5 @@
 #!/usr/bin/env sh
 
-PYTHONPATH=".:dep/labeller" pytest
+pip install -e src/modules/mavctl
+
+PYTHONPATH="." pytest

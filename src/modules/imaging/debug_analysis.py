@@ -1,6 +1,7 @@
 from typing import Callable, Optional, List, Callable, Any
 
 import threading
+import time
 # from multiprocessing import Process
 from .detector import BaseDetector, BoundingBox
 from .camera import CameraProvider
@@ -59,6 +60,8 @@ class DebugImageAnalysisDelegate:
 
         # image number
         self.i = 0
+        self.loop = True
+        self.thread = None
 
     def get_inference(self, bounding_box: BoundingBox) -> Inference:
         inference = Inference(bounding_box, self.location_provider.altitude())
@@ -68,11 +71,17 @@ class DebugImageAnalysisDelegate:
         """
         Will start the image analysis process in another thread.
         """
-        thread = threading.Thread(target=self._analysis_loop)
+        self.loop = True
+        self.thread = threading.Thread(target=self._analysis_loop)
         # process = Process(target=self._analysis_loop)
-        thread.start()
+        self.thread.start()
         # process.start()
         # Use `threading` to start `self._analysis_loop` in another thread.
+
+    def stop(self):
+        self.loop = False
+        if self.thread:
+            self.thread.join()
 
     def _analyze_image(self):
         """
@@ -115,8 +124,9 @@ class DebugImageAnalysisDelegate:
         Indefinitely run image analysis. This should be run in another thread;
         use `start()` to do so.
         """
-        while True:
+        while self.loop:
             self._analyze_image()
+            time.sleep(0.1)
 
     def subscribe(self, callback: Callable):
         """

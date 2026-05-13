@@ -1,6 +1,11 @@
 from typing import Optional, Tuple
-from PIL import Image, ImageDraw, ImageTk
-import tkinter as tk
+from PIL import Image, ImageDraw
+try:
+    from PIL import ImageTk
+    import tkinter as tk
+except ImportError:
+    ImageTk = None
+    tk = None
 from .detector import BoundingBox
 
 
@@ -15,13 +20,19 @@ class ImageAnalysisDebugger:
 
     def __init__(self):
         self.image: Optional[Image.Image] = None
-        self.root = tk.Tk()
+        if tk:
+            self.root = tk.Tk()
+        else:
+            self.root = None
         self.is_visible = False
 
     def show(self):
         """
         Start displaying the debugger window.
         """
+        if not tk or not ImageTk:
+            raise RuntimeError("Tkinter/ImageTk not found. Cannot show debugger.")
+
         if not self.image:
             raise RuntimeError("No image set. Cannot show without an image")
 
@@ -40,7 +51,8 @@ class ImageAnalysisDebugger:
         """
         Stop displaying the debugger window.
         """
-        self.root.withdraw()
+        if self.root:
+            self.root.withdraw()
         self.is_visible = False
 
     def visible(self) -> bool:

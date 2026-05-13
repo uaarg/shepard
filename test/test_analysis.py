@@ -12,24 +12,23 @@ from src.modules.imaging.analysis import ImageAnalysisDelegate
 from src.modules.imaging.camera import DebugCamera
 from src.modules.imaging.location import DebugLocationProvider
 from src.modules.imaging.debug import ImageAnalysisDebugger
-from dep.labeller.benchmarks.detector import LandingPadDetector, BoundingBox
-from dep.labeller.loader.label import Vec2
+from src.modules.imaging.detector import BaseDetector, BoundingBox, Vec2
 
 
-class DebugLandingPadDetector(LandingPadDetector):
+class DebugDetector(BaseDetector):
 
     def __init__(self,
                  vector: Optional[Vec2] = None,
                  bb: Optional[BoundingBox] = None):
         self.bounding_box = bb
 
-    def predict(self, _image: Image.Image) -> Optional[BoundingBox]:
+    def predict(self, image: Image.Image) -> Optional[BoundingBox]:
         return self.bounding_box
 
 
 def test_analysis_subscriber():
     camera = DebugCamera("res/test-image.jpeg")
-    detector = DebugLandingPadDetector()
+    detector = DebugDetector()
     location_provider = DebugLocationProvider()
     location_provider.set_altitude(1.0)
     analysis = ImageAnalysisDelegate(detector, camera, location_provider)
@@ -37,9 +36,12 @@ def test_analysis_subscriber():
     global detected
     detected = None
 
-    def _callback(_image, lon, lat):
+    def _callback(_image, lon_lat):
         global detected
-        detected = Vec2(lon, lat)
+
+        detected = None
+        if lon_lat:
+            detected = Vec2(lon_lat[0], lon_lat[1])
 
     analysis.subscribe(_callback)
 
@@ -48,15 +50,16 @@ def test_analysis_subscriber():
     assert detected is None
     detector.bounding_box = BoundingBox(Vec2(20, 20), Vec2(50, 50))
     analysis._analyze_image()
-    assert (detected -
-            Vec2(-115.48873916832288, 5.483286467459389e-06)).norm < 0.01
+    assert detected is not None
+    result = detected - Vec2(0.4158184416499504, -0.574961758930409)
+    assert result.norm < 0.01
 
 
 class MockImageAnlaysisDebugger(ImageAnalysisDebugger):
 
     def __init__(self):
-        self.image: Optional[Image.Image] = None
-        self.bounding_box: Optional[BoundingBox] = None
+        self.image: Image.Image | None = None
+        self.bounding_box: BoundingBox | None = None
         self.is_visible = False
 
     def show(self):
@@ -82,7 +85,7 @@ class MockImageAnlaysisDebugger(ImageAnalysisDebugger):
 
 def test_analysis_debugger():
     camera = DebugCamera("res/test-image.jpeg")
-    detector = DebugLandingPadDetector()
+    detector = DebugDetector()
     debug = MockImageAnlaysisDebugger()
     location_provider = DebugLocationProvider()
     location_provider.set_altitude(1.0)

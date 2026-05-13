@@ -233,7 +233,7 @@ class GazeboCamera(CameraProvider):
 
         if not self.cap.isOpened():
             print("Failed to open UDP Stream")
-            exit()
+            raise RuntimeError("Failed to open UDP Stream")
 
     def set_size(self, size: Tuple[int, int]):
         self.size = size

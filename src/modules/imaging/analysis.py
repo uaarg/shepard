@@ -1,6 +1,7 @@
 from typing import Callable, Optional, List, Callable, Any
 
 import threading
+import time
 # from multiprocessing import Process
 from .detector import BaseDetector, BoundingBox
 from .camera import CameraProvider
@@ -121,6 +122,7 @@ class ImageAnalysisDelegate:
         """
         while self.loop:
             self._analyze_image()
+            time.sleep(0.1)
 
     def subscribe(self, callback: Callable):
         """
