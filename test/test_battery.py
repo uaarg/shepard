@@ -4,7 +4,6 @@ import time
 from dronekit import connect
 
 from src.modules.autopilot import navigator
-from src.modules.autopilot import lander
 from src.modules.imaging.mavlink import MAVLinkDelegate
 from src.modules.imaging.battery import MAVLinkBatteryStatusProvider
 
@@ -14,7 +13,6 @@ MESSENGER_PORT = 14552
 drone = connect(CONN_STR, wait_ready=False)
 
 nav = navigator.Navigator(drone, MESSENGER_PORT)
-lander = lander.Lander()
 
 nav.send_status_message("Shepard is online")
 

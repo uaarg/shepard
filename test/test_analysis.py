@@ -14,6 +14,8 @@ from src.modules.imaging.location import DebugLocationProvider
 from src.modules.imaging.debug import ImageAnalysisDebugger
 from src.modules.imaging.detector import BaseDetector, BoundingBox, Vec2
 
+detected: Optional[Vec2] = None
+
 
 class DebugDetector(BaseDetector):
     def __init__(self, vector: Optional[Vec2] = None, bb: Optional[BoundingBox] = None):
@@ -85,7 +87,7 @@ def test_analysis_debugger():
     debug = MockImageAnlaysisDebugger()
     location_provider = DebugLocationProvider()
     location_provider.set_altitude(1.0)
-    analysis = ImageAnalysisDelegate(detector, camera, location_provider, debug)
+    analysis = ImageAnalysisDelegate(detector, camera, location_provider, debugger=debug)
 
     def run_analysis():
         detector.bounding_box = BoundingBox(Vec2(0, 0), Vec2(100, 100))

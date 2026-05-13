@@ -20,13 +20,13 @@ def test_debug_camera(tmp_path):
     assert im.height == 400
 
     # Can capture the image as an ndarray
-    im_np = cam.caputure_as_ndarry()
+    im_np = cam.capture_as_ndarray()
     assert im_np.shape == (400, 600, 3)
     assert im_np.sum() == 121089435  # Stupid simple checksum
 
     # Can save the image to a path
     im_path = tmp_path / "copy.jpeg"
-    cam.caputure_to(im_path)
+    cam.capture_to(im_path)
     im_md5 = md5sum(im_path)
 
     # Manually save a copy of 'test-image.jpeg'.

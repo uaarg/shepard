@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Optional, Any
 
 import pathlib
 from PIL import Image
@@ -35,7 +35,7 @@ class CameraProvider:
         """
         self.capture().save(path)
 
-    def caputure_as_ndarry(self) -> np.ndarray:
+    def capture_as_ndarray(self) -> np.ndarray:
         """
         Captures a single image returns it's numpy.ndarray representation. Will
         have shape (height, width, colors).
@@ -82,6 +82,8 @@ class OakdCamera(CameraProvider):
 
     def __init__(self, fps: int = 30):
         self._init_pipeline(fps)
+        self.device: Optional[dai.Device] = None
+        self.queue: Optional[dai.DataOutputQueue] = None
 
     def _init_pipeline(self, fps: int):
         """Initialize the Depth AI pipeline (will be run on the OAK-D)"""
@@ -134,7 +136,10 @@ class OakdCamera(CameraProvider):
                 "No oakD connection, perhaps you forgot to call the .start() function"
             )
 
-        msg = self.queue.get()
+        if self.queue is None:
+            raise Exception("No queue available")
+
+        msg: Any = self.queue.get()
         rgbFrame = msg["rgb"]
         cv_frame = rgbFrame.getCvFrame()
         rgb_frame = cv2.cvtColor(cv_frame, cv2.COLOR_BGR2RGB)
@@ -148,7 +153,7 @@ class OakdCamera(CameraProvider):
         return capture
 
     def capture(self) -> Image.Image:
-        capture = self.capture_with_depth
+        capture = self.capture_with_depth()
         img = Image.fromarray(capture.rgb, "RGB")
         return img
 
@@ -156,11 +161,13 @@ class OakdCamera(CameraProvider):
         """Start the depth-perception process on the OAK-D"""
         print("Starting OAK-D Connection")
         self.device = dai.Device(self.pipeline)
-        self.queue = self.device.getOutputQueue("out", maxSize=1, blocking=False)
+        if self.device:
+            self.queue = self.device.getOutputQueue("out", 1, False)  # type: ignore
 
     def stop(self):
         """Stop the depth-perception process"""
-        self.device.close()
+        if self.device:
+            self.device.close()
         self.queue = None
 
 

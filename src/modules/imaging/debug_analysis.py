@@ -1,4 +1,4 @@
-from typing import Optional, List, Callable, Any
+from typing import Optional, List, Callable, Any, Tuple
 
 import threading
 import time
@@ -44,7 +44,9 @@ class DebugImageAnalysisDelegate:
         self.camera = camera
         self.debugger = debugger
         self.location_provider = location_provider
-        self.subscribers: List[Callable[[Image.Image, float, float], Any]] = []
+        self.subscribers: List[
+            Callable[[Image.Image, Optional[Tuple[float, float]]], Any]
+        ] = []
         self.camera_attributes = CameraAttributes()
 
         # log pictures taken
@@ -64,7 +66,7 @@ class DebugImageAnalysisDelegate:
         # image number
         self.i = 0
         self.loop = True
-        self.thread = None
+        self.thread: Optional[threading.Thread] = None
 
     def get_inference(self, bounding_box: BoundingBox) -> Inference:
         inference = Inference(bounding_box, self.location_provider.altitude())
@@ -83,7 +85,7 @@ class DebugImageAnalysisDelegate:
 
     def stop(self):
         self.loop = False
-        if self.thread:
+        if self.thread is not None:
             self.thread.join()
 
     def _analyze_image(self):

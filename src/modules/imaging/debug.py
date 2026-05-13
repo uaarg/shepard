@@ -1,12 +1,12 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Any
 from PIL import Image, ImageDraw
 
 try:
     from PIL import ImageTk
     import tkinter as tk
 except ImportError:
-    ImageTk = None
-    tk = None
+    ImageTk: Any = None  # type: ignore
+    tk: Any = None  # type: ignore
 from .detector import BoundingBox
 
 
@@ -21,10 +21,9 @@ class ImageAnalysisDebugger:
 
     def __init__(self):
         self.image: Optional[Image.Image] = None
+        self.root: Any = None
         if tk:
             self.root = tk.Tk()
-        else:
-            self.root = None
         self.is_visible = False
 
     def show(self):

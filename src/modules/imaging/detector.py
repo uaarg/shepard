@@ -98,7 +98,7 @@ class IrDetector(BaseDetector):
         img = np.array(image)
 
         gray_img = cv2.cvtColor(img, cv2.COLOR_RGBA2GRAY)
-        max_val = np.max(gray_img)  # returns maximum value of brightness
+        max_val = int(np.max(gray_img))  # returns maximum value of brightness
         if max_val < 200:
             return None  # lower threshold for intensity
         _, thresh = cv2.threshold(gray_img, max_val - 10, 255, cv2.THRESH_BINARY)
@@ -111,10 +111,14 @@ class IrDetector(BaseDetector):
         if len(contours) == 0:
             return None
 
+        x, y, w, h = 0, 0, 0, 0
         for cnt in contours:
             x, y, w, h = cv2.boundingRect(cnt)
 
-        return BoundingBox(Vec2(x, y), Vec2(w, h))
+        if w > 0 and h > 0:
+            return BoundingBox(Vec2(float(x), float(y)), Vec2(float(w), float(h)))
+
+        return None
 
 
 class ArucoDetector:
@@ -123,9 +127,9 @@ class ArucoDetector:
 
         aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
 
-        params = cv2.aruco.DetectorParemeters()
+        params = cv2.aruco.DetectorParameters()
 
-        corners, ids, rejected = cv2.aruco.detectMarkers(
+        corners, ids, rejected = cv2.aruco.detectMarkers(  # type: ignore
             img, aruco_dict, parameters=params
         )
 
@@ -144,3 +148,5 @@ class ArucoDetector:
                 h = y_max - y_min
 
                 return BoundingBox(Vec2(x, y), Vec2(w, h))
+
+        return None
