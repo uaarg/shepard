@@ -1,5 +1,6 @@
 from typing import Optional, Tuple
 from PIL import Image, ImageDraw
+
 try:
     from PIL import ImageTk
     import tkinter as tk
@@ -39,12 +40,9 @@ class ImageAnalysisDebugger:
         self.root.deiconify()
         self.is_visible = True
         img = ImageTk.PhotoImage(self.image)
-        self.root.geometry('%dx%d' % (self.image.size[0], self.image.size[1]))
+        self.root.geometry("%dx%d" % (self.image.size[0], self.image.size[1]))
         label_image = tk.Label(self.root, image=img)
-        label_image.place(x=0,
-                          y=0,
-                          width=self.image.size[0],
-                          height=self.image.size[1])
+        label_image.place(x=0, y=0, width=self.image.size[0], height=self.image.size[1])
         self.root.update()
 
     def hide(self):
@@ -80,8 +78,10 @@ class ImageAnalysisDebugger:
 
         image = self.image
         top_left_corner: Tuple[float, float] = (bb.position.x, bb.position.y)
-        bottom_right_corner: Tuple[float, float] = (bb.position.x + bb.size.x,
-                                                    bb.position.y + bb.size.y)
+        bottom_right_corner: Tuple[float, float] = (
+            bb.position.x + bb.size.x,
+            bb.position.y + bb.size.y,
+        )
 
         draw = ImageDraw.Draw(image)
         draw.rectangle((top_left_corner, bottom_right_corner))

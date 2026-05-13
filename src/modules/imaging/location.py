@@ -143,22 +143,22 @@ class DebugLocationProvider(LocationProvider):
         roll -- Roll angle
         yaw -- Yaw angle
         """
-        if 'lat' in kwargs or 'lng' in kwargs:
-            lat = kwargs.get('lat', self._current_location.lat)
-            lng = kwargs.get('lng', self._current_location.lng)
+        if "lat" in kwargs or "lng" in kwargs:
+            lat = kwargs.get("lat", self._current_location.lat)
+            lng = kwargs.get("lng", self._current_location.lng)
 
             self._current_location = LatLng(lat, lng)
 
-        if 'heading' in kwargs:
-            self._current_heading = Heading(kwargs['heading'])
+        if "heading" in kwargs:
+            self._current_heading = Heading(kwargs["heading"])
 
-        if 'altitude' in kwargs:
-            self._current_altitude = kwargs['altitude']
+        if "altitude" in kwargs:
+            self._current_altitude = kwargs["altitude"]
 
-        if any(k in kwargs for k in ['pitch', 'roll', 'yaw']):
-            pitch = kwargs.get('pitch', self._current_orientation.pitch)
-            roll = kwargs.get('roll', self._current_orientation.roll)
-            yaw = kwargs.get('yaw', self._current_orientation.yaw)
+        if any(k in kwargs for k in ["pitch", "roll", "yaw"]):
+            pitch = kwargs.get("pitch", self._current_orientation.pitch)
+            roll = kwargs.get("roll", self._current_orientation.roll)
+            yaw = kwargs.get("yaw", self._current_orientation.yaw)
 
             self._current_orientation = Rotation(pitch, roll, yaw)
 
@@ -189,7 +189,9 @@ class MAVLinkLocationProvider(LocationProvider):
                 param4=0,
                 param5=0,
                 param6=0,
-                param7=1))  # param7: send messaged to requester
+                param7=1,
+            )
+        )  # param7: send messaged to requester
         self.mavlink_delegate.send(
             dialect.MAVLink_command_long_message(
                 target_system=1,
@@ -202,18 +204,22 @@ class MAVLinkLocationProvider(LocationProvider):
                 param4=0,
                 param5=0,
                 param6=0,
-                param7=1))  # param7: send messaged to requester
+                param7=1,
+            )
+        )  # param7: send messaged to requester
 
     def _process_message(self, message):
         # This callback processes incoming MAVLink messages and updates the internal state
-        if message.get_type() == 'GLOBAL_POSITION_INT':
+        if message.get_type() == "GLOBAL_POSITION_INT":
             self._location = LatLng(message.lat / 1e7, message.lon / 1e7)
             self._altitude = message.alt / 1000.0  # Altitude in meters
             self._heading = Heading(message.hdg / 1e7)  # Heading in degrees
-        elif message.get_type() == 'ATTITUDE':
-            self._orientation = Rotation(pitch=math.degrees(message.pitch),
-                                         roll=math.degrees(message.roll),
-                                         yaw=math.degrees(message.yaw))
+        elif message.get_type() == "ATTITUDE":
+            self._orientation = Rotation(
+                pitch=math.degrees(message.pitch),
+                roll=math.degrees(message.roll),
+                yaw=math.degrees(message.yaw),
+            )
 
     def location(self) -> LatLng:
         if self._location is not None:

@@ -8,7 +8,7 @@ altimeter_module.begin()
 while True:
     result = altimeter_module.measure()
     if result:
-        average = result[0]['averaged']
+        average = result[0]["averaged"]
 
         # Average distance will not be available until at least `average_window` measurements have been taken
         if average:

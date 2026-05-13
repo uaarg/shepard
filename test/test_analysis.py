@@ -16,10 +16,7 @@ from src.modules.imaging.detector import BaseDetector, BoundingBox, Vec2
 
 
 class DebugDetector(BaseDetector):
-
-    def __init__(self,
-                 vector: Optional[Vec2] = None,
-                 bb: Optional[BoundingBox] = None):
+    def __init__(self, vector: Optional[Vec2] = None, bb: Optional[BoundingBox] = None):
         self.bounding_box = bb
 
     def predict(self, image: Image.Image) -> Optional[BoundingBox]:
@@ -56,15 +53,14 @@ def test_analysis_subscriber():
 
 
 class MockImageAnlaysisDebugger(ImageAnalysisDebugger):
-
     def __init__(self):
         self.image: Image.Image | None = None
         self.bounding_box: BoundingBox | None = None
         self.is_visible = False
 
     def show(self):
-        #if not self.image:
-        #raise RuntimeError("No image set. Cannot show without an image")
+        # if not self.image:
+        # raise RuntimeError("No image set. Cannot show without an image")
         self.is_visible = True
 
     def hide(self):
@@ -89,8 +85,7 @@ def test_analysis_debugger():
     debug = MockImageAnlaysisDebugger()
     location_provider = DebugLocationProvider()
     location_provider.set_altitude(1.0)
-    analysis = ImageAnalysisDelegate(detector, camera, location_provider,
-                                     debug)
+    analysis = ImageAnalysisDelegate(detector, camera, location_provider, debug)
 
     def run_analysis():
         detector.bounding_box = BoundingBox(Vec2(0, 0), Vec2(100, 100))

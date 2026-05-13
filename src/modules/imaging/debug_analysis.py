@@ -1,7 +1,8 @@
-from typing import Callable, Optional, List, Callable, Any
+from typing import Optional, List, Callable, Any
 
 import threading
 import time
+
 # from multiprocessing import Process
 from .detector import BaseDetector, BoundingBox
 from .camera import CameraProvider
@@ -30,13 +31,15 @@ class DebugImageAnalysisDelegate:
     TODO: geolocate the landing pad using the drone's location.
     """
 
-    def __init__(self,
-                 detector: BaseDetector,
-                 camera: CameraProvider,
-                 location_provider: LocationProvider,
-                 debugger: Optional[ImageAnalysisDebugger] = None,
-                 ):
+    def __init__(
+        self,
+        detector: BaseDetector,
+        camera: CameraProvider,
+        location_provider: LocationProvider,
+        debugger: Optional[ImageAnalysisDebugger] = None,
+    ):
         import os
+
         self.detector = detector
         self.camera = camera
         self.debugger = debugger
@@ -96,8 +99,12 @@ class DebugImageAnalysisDelegate:
 
         if bounding_box:
             draw = ImageDraw.Draw(im)
-            bb = (bounding_box.position.x, bounding_box.position.y,
-                  bounding_box.size.x, bounding_box.size.y)
+            bb = (
+                bounding_box.position.x,
+                bounding_box.position.y,
+                bounding_box.size.x,
+                bounding_box.size.y,
+            )
             draw.rectangle(bb)
 
         im.save(os.path.join(self.bb_img_path, f"{self.i}.png"))
@@ -113,8 +120,7 @@ class DebugImageAnalysisDelegate:
             if bounding_box:
                 inference = self.get_inference(bounding_box)
                 if inference:
-                    x, y = get_object_location(self.camera_attributes,
-                                               inference)
+                    x, y = get_object_location(self.camera_attributes, inference)
                     subscriber(im, (x, y))
             else:
                 subscriber(im, None)

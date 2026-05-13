@@ -14,7 +14,7 @@ def wait_for_voltage():
             print("voltage: ", voltage)
         except ValueError:
             pass
-            #print("no data yet")
+            # print("no data yet")
         time.sleep(0.5)
 
 

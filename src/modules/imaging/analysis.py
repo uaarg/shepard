@@ -1,7 +1,8 @@
-from typing import Callable, Optional, List, Callable, Any
+from typing import Optional, List, Callable, Any
 
 import threading
 import time
+
 # from multiprocessing import Process
 from .detector import BaseDetector, BoundingBox
 from .camera import CameraProvider
@@ -44,18 +45,22 @@ class ImageAnalysisDelegate:
     TODO: geolocate the landing pad using the drone's location.
     """
 
-    def __init__(self,
-                 detector: BaseDetector,
-                 camera: CameraProvider,
-                 location_provider: LocationProvider = None,
-                 navigation_provider: Navigator = None,
-                 debugger: Optional[ImageAnalysisDebugger] = None):
+    def __init__(
+        self,
+        detector: BaseDetector,
+        camera: CameraProvider,
+        location_provider: LocationProvider = None,
+        navigation_provider: Navigator = None,
+        debugger: Optional[ImageAnalysisDebugger] = None,
+    ):
         self.detector = detector
         self.camera = camera
         self.debugger = debugger
 
         if location_provider is None and navigation_provider is None:
-            raise ValueError("Either location_provider or navigation_provider must be provided.")
+            raise ValueError(
+                "Either location_provider or navigation_provider must be provided."
+            )
 
         self.location_provider = location_provider
         self.navigation_provider = navigation_provider
@@ -109,8 +114,7 @@ class ImageAnalysisDelegate:
             if bounding_box:
                 inference = self.get_inference(bounding_box)
                 if inference:
-                    x, y = get_object_location(self.camera_attributes,
-                                               inference)
+                    x, y = get_object_location(self.camera_attributes, inference)
                     subscriber(im, (x, y))
             else:
                 subscriber(im, None)

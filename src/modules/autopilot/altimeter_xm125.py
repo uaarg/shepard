@@ -10,11 +10,13 @@ DEBUG = False
 
 class SensorError(Exception):
     """Base exception class for sensor errors"""
+
     pass
 
 
 class SensorState(Enum):
     """Enum to track sensor state"""
+
     UNINITIALIZED = 0
     INITIALIZED = 1
     ERROR = 2
@@ -23,6 +25,7 @@ class SensorState(Enum):
 
 class SensorReflectorShape(Enum):
     """Enum to define reflector shape"""
+
     GENERIC = 1
     PLANAR = 2
 
@@ -35,11 +38,11 @@ class XM125(Altimeter):
     REG_DETECTOR_STATUS = 0x0003
     REG_DISTANCE_RESULT = 0x0010
     REG_PEAK0_DISTANCE = 0x0011
-    REG_PEAK0_STRENGTH = 0x001b
+    REG_PEAK0_STRENGTH = 0x001B
     REG_START = 0x0040
     REG_END = 0x0041
     REG_COMMAND = 0x0100
-    REG_REFLECTOR_SHAPE = 0x004b
+    REG_REFLECTOR_SHAPE = 0x004B
 
     # Command values
     CMD_APPLY_CONFIG_AND_CALIBRATE = 1
@@ -52,7 +55,7 @@ class XM125(Altimeter):
 
     # Status masks
     DETECTOR_STATUS_BUSY_MASK = 0x80000000
-    DISTANCE_RESULT_NUM_DISTANCES_MASK = 0x0000000f
+    DISTANCE_RESULT_NUM_DISTANCES_MASK = 0x0000000F
     DISTANCE_RESULT_NEAR_START_EDGE = 0x00000100
     DISTANCE_RESULT_CALIBRATION_NEEDED = 0x00000200
     DISTANCE_RESULT_MEASURE_DISTANCE_ERROR = 0x00000400
@@ -62,7 +65,15 @@ class XM125(Altimeter):
     RETRY_DELAY = 0.5  # seconds
     ERROR_TIMEOUT = 5.0  # seconds
 
-    def __init__(self, sensor_id=0, min_distance=250, max_distance=10000, bus=1, address=0x52, average_window=5):
+    def __init__(
+        self,
+        sensor_id=0,
+        min_distance=250,
+        max_distance=10000,
+        bus=1,
+        address=0x52,
+        average_window=5,
+    ):
         super().__init__(sensor_id, min_distance, max_distance)
         self.bus = smbus2.SMBus(bus)
         self.address = address
@@ -80,27 +91,33 @@ class XM125(Altimeter):
 
     def get_distance_mm(self) -> Optional[float]:
         """Get the latest distance measurement in millimeters"""
-        if self._latest_measurement and self._latest_measurement[0]['averaged']:
-            return self._latest_measurement[0]['averaged'][0]
+        if self._latest_measurement and self._latest_measurement[0]["averaged"]:
+            return self._latest_measurement[0]["averaged"][0]
         return None
 
     def _read_register(self, reg_addr) -> Optional[int]:
         """Read a 32-bit register value with error handling."""
         try:
-            write = smbus2.i2c_msg.write(self.address, [(reg_addr >> 8) & 0xFF, reg_addr & 0xFF])
+            write = smbus2.i2c_msg.write(
+                self.address, [(reg_addr >> 8) & 0xFF, reg_addr & 0xFF]
+            )
             read = smbus2.i2c_msg.read(self.address, 4)
 
             if DEBUG:
-                print(f"\nREAD OPERATION:")
+                print("\nREAD OPERATION:")
                 print(f"  Register: 0x{reg_addr:04x}")
-                print(f"  Sending address bytes: MSB=0x{(reg_addr >> 8) & 0xFF:02x}, LSB=0x{reg_addr & 0xFF:02x}")
+                print(
+                    f"  Sending address bytes: MSB=0x{(reg_addr >> 8) & 0xFF:02x}, LSB=0x{reg_addr & 0xFF:02x}"
+                )
 
             self.bus.i2c_rdwr(write, read)
             data = list(read)
             value = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3]
 
             if DEBUG:
-                print(f"  Received bytes: [0x{data[0]:02x}, 0x{data[1]:02x}, 0x{data[2]:02x}, 0x{data[3]:02x}]")
+                print(
+                    f"  Received bytes: [0x{data[0]:02x}, 0x{data[1]:02x}, 0x{data[2]:02x}, 0x{data[3]:02x}]"
+                )
                 print(f"  Decoded value: 0x{value:08x} ({value})")
 
             return value
@@ -117,11 +134,11 @@ class XM125(Altimeter):
                 (value >> 24) & 0xFF,  # Data to slave [31:24]
                 (value >> 16) & 0xFF,  # Data to slave [23:16]
                 (value >> 8) & 0xFF,  # Data to slave [15:8]
-                value & 0xFF  # Data to slave [7:0]
+                value & 0xFF,  # Data to slave [7:0]
             ]
 
             if DEBUG:
-                print(f"\nWRITE OPERATION:")
+                print("\nWRITE OPERATION:")
                 print(f"  Register: 0x{reg_addr:04x}")
                 print(f"  Value to write: 0x{value:08x} ({value})")
                 print(f"  Sending bytes: {[f'0x{b:02x}' for b in data]}")
@@ -189,7 +206,7 @@ class XM125(Altimeter):
     def begin(self) -> bool:
         """Initialize the sensor with given start and end distances in mm."""
         if DEBUG:
-            print(f"\nInitializing sensor:")
+            print("\nInitializing sensor:")
             print(f"  Start distance: {self.min_distance_mm}mm")
             print(f"  End distance: {self.max_distance_mm}mm")
             print(f"  Reflector shape: {self.REFLECTOR_SHAPE}")
@@ -214,7 +231,9 @@ class XM125(Altimeter):
             print("Applying configuration and calibrating...")
 
         # Apply configuration and calibrate
-        if not self._write_register(self.REG_COMMAND, self.CMD_APPLY_CONFIG_AND_CALIBRATE):
+        if not self._write_register(
+            self.REG_COMMAND, self.CMD_APPLY_CONFIG_AND_CALIBRATE
+        ):
             if DEBUG:
                 print("Failed to apply configuration and calibrate")
             return False
@@ -224,7 +243,11 @@ class XM125(Altimeter):
         # Check status
         status = self._read_register(self.REG_DETECTOR_STATUS)
         if DEBUG:
-            print(f"Final status: 0x{status:08x}" if status is not None else "Failed to read final status")
+            print(
+                f"Final status: 0x{status:08x}"
+                if status is not None
+                else "Failed to read final status"
+            )
 
         success = status is not None and status >= 0
         if success:
@@ -293,7 +316,7 @@ class XM125(Altimeter):
                 self._handle_error("Measurement error")
                 return []
 
-            num_distances = (result & self.DISTANCE_RESULT_NUM_DISTANCES_MASK)
+            num_distances = result & self.DISTANCE_RESULT_NUM_DISTANCES_MASK
             peaks_with_average = []
 
             for i in range(num_distances):
@@ -309,9 +332,13 @@ class XM125(Altimeter):
                     self.strength_avg.add(strength)
 
                     peak_data = {
-                        'raw': (distance, strength),
-                        'averaged': (self.distance_avg.get_average(),
-                                     self.strength_avg.get_average()) if self.distance_avg.is_valid() else None
+                        "raw": (distance, strength),
+                        "averaged": (
+                            self.distance_avg.get_average(),
+                            self.strength_avg.get_average(),
+                        )
+                        if self.distance_avg.is_valid()
+                        else None,
                     }
                     peaks_with_average.append(peak_data)
 
@@ -343,13 +370,17 @@ def main():
 
                 if peaks:
                     for i, peak_data in enumerate(peaks):
-                        raw_distance, raw_strength = peak_data['raw']
+                        raw_distance, raw_strength = peak_data["raw"]
                         print(f"\nPeak {i}:")
-                        print(f"  Raw: Distance = {raw_distance}mm, Strength = {raw_strength}")
+                        print(
+                            f"  Raw: Distance = {raw_distance}mm, Strength = {raw_strength}"
+                        )
 
-                        if peak_data['averaged']:
-                            avg_distance, avg_strength = peak_data['averaged']
-                            print(f"  Avg: Distance = {avg_distance:.1f}mm, Strength = {avg_strength:.1f}")
+                        if peak_data["averaged"]:
+                            avg_distance, avg_strength = peak_data["averaged"]
+                            print(
+                                f"  Avg: Distance = {avg_distance:.1f}mm, Strength = {avg_strength:.1f}"
+                            )
                 else:
                     print("No peaks detected")
 

@@ -9,8 +9,10 @@ from PIL import Image, ImageDraw
 
 def func(image: Image.Image, bb: BoundingBox):
     top_left_corner: Tuple[float, float] = (bb.position.x, bb.position.y)
-    bottom_right_corner: Tuple[float, float] = (bb.position.x + bb.size.x,
-                                                bb.position.y + bb.size.y)
+    bottom_right_corner: Tuple[float, float] = (
+        bb.position.x + bb.size.x,
+        bb.position.y + bb.size.y,
+    )
 
     draw = ImageDraw.Draw(image)
     draw.rectangle((top_left_corner, bottom_right_corner), outline="red", width=3)

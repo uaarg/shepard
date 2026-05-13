@@ -1,1 +1,1 @@
-from .emu import *
+from .emu import Emu as Emu

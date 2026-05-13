@@ -13,7 +13,9 @@ class MavlinkAltimeterProvider:
     and send them to the Pixhawk via MAVLink.
     """
 
-    def __init__(self, sensor: Altimeter, connection_string: str, update_rate_hz: float = 10.0):
+    def __init__(
+        self, sensor: Altimeter, connection_string: str, update_rate_hz: float = 10.0
+    ):
         """
         Initialize the MavlinkAltimeterProvider.
 
@@ -42,7 +44,9 @@ class MavlinkAltimeterProvider:
             self._tstart = time.time()
 
             # Initialize MAVLink connection
-            self._mavlink_connection = mavutil.mavlink_connection(self.connection_string)
+            self._mavlink_connection = mavutil.mavlink_connection(
+                self.connection_string
+            )
             # Wait for a heartbeat to ensure connection is established
             self._mavlink_connection.wait_heartbeat()
             print(f"MAVLink connection established on {self.connection_string}")

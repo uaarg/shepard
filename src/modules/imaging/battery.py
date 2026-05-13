@@ -53,11 +53,13 @@ class MAVLinkBatteryStatusProvider:
                 param4=0,
                 param5=0,
                 param6=0,
-                param7=1))  # param7: send messaged to requester
+                param7=1,
+            )
+        )  # param7: send messaged to requester
 
     def _process_message(self, message):
         # This callback processes incoming MAVLink messages and updates the internal state
-        if message.get_type() == 'SYS_STATUS':
+        if message.get_type() == "SYS_STATUS":
             # message.voltage_battery is an int in mV
             self._voltage = float(message.voltage_battery) / 1e3
 

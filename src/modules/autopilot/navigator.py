@@ -62,12 +62,14 @@ class Navigator:
         self.__message(f"Moving to {lat}, {lon}")
 
         target_location = dronekit.LocationGlobalRelative(
-            lat, lon, self.vehicle.location.global_relative_frame.alt)
+            lat, lon, self.vehicle.location.global_relative_frame.alt
+        )
         self.vehicle.simple_goto(target_location)
 
         while self.vehicle.mode.name == "GUIDED":
             remaining_distance = self.__get_distance_metres(
-                self.vehicle.location.global_relative_frame, target_location)
+                self.vehicle.location.global_relative_frame, target_location
+            )
             self.__message(f"Distance to target: {remaining_distance} m")
             if remaining_distance <= self.POSITION_TOLERANCE:
                 self.__message("Reached target")
@@ -86,14 +88,14 @@ class Navigator:
         self.__message(f"Moving {d_north} m north and {d_east} m east")
 
         current_location = self.vehicle.location.global_relative_frame
-        target_location = self.__get_location_metres(current_location, d_north,
-                                                     d_east)
+        target_location = self.__get_location_metres(current_location, d_north, d_east)
 
         self.vehicle.simple_goto(target_location)
 
         while self.vehicle.mode.name == "GUIDED":
             remaining_distance = self.__get_distance_metres(
-                self.vehicle.location.global_relative_frame, target_location)
+                self.vehicle.location.global_relative_frame, target_location
+            )
             self.__message(f"Distance to target: {remaining_distance} m")
             if remaining_distance <= self.POSITION_TOLERANCE:
                 self.__message("Reached target")
@@ -156,8 +158,8 @@ class Navigator:
 
         while self.vehicle.mode.name == "GUIDED":
             remaining_distance = abs(
-                self.vehicle.location.global_relative_frame.alt -
-                target_altitude.alt)
+                self.vehicle.location.global_relative_frame.alt - target_altitude.alt
+            )
             self.__message(f"Distance to target: {remaining_distance} m")
             if remaining_distance <= self.POSITION_TOLERANCE:
                 self.__message("Reached target")
@@ -172,8 +174,7 @@ class Navigator:
         :return: None
         """
 
-        self.__message(
-            f"Setting altitude to {altitude} m relative to current altitude")
+        self.__message(f"Setting altitude to {altitude} m relative to current altitude")
 
         target_altitude = dronekit.LocationGlobalRelative(
             self.vehicle.location.global_relative_frame.lat,
@@ -184,20 +185,23 @@ class Navigator:
 
         while self.vehicle.mode.name == "GUIDED":
             remaining_distance = self.__get_distance_metres(
-                self.vehicle.location.global_relative_frame, target_altitude)
+                self.vehicle.location.global_relative_frame, target_altitude
+            )
             self.__message(f"Distance to target: {remaining_distance} m")
             if remaining_distance <= self.POSITION_TOLERANCE:
                 self.__message("Reached target")
                 break
             time.sleep(2)
 
-    def set_altitude_position(self,
-                              lat,
-                              lon,
-                              alt,
-                              battery=None,
-                              voltage_hard_cutoff=22.4,
-                              hard_cutoff_enable=False):
+    def set_altitude_position(
+        self,
+        lat,
+        lon,
+        alt,
+        battery=None,
+        voltage_hard_cutoff=22.4,
+        hard_cutoff_enable=False,
+    ):
         """
         Sets the altitude and the position in absolute terms
 
@@ -209,8 +213,7 @@ class Navigator:
         """
         self.__message(f"Moving to lat: {lat} lon: {lon} alt: {alt}")
 
-        target_altitude_position = dronekit.LocationGlobalRelative(
-            lat, lon, alt)
+        target_altitude_position = dronekit.LocationGlobalRelative(lat, lon, alt)
 
         if hard_cutoff_enable:
             if self.sufficient_battery(battery, voltage_hard_cutoff):
@@ -223,8 +226,8 @@ class Navigator:
 
         while self.vehicle.mode.name == "GUIDED":
             remaining_distance = self.__get_distance_metres(
-                self.vehicle.location.global_relative_frame,
-                target_altitude_position)
+                self.vehicle.location.global_relative_frame, target_altitude_position
+            )
             self.__message(f"Distance to target: {remaining_distance} m")
             if remaining_distance <= self.POSITION_TOLERANCE:
                 self.__message("Reached target")
@@ -246,15 +249,15 @@ class Navigator:
         )
 
         current_location = self.vehicle.location.global_relative_frame
-        target_location = self.__get_location_metres(current_location, d_north,
-                                                     d_east)
+        target_location = self.__get_location_metres(current_location, d_north, d_east)
         target_location.alt += alt
 
         self.vehicle.simple_goto(target_location)
 
         while self.vehicle.mode.name == "GUIDED":
             remaining_distance = self.__get_distance_metres(
-                self.vehicle.location.global_relative_frame, target_location)
+                self.vehicle.location.global_relative_frame, target_location
+            )
             self.__message(f"Distance to target: {remaining_distance} m")
             if remaining_distance <= self.POSITION_TOLERANCE:
                 self.__message("Reached target")
@@ -282,12 +285,12 @@ class Navigator:
 
         msg = self.vehicle.message_factory.mav_cmd_nav_land(
             abort_land_alt,  # minimum altitude if landing is aborted
-            2,               # Enable precision landing mode
-            0,               # blank
-            0,               # Desired Yaw Angle
-            lat,             # Latitude of target
-            long,            # Longitude of the target
-            alt              # Altitude of the ground in the current reference frame
+            2,  # Enable precision landing mode
+            0,  # blank
+            0,  # Desired Yaw Angle
+            lat,  # Latitude of target
+            long,  # Longitude of the target
+            alt,  # Altitude of the ground in the current reference frame
         )
         self.vehicle.send_mavlink(msg)
 
@@ -341,18 +344,21 @@ class Navigator:
         earth_radius = 6378137.0  # Radius of "spherical" earth
         # Coordinate offsets in radians
         d_lat = d_north / earth_radius
-        d_lon = d_east / (earth_radius *
-                          math.cos(math.pi * original_location.lat / 180))
+        d_lon = d_east / (
+            earth_radius * math.cos(math.pi * original_location.lat / 180)
+        )
 
         # New position in decimal degrees
         new_lat = original_location.lat + (d_lat * 180 / math.pi)
         new_lon = original_location.lon + (d_lon * 180 / math.pi)
         if type(original_location) is dronekit.LocationGlobal:
-            target_location = dronekit.LocationGlobal(new_lat, new_lon,
-                                                      original_location.alt)
+            target_location = dronekit.LocationGlobal(
+                new_lat, new_lon, original_location.alt
+            )
         elif type(original_location) is dronekit.LocationGlobalRelative:
             target_location = dronekit.LocationGlobalRelative(
-                new_lat, new_lon, original_location.alt)
+                new_lat, new_lon, original_location.alt
+            )
         else:
             raise Exception("Invalid Location object passed")
 
@@ -409,11 +415,11 @@ class Navigator:
 
         land_time = datetime.strptime(string_land_time, "%H:%M:%S")
 
-        seconds_now = (time_now.hour * 360) + (time_now.minute *
-                                               60) + (time_now.second)
+        seconds_now = (time_now.hour * 360) + (time_now.minute * 60) + (time_now.second)
 
-        seconds_land = (land_time.hour * 360) + (land_time.minute *
-                                                 60) + (land_time.second)
+        seconds_land = (
+            (land_time.hour * 360) + (land_time.minute * 60) + (land_time.second)
+        )
 
         return seconds_land - seconds_now
 
@@ -429,10 +435,10 @@ class Navigator:
         self.__message("Calculating optimum horizontal speed")
 
         total_distance = self.__get_distance_metres(
-            self.vehicle.location.global_relative_frame, waypoints[0])
+            self.vehicle.location.global_relative_frame, waypoints[0]
+        )
         for i in range(1, len(waypoints)):
-            total_distance += self.__get_distance_metres(
-                waypoints[i - 1], waypoints[i])
+            total_distance += self.__get_distance_metres(waypoints[i - 1], waypoints[i])
 
         speed_required = total_distance / time_left
         self.__message(
@@ -474,24 +480,32 @@ class Navigator:
         # Generates typemask based on which values to be included
         mask = 0
         for bit in keeps:
-            mask |= (0 << bit)
+            mask |= 0 << bit
         return mask
 
     def set_position_target_local_ned(
-                                      self,
-                                      time_boot_ms=0,
-                                      coordinate_frame=mavutil.mavlink.MAV_FRAME_LOCAL_NED,
-                                      type_mask=0x07FF,
-                                      x=0, y=0, z=0,
-                                      vx=0, vy=0, vz=0,
-                                      afx=0, afy=0, afz=0,
-                                      yaw=0, yaw_rate=0):
+        self,
+        time_boot_ms=0,
+        coordinate_frame=mavutil.mavlink.MAV_FRAME_LOCAL_NED,
+        type_mask=0x07FF,
+        x=0,
+        y=0,
+        z=0,
+        vx=0,
+        vy=0,
+        vz=0,
+        afx=0,
+        afy=0,
+        afz=0,
+        yaw=0,
+        yaw_rate=0,
+    ):
         msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
-            time_boot_ms,       # Time since system boot
-            0,                  # Target System ID
-            0,                  # Target Component ID
-            coordinate_frame,   # Coordinate Frame
-            type_mask,          # Typemask of POSITION_TARGET_TYPEMASK
+            time_boot_ms,  # Time since system boot
+            0,  # Target System ID
+            0,  # Target Component ID
+            coordinate_frame,  # Coordinate Frame
+            type_mask,  # Typemask of POSITION_TARGET_TYPEMASK
             x,
             y,
             z,
@@ -502,12 +516,12 @@ class Navigator:
             afy,
             afz,
             yaw,
-            yaw_rate
+            yaw_rate,
         )
 
         self.vehicle.send_mavlink(msg)
 
-    '''
+    """
     def cancel_command(self, command_id=mavutil.mavlink.SET_POSITION_TARGET_LOCAL_NED):
         msg = self.vehicle.message_factory.command_long_encode(
             0,
@@ -519,4 +533,4 @@ class Navigator:
         )
 
         self.vehicle.send_mavlink(msg)
-    '''
+    """

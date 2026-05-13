@@ -5,16 +5,16 @@ import asyncio
 from typing import Callable, List
 
 from aiohttp import web
-from aiohttp import web
 import aiohttp
 
 import json
 
 
-class Emu():
+class Emu:
     """
     class representation of a connection to Emu
     """
+
     def __init__(self, img_dir: str):
         self.img_dir = img_dir
 
@@ -29,7 +29,9 @@ class Emu():
         self._is_connected = False
 
     def start_comms(self):
-        self._comms_thread = threading.Thread(target=self._start_comms_loop, daemon=True)
+        self._comms_thread = threading.Thread(
+            target=self._start_comms_loop, daemon=True
+        )
         self._comms_thread.start()
 
     def send_image(self, path: str):
@@ -41,23 +43,16 @@ class Emu():
         print(path)
         img_url = "/images/" + path
         print(img_url)
-        content = {
-            "type": "img",
-            "value": img_url
-        }
+        content = {"type": "img", "value": img_url}
         self._send_queue.put(json.dumps(content))
 
-    def send_log(self, message: str, severity: str="normal"):
+    def send_log(self, message: str, severity: str = "normal"):
         """
         sends a log message to Emu
         message: string of flog
         severity: "normal", "warning", "error"
         """
-        content = {
-            "type": "log",
-            "message": message,
-            "severity": severity
-        }
+        content = {"type": "log", "message": message, "severity": severity}
         self._send_queue.put(json.dumps(content))
 
     def send_msg(self, message: str):
@@ -75,8 +70,9 @@ class Emu():
         """
         print("start_comms loop")
         self.app = web.Application()
-        self.app.add_routes([web.static('/images', self.img_dir),
-                             web.get('/ws', self.handle_websocket)])
+        self.app.add_routes(
+            [web.static("/images", self.img_dir), web.get("/ws", self.handle_websocket)]
+        )
 
         web.run_app(self.app, handle_signals=False)
 
@@ -87,7 +83,7 @@ class Emu():
         """
         handles sending messages to the client
         """
-        event_loop = asyncio.get_running_loop()
+        asyncio.get_running_loop()
         while not ws.closed:
             message = await asyncio.to_thread(self._send_queue.get)
 
@@ -101,7 +97,7 @@ class Emu():
 
             elif msg.type == aiohttp.WSMsgType.ERROR:
                 print("WebSocket error:", ws.exception())
-    
+
     async def handle_websocket(self, request):
         ws = web.WebSocketResponse()
         await ws.prepare(request)
@@ -120,7 +116,7 @@ class Emu():
         for task in pending:
             task.cancel()
 
-        print('websocket connection closed')
+        print("websocket connection closed")
         self._is_connected = False
-        
+
         return ws

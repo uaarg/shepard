@@ -38,7 +38,9 @@ class Altimeter(ABC):
     SENSOR_TYPE_RADAR = 3
     SENSOR_TYPE_UNKNOWN = 4
 
-    def __init__(self, sensor_id: int = 0, min_distance_mm: int = 0, max_distance_mm: int = 0):
+    def __init__(
+        self, sensor_id: int = 0, min_distance_mm: int = 0, max_distance_mm: int = 0
+    ):
         """
         Initialize the altimeter.
 
