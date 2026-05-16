@@ -88,29 +88,32 @@ class OakdCamera(CameraProvider):
         pipeline = dai.Pipeline()
         device = pipeline.getDefaultDevice()
 
-        camRgb = pipeline.create(dai.node.ColorCamera).build(dai.CameraBoardSocket.CAM_A)
-        monoLeft = pipeline.create(dai.node.MonoCamera).build(dai.CameraBoardSocket.CAM_B)
-        monoRight = pipeline.create(dai.node.MonoCamera).build(dai.CameraBoardSocket.CAM_C)
+        camRgb = pipeline.create(dai.node.ColorCamera)
+        monoLeft = pipeline.create(dai.node.MonoCamera)
+        monoRight = pipeline.create(dai.node.MonoCamera)
         stereo = pipeline.create(dai.node.StereoDepth)
         pointcloud = pipeline.create(dai.node.PointCloud)
 
         camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
+        camRgb.setBoardSocket(dai.CameraBoardSocket.CAM_A)
         camRgb.setIspScale(1, 3)
         camRgb.setFps(fps)
 
         monoLeft.setResolution(dai.MonoCameraProperties.SensorResolution.THE_800_P)
+        monoLeft.setBoardSocket(dai.CameraBoardSocket.CAM_B)
         monoLeft.setFps(fps)
 
         monoRight.setResolution(dai.MonoCameraProperties.SensorResolution.THE_800_P)
+        monoRight.setBoardSocket(dai.CameraBoardSocket.CAM_C)
         monoRight.setFps(fps)
 
-        stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
+        stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DETAIL)
         stereo.setLeftRightCheck(True)
         stereo.setSubpixel(True)
         stereo.setDepthAlign(dai.CameraBoardSocket.CAM_A)
 
-        monoLeftOut = monoLeft.requestFullResolutionOutput()
-        monoRightOut = monoRight.requestFullResolutionOutput()
+        monoLeftOut = monoLeft.out
+        monoRightOut = monoRight.out
 
         monoLeftOut.link(stereo.left)
         monoRightOut.link(stereo.right)
