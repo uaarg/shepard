@@ -79,50 +79,60 @@ class OakdCamera(CameraProvider):
     Manages an OAK-D device with on-demand capturing of 3D pictures (see DepthCapture).
     """
 
-    def __init__(self, fps: int = 30):
-        self._init_pipeline(fps)
+    def __init__(self, fps: int = 30, setDynCalib: bool = True):
+        self.device = None
+        self._init_pipeline(fps, setDynCalib)
 
-    def _init_pipeline(self, fps: int):
+    def _init_pipeline(self, fps: int, setDynCalib: bool):
         """Initialize the Depth AI pipeline (will be run on the OAK-D)"""
         pipeline = dai.Pipeline()
+        device = pipeline.getDefaultDevice()
 
-        camRgb = pipeline.create(dai.node.ColorCamera)
-        monoLeft = pipeline.create(dai.node.MonoCamera)
-        monoRight = pipeline.create(dai.node.MonoCamera)
-        depth = pipeline.create(dai.node.StereoDepth)
+        camRgb = pipeline.create(dai.node.ColorCamera).build(dai.CameraBoardSocket.CAM_A)
+        monoLeft = pipeline.create(dai.node.MonoCamera).build(dai.CameraBoardSocket.CAM_B)
+        monoRight = pipeline.create(dai.node.MonoCamera).build(dai.CameraBoardSocket.CAM_C)
+        stereo = pipeline.create(dai.node.StereoDepth)
         pointcloud = pipeline.create(dai.node.PointCloud)
-        sync = pipeline.create(dai.node.Sync)
-        xOut = pipeline.create(dai.node.XLinkOut)
 
         camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
-        camRgb.setBoardSocket(dai.CameraBoardSocket.CAM_A)
         camRgb.setIspScale(1, 3)
         camRgb.setFps(fps)
 
-        monoLeft.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
-        monoLeft.setCamera("left")
+        monoLeft.setResolution(dai.MonoCameraProperties.SensorResolution.THE_800_P)
         monoLeft.setFps(fps)
 
-        monoRight.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
-        monoRight.setCamera("right")
+        monoRight.setResolution(dai.MonoCameraProperties.SensorResolution.THE_800_P)
         monoRight.setFps(fps)
 
-        depth.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
-        depth.setLeftRightCheck(True)
-        depth.setSubpixel(True)
-        depth.setDepthAlign(dai.CameraBoardSocket.CAM_A)
+        stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
+        stereo.setLeftRightCheck(True)
+        stereo.setSubpixel(True)
+        stereo.setDepthAlign(dai.CameraBoardSocket.CAM_A)
 
-        monoLeft.out.link(depth.left)
-        monoRight.out.link(depth.right)
-        depth.depth.link(pointcloud.inputDepth)
+        monoLeftOut = monoLeft.requestFullResolutionOutput()
+        monoRightOut = monoRight.requestFullResolutionOutput()
 
-        camRgb.isp.link(sync.inputs["rgb"])
-        pointcloud.outputPointCloud.link(sync.inputs["pcl"])
+        monoLeftOut.link(stereo.left)
+        monoRightOut.link(stereo.right)
+        stereo.depth.link(pointcloud.inputDepth)
 
-        sync.out.link(xOut.input)
-        xOut.setStreamName("out")
+        self.rgbQueue = camRgb.isp.createOutputQueue(maxSize=4, blocking=False)
+        self.pclQueue = pointcloud.outputPointCloud.createOutputQueue(maxSize=4, blocking=False)
 
         self.pipeline = pipeline
+        self.device = device
+
+        if setDynCalib:
+            self._set_dyn_calibration(monoLeftOut, monoRightOut)
+
+    def _set_dyn_calibration(self, monoLeftOut, monoRightOut):
+        dynCalib = self.pipeline.create(dai.node.DynamicCalibration)
+
+        monoLeftOut.link(dynCalib.left)
+        monoRightOut.link(dynCalib.right)
+
+        calibration = self.device.readCalibration()
+        self.device.setCalibration(calibration)
 
     def capture_with_depth(self) -> DepthCapture:
         """Capture a current 3D frame on the OAK-D.
@@ -131,12 +141,12 @@ class OakdCamera(CameraProvider):
         if not self.device or self.device.isClosed():
             raise Exception("No oakD connection, perhaps you forgot to call the .start() function")
 
-        msg = self.queue.get()
-        rgbFrame = msg["rgb"]
+        rgbFrame = self.rgbQueue.get()
         cv_frame = rgbFrame.getCvFrame()
         rgb_frame = cv2.cvtColor(cv_frame, cv2.COLOR_BGR2RGB)
         rgb = np.array(rgb_frame)
-        pcl = msg["pcl"]
+
+        pcl = self.pclQueue.tryGet()
 
         point_cloud = pcl.getPoints().astype(np.float64)
         height, width, _ = rgb.shape
@@ -153,13 +163,14 @@ class OakdCamera(CameraProvider):
     def start(self):
         """Start the depth-perception process on the OAK-D"""
         print("Starting OAK-D Connection")
-        self.device = dai.Device(self.pipeline)
-        self.queue = self.device.getOutputQueue("out", maxSize=1, blocking=False)
+        self.pipeline.start()
 
     def stop(self):
         """Stop the depth-perception process"""
-        self.device.close()
-        self.queue = None
+        self.pipeline.stop()
+        self.device = None
+        self.rgbQueue = None
+        self.pclQueue = None
 
 class DebugCamera(CameraProvider):
     """
