@@ -294,11 +294,11 @@ class RPiCamera(CameraProvider):
     source.
     """
 
-    def __init__(self, cam_num: int):
+    def __init__(self):
         from picamera2 import Picamera2
-        self.camera = Picamera2(cam_num)
-        self.size = (640, 480)
-        self.configure_camera()
+        self.camera = Picamera2()
+        # self.size = (640, 480)
+        # self.configure_camera()
         self.camera.start()
         print(self.camera.capture_metadata()['ScalerCrop'])
         print(self.camera.camera_controls['ScalerCrop'])
