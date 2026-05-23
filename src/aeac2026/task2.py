@@ -34,9 +34,10 @@ def send_img(message):
     if msg["type"] == "image" and msg["message"] == "capture":
         print("sending image")
         im = camera.capture()
-        rgb_im = im.convert('RGB')
+        rgb_im = im.convert('RGB').resize((640, 480))
         rgb_im.save(f"tmp/log/{ft_num}/{i}.jpeg")
         emu.send_image(f"{ft_num}/{i}.jpeg")
+        emu.send_log(f"{ft_num}/{i}.jpeg")
 
         i += 1
 
