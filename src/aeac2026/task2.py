@@ -4,7 +4,7 @@ import time
 import json
 import os
 
-from src.modules.imaging.camera import RPiCamera, DebugCamera
+from src.modules.imaging.camera import RPiCamera
 
 os.makedirs("tmp/log", exist_ok=True)
 dirs = os.listdir("tmp/log")
@@ -22,7 +22,8 @@ emu.set_on_connect(print_conn)
 emu.start_comms()
 time.sleep(2)
 
-camera = DebugCamera("res/test-image.jpeg")
+# camera = DebugCamera("res/test-image.jpeg")
+camera = RPiCamera()
 
 
 def send_img(message):
@@ -33,7 +34,8 @@ def send_img(message):
     if msg["type"] == "image" and msg["message"] == "capture":
         print("sending image")
         im = camera.capture()
-        im.save(f"tmp/log/{ft_num}/{i}.jpeg")
+        rgb_im = im.convert('RGB')
+        rgb_im.save(f"tmp/log/{ft_num}/{i}.jpeg")
         emu.send_image(f"{ft_num}/{i}.jpeg")
 
         i += 1
