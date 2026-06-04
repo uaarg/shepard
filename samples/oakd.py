@@ -67,12 +67,12 @@ def measure(message):
             distPoint = latest_capture.get_point(point["x"], point["y"])
             send = {
                 "requestId": requestId,
-                "type": "point", 
+                "type": "point",
                 "message": {
                     "x": distPoint[0],
                     "y": distPoint[1],
                     "z": distPoint[2]
-                    }
+                }
             }
 
             # If point is (0,0,0), measurement is invalid
