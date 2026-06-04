@@ -1,3 +1,4 @@
 [submodule "src/modules/mavctl"]
 	path = src/modules/mavctl
 	url = git@github.com:uaarg/mavctl-python.git
+	branch = main
