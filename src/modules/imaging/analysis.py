@@ -9,8 +9,9 @@ from .camera import CameraProvider
 from .debug import ImageAnalysisDebugger
 from ..georeference.inference_georeference import get_object_location
 from .location import LocationProvider
-from ..autopilot.navigator import Navigator
+# from ..autopilot.navigator import Navigator
 from PIL import Image
+import typing
 
 
 class CameraAttributes:
@@ -50,7 +51,7 @@ class ImageAnalysisDelegate:
         detector: BaseDetector,
         camera: CameraProvider,
         location_provider: Optional[LocationProvider] = None,
-        navigation_provider: Optional[Navigator] = None,
+        navigation_provider: 'Optional[typing.Any]' = None,
         debugger: Optional[ImageAnalysisDebugger] = None,
     ):
         self.detector = detector

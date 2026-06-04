@@ -29,30 +29,30 @@ class ModelStats:
         return math.sqrt(self.M2 / self.n) if self.n > 1 else 0.0
 
 
-models = os.listdir("models")
+if __name__ == "__main__":
+    models = os.listdir("models")
 
-images = os.listdir("images")
-images = [os.path.join("images", file_name) for file_name in images]
+    images = os.listdir("images")
+    images = [os.path.join("images", file_name) for file_name in images]
 
-stats = {}
+    stats = {}
 
-for model_name in models:
-    print(model_name)
-    model = YOLO(os.path.join("models", model_name))
+    for model_name in models:
+        print(model_name)
+        model = YOLO(os.path.join("models", model_name))
 
-    model_stats = ModelStats()
+        model_stats = ModelStats()
 
-    for img_name in images:
-        start = time.time()
-        results = model(img_name)
-        end = time.time()
-        model_stats.update(end - start)
-    print(f"\tmean: {model_stats.get_mean()}")
-    stats[model_name] = {
-        "mean": model_stats.get_mean(),
-        "stddev": model_stats.get_stddev(),
-    }
+        for img_name in images:
+            start = time.time()
+            results = model(img_name)
+            end = time.time()
+            model_stats.update(end - start)
+        print(f"\tmean: {model_stats.get_mean()}")
+        stats[model_name] = {
+            "mean": model_stats.get_mean(),
+            "stddev": model_stats.get_stddev(),
+        }
 
-
-with open("results.json", "w") as f:
-    json.dump(stats, f)
+    with open("results.json", "w") as f:
+        json.dump(stats, f)
