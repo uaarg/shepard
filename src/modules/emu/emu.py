@@ -111,7 +111,7 @@ class Emu():
 
             elif msg.type == aiohttp.WSMsgType.ERROR:
                 print("WebSocket error:", ws.exception())
-    
+
     async def handle_video_stream(self, request):
         """
         Returns latest video frame as JPEG. Frame rate depends on how often
@@ -145,5 +145,5 @@ class Emu():
 
         print('websocket connection closed')
         self._is_connected = False
-        
+
         return ws

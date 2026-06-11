@@ -216,7 +216,7 @@ class DebugCameraFromDir(CameraProvider):
         self.index = (self.index + 1) % len(self.imgs)
 
         return Image.open(filename).resize(self.size)
- 
+
 
 class GazeboCamera(CameraProvider):
     """
@@ -225,7 +225,7 @@ class GazeboCamera(CameraProvider):
 
     def __init__(self):
         self.port = 5600
-       
+
         gst_pipeline = (
             "udpsrc address=127.0.0.1 port=5600 ! "
             "application/x-rtp, encoding-name=H264 ! "
@@ -234,7 +234,7 @@ class GazeboCamera(CameraProvider):
             "videoconvert ! "
             "appsink"
         )
-        self.size = (640, 480) 
+        self.size = (640, 480)
         self.cap = cv2.VideoCapture(gst_pipeline, cv2.CAP_GSTREAMER)
 
         if not self.cap.isOpened():
