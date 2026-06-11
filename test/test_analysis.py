@@ -12,11 +12,10 @@ from src.modules.imaging.analysis import ImageAnalysisDelegate
 from src.modules.imaging.camera import DebugCamera
 from src.modules.imaging.location import DebugLocationProvider
 from src.modules.imaging.debug import ImageAnalysisDebugger
-from dep.labeller.benchmarks.detector import LandingPadDetector, BoundingBox
-from dep.labeller.loader.label import Vec2
+from src.modules.imaging.detector import BaseDetector, BoundingBox, Vec2
 
 
-class DebugLandingPadDetector(LandingPadDetector):
+class DebugLandingPadDetector(BaseDetector):
 
     def __init__(self,
                  vector: Optional[Vec2] = None,
@@ -52,7 +51,7 @@ def test_analysis_subscriber():
     detector.bounding_box = BoundingBox(Vec2(20, 20), Vec2(50, 50))
     analysis._analyze_image()
     assert (detected -
-            Vec2(-115.48873916832288, 5.483286467459389e-06)).norm < 0.01
+            Vec2(0.4158184416499504, -0.574961758930409)).norm < 0.01
 
 
 class MockImageAnlaysisDebugger(ImageAnalysisDebugger):

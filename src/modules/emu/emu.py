@@ -47,7 +47,7 @@ class Emu():
         }
         self._send_queue.put(json.dumps(content))
 
-    def send_log(self, message: str, severity: str="normal"):
+    def send_log(self, message: str, severity: str = "normal"):
         """
         sends a log message to Emu
         message: string of flog
@@ -68,7 +68,7 @@ class Emu():
 
     def send_video_frame(self, jpeg_bytes: bytes):
         """
-        Update the latest video frame served at /video (MJPEG stream).
+        Update the latest video frame served at /video.
         Call this from a background thread with raw JPEG bytes.
         """
         with self._video_lock:
@@ -98,7 +98,6 @@ class Emu():
         """
         handles sending messages to the client
         """
-        event_loop = asyncio.get_running_loop()
         while not ws.closed:
             message = await asyncio.to_thread(self._send_queue.get)
 
@@ -115,33 +114,16 @@ class Emu():
     
     async def handle_video_stream(self, request):
         """
-        MJPEG stream endpoint. Connect with: <img src="http://HOST:PORT/video">
-        No frontend JS needed — the browser handles multipart natively.
+        Returns latest video frame as JPEG. Frame rate depends on how often
+        send_video_frame() is called (controlled by VideoEmuStreamer).
         """
-        response = web.StreamResponse(headers={
-            'Content-Type': 'multipart/x-mixed-replace; boundary=frame',
-            'Cache-Control': 'no-cache',
-        })
-        await response.prepare(request)
+        with self._video_lock:
+            frame = self._latest_video_frame
 
-        try:
-            while True:
-                with self._video_lock:
-                    frame = self._latest_video_frame
+        if frame is None:
+            raise web.HTTPNoContent()
 
-                if frame is not None:
-                    await response.write(
-                        b'--frame\r\n'
-                        b'Content-Type: image/jpeg\r\n\r\n' +
-                        frame +
-                        b'\r\n'
-                    )
-
-                await asyncio.sleep(1 / 15)
-        except (ConnectionResetError, asyncio.CancelledError):
-            pass
-
-        return response
+        return web.Response(body=frame, content_type='image/jpeg')
 
     async def handle_websocket(self, request):
         ws = web.WebSocketResponse()

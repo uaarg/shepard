@@ -5,8 +5,13 @@ from src.modules.imaging.detector import ArucoDetector
 from src.modules.imaging.camera import DebugCamera
 from src.modules.imaging.location import DebugLocationProvider
 from src.modules.imaging.analysis import ImageAnalysisDelegate
-from src.modules.imaging.aruco_stream import ArucoEmuStreamer
-from src.modules.imaging.video_emu_stream import SharedFrameCamera, VideoEmuStreamer
+from src.modules.imaging.camera import SharedFrameCamera
+from src.modules.imaging.video_emu_stream import VideoEmuStreamer
+
+
+def on_detection(image, bounding_box, position):
+    if bounding_box is not None:
+        print(f"ArUco detected at position {position}")
 
 
 def main():
@@ -21,17 +26,15 @@ def main():
     shared_cam = SharedFrameCamera(base_camera, fps=15)
     shared_cam.start()
 
-    # Video stream → EMU /video endpoint (browser: <img src="http://HOST:8080/video">)
+    # Video stream → EMU /video endpoint (browser polls: <img src="http://HOST:8080/video">)
     video_streamer = VideoEmuStreamer(emu, shared_cam, fps=15, quality=70)
     video_streamer.start()
 
-    # ArUco detection pipeline reads latest frame from shared camera
     detector = ArucoDetector()
     location_provider = DebugLocationProvider()
 
     analysis = ImageAnalysisDelegate(detector, shared_cam, location_provider)
-    aruco_streamer = ArucoEmuStreamer(emu, "tmp")
-    analysis.subscribe(aruco_streamer.on_detection)
+    analysis.subscribe(on_detection)
     analysis.start()
 
     try:

@@ -1,10 +1,12 @@
 from typing import Tuple
 
 import pathlib
+import threading
+import time
+
 from PIL import Image
 import numpy as np
 import cv2
-import depthai as dai
 from dataclasses import dataclass
 
 
@@ -41,6 +43,7 @@ class CameraProvider:
         have shape (height, width, colors).
         """
         return np.array(self.capture())
+
 
 @dataclass
 class DepthCapture:
@@ -80,10 +83,13 @@ class OakdCamera(CameraProvider):
     """
 
     def __init__(self, fps: int = 30):
+        import depthai as dai
+        self._dai = dai
         self._init_pipeline(fps)
 
     def _init_pipeline(self, fps: int):
         """Initialize the Depth AI pipeline (will be run on the OAK-D)"""
+        dai = self._dai
         pipeline = dai.Pipeline()
 
         camRgb = pipeline.create(dai.node.ColorCamera)
@@ -145,21 +151,21 @@ class OakdCamera(CameraProvider):
         return capture
 
     def capture(self) -> Image.Image:
-        capture = self.capture_with_depth
+        capture = self.capture_with_depth()
         img = Image.fromarray(capture.rgb, "RGB")
         return img
-
 
     def start(self):
         """Start the depth-perception process on the OAK-D"""
         print("Starting OAK-D Connection")
-        self.device = dai.Device(self.pipeline)
+        self.device = self._dai.Device(self.pipeline)
         self.queue = self.device.getOutputQueue("out", maxSize=1, blocking=False)
 
     def stop(self):
         """Stop the depth-perception process"""
         self.device.close()
         self.queue = None
+
 
 class DebugCamera(CameraProvider):
     """
@@ -319,3 +325,44 @@ class RPiCamera(CameraProvider):
         capture_result = self.camera.capture_array()
         image = Image.fromarray(capture_result)
         return image
+
+
+class SharedFrameCamera(CameraProvider):
+    """
+    Wraps a CameraProvider and shares the latest captured frame across
+    multiple consumers (e.g. video streamer + analysis pipeline) without
+    both threads calling camera.capture() simultaneously.
+    """
+
+    def __init__(self, camera: CameraProvider, fps: int = 15):
+        self._camera = camera
+        self._fps = fps
+        self._latest: Image.Image | None = None
+        self._lock = threading.Lock()
+        self._running = False
+        self._thread: threading.Thread | None = None
+
+    def start(self):
+        self._running = True
+        self._thread = threading.Thread(target=self._capture_loop, daemon=True)
+        self._thread.start()
+
+    def stop(self):
+        self._running = False
+        if self._thread:
+            self._thread.join()
+
+    def capture(self) -> Image.Image:
+        while True:
+            with self._lock:
+                if self._latest is not None:
+                    return self._latest
+            time.sleep(0.01)
+
+    def _capture_loop(self):
+        interval = 1 / self._fps
+        while self._running:
+            frame = self._camera.capture()
+            with self._lock:
+                self._latest = frame
+            time.sleep(interval)
