@@ -46,8 +46,8 @@ class ImageAnalysisDelegate:
     def __init__(self,
                  detector: BaseDetector,
                  camera: CameraProvider,
-                 location_provider: LocationProvider = None,
-                 navigation_provider: Navigator = None,
+                 location_provider: Optional[LocationProvider] = None,
+                 navigation_provider: Optional[Navigator] = None,
                  debugger: Optional[ImageAnalysisDebugger] = None):
         self.detector = detector
         self.camera = camera
@@ -61,7 +61,7 @@ class ImageAnalysisDelegate:
 
         self.subscribers: List[Callable[[Image.Image, Optional[BoundingBox], Optional[Tuple[float, float]]], Any]] = []
         self.camera_attributes = CameraAttributes()
-        self.thread = None
+        self.thread: Optional[threading.Thread] = None
         self.loop = True
 
     def get_inference(self, bounding_box: BoundingBox) -> Inference:
@@ -88,7 +88,8 @@ class ImageAnalysisDelegate:
 
     def stop(self):
         self.loop = False
-        self.thread.join()
+        if self.thread:
+            self.thread.join()
 
     def _analyze_image(self):
         """

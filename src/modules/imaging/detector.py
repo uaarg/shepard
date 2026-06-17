@@ -6,7 +6,6 @@ import math
 from PIL import Image
 import numpy as np
 import cv2
-from cv2 import aruco
 
 
 @dataclass
@@ -100,7 +99,7 @@ class IrDetector(BaseDetector):
         img = np.array(image)
 
         gray_img = cv2.cvtColor(img, cv2.COLOR_RGBA2GRAY)
-        max_val = np.max(gray_img)  # returns maximum value of brightness
+        max_val = int(np.max(gray_img))  # returns maximum value of brightness
         if max_val < 200:
             return None  # lower threshold for intensity
         _, thresh = cv2.threshold(gray_img, max_val - 10, 255, cv2.THRESH_BINARY)
@@ -120,7 +119,7 @@ class IrDetector(BaseDetector):
 class ArucoDetector(BaseDetector):
 
     def predict(self, image: Image.Image) -> Optional[BoundingBox]:
-        img  = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+        img = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
 
         aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
 
@@ -128,10 +127,9 @@ class ArucoDetector(BaseDetector):
 
         detector = cv2.aruco.ArucoDetector(aruco_dict, params)
         corners, ids, rejected = detector.detectMarkers(img)
-        
+
         if ids:
             for c in zip(corners, ids):
-                
                 pts = c[0]
 
                 x_min = pts[:, 0].min()
@@ -143,6 +141,8 @@ class ArucoDetector(BaseDetector):
                 y = (y_min + y_max) / 2
                 w = (x_max - x_min)
                 h = (y_max - y_min)
-         
+
                 return BoundingBox(Vec2(x, y), Vec2(w, h))
+
+        return None
 
