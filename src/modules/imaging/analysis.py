@@ -1,4 +1,4 @@
-from typing import Callable, Optional, List, Callable, Any
+from typing import Callable, Optional, List, Any, Tuple
 
 import threading
 # from multiprocessing import Process
@@ -46,8 +46,8 @@ class ImageAnalysisDelegate:
     def __init__(self,
                  detector: BaseDetector,
                  camera: CameraProvider,
-                 location_provider: LocationProvider = None,
-                 navigation_provider: Navigator = None,
+                 location_provider: Optional[LocationProvider] = None,
+                 navigation_provider: Optional[Navigator] = None,
                  debugger: Optional[ImageAnalysisDebugger] = None):
         self.detector = detector
         self.camera = camera
@@ -59,9 +59,9 @@ class ImageAnalysisDelegate:
         self.location_provider = location_provider
         self.navigation_provider = navigation_provider
 
-        self.subscribers: List[Callable[[Image.Image, float, float], Any]] = []
+        self.subscribers: List[Callable[[Image.Image, Optional[BoundingBox], Optional[Tuple[float, float]]], Any]] = []
         self.camera_attributes = CameraAttributes()
-        self.thread = None
+        self.thread: Optional[threading.Thread] = None
         self.loop = True
 
     def get_inference(self, bounding_box: BoundingBox) -> Inference:
@@ -88,7 +88,8 @@ class ImageAnalysisDelegate:
 
     def stop(self):
         self.loop = False
-        self.thread.join()
+        if self.thread:
+            self.thread.join()
 
     def _analyze_image(self):
         """
@@ -110,9 +111,9 @@ class ImageAnalysisDelegate:
                 if inference:
                     x, y = get_object_location(self.camera_attributes,
                                                inference)
-                    subscriber(im, (x, y))
+                    subscriber(im, bounding_box, (x, y))
             else:
-                subscriber(im, None)
+                subscriber(im, None, None)
 
     def _analysis_loop(self):
         """

@@ -26,7 +26,7 @@ def test_debug_camera(tmp_path):
 
     # Can save the image to a path
     im_path = tmp_path / "copy.jpeg"
-    cam.caputure_to(im_path)
+    cam.capture_to(im_path)
     im_md5 = md5sum(im_path)
 
     # Manually save a copy of 'test-image.jpeg'.

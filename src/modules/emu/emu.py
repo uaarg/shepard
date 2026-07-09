@@ -2,9 +2,8 @@ import threading
 import queue
 
 import asyncio
-from typing import Callable, List
+from typing import Callable, List, Optional
 
-from aiohttp import web
 from aiohttp import web
 import aiohttp
 
@@ -28,6 +27,9 @@ class Emu():
         self._on_connect = lambda: None
         self._is_connected = False
 
+        self._latest_video_frame: Optional[bytes] = None
+        self._video_lock = threading.Lock()
+
     def start_comms(self):
         self._comms_thread = threading.Thread(target=self._start_comms_loop, daemon=True)
         self._comms_thread.start()
@@ -38,16 +40,14 @@ class Emu():
         the path sent should be accessable from within self.img_dir so it can be accessed through
         /images/{filename}
         """
-        print(path)
         img_url = "/images/" + path
-        print(img_url)
         content = {
             "type": "img",
             "value": img_url
         }
         self._send_queue.put(json.dumps(content))
 
-    def send_log(self, message: str, severity: str="normal"):
+    def send_log(self, message: str, severity: str = "normal"):
         """
         sends a log message to Emu
         message: string of flog
@@ -66,6 +66,14 @@ class Emu():
         """
         self._send_queue.put(message)
 
+    def send_video_frame(self, jpeg_bytes: bytes):
+        """
+        Update the latest video frame served at /video.
+        Call this from a background thread with raw JPEG bytes.
+        """
+        with self._video_lock:
+            self._latest_video_frame = jpeg_bytes
+
     def set_on_connect(self, func: Callable):
         self._on_connect = func
 
@@ -75,19 +83,34 @@ class Emu():
         """
         print("start_comms loop")
         self.app = web.Application()
-        self.app.add_routes([web.static('/images', self.img_dir),
-                             web.get('/ws', self.handle_websocket)])
+        self.app.add_routes([
+            web.static('/images', self.img_dir),
+            web.get('/ws', self.handle_websocket),
+            web.get('/video', self.handle_video_stream),
+        ])
 
         web.run_app(self.app, handle_signals=False)
 
     def subscribe(self, subscriber: Callable):
         self._subscribers.append(subscriber)
 
+    def register_slam_streamer(self, streamer) -> None:
+        def _handle(raw_msg: str) -> None:
+            try:
+                msg = json.loads(raw_msg)
+            except json.JSONDecodeError:
+                return
+            if msg.get("type") == "slam":
+                if msg.get("command") == "start":
+                    streamer.start()
+                elif msg.get("command") == "stop":
+                    streamer.stop()
+        self.subscribe(_handle)
+
     async def producer_handler(self, ws):
         """
         handles sending messages to the client
         """
-        event_loop = asyncio.get_running_loop()
         while not ws.closed:
             message = await asyncio.to_thread(self._send_queue.get)
 
@@ -101,7 +124,20 @@ class Emu():
 
             elif msg.type == aiohttp.WSMsgType.ERROR:
                 print("WebSocket error:", ws.exception())
-    
+
+    async def handle_video_stream(self, request):
+        """
+        Returns latest video frame as JPEG. Frame rate depends on how often
+        send_video_frame() is called (controlled by VideoEmuStreamer).
+        """
+        with self._video_lock:
+            frame = self._latest_video_frame
+
+        if frame is None:
+            raise web.HTTPNoContent()
+
+        return web.Response(body=frame, content_type='image/jpeg')
+
     async def handle_websocket(self, request):
         ws = web.WebSocketResponse()
         await ws.prepare(request)
@@ -122,5 +158,5 @@ class Emu():
 
         print('websocket connection closed')
         self._is_connected = False
-        
+
         return ws

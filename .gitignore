@@ -60,3 +60,8 @@ id_rsa
 
 mavlink-router/
 log
+
+*.swp
+
+# Local deep-dive docs (personal study notes)
+docs_deep_dive/
