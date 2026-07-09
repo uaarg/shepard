@@ -94,6 +94,19 @@ class Emu():
     def subscribe(self, subscriber: Callable):
         self._subscribers.append(subscriber)
 
+    def register_slam_streamer(self, streamer) -> None:
+        def _handle(raw_msg: str) -> None:
+            try:
+                msg = json.loads(raw_msg)
+            except json.JSONDecodeError:
+                return
+            if msg.get("type") == "slam":
+                if msg.get("command") == "start":
+                    streamer.start()
+                elif msg.get("command") == "stop":
+                    streamer.stop()
+        self.subscribe(_handle)
+
     async def producer_handler(self, ws):
         """
         handles sending messages to the client
