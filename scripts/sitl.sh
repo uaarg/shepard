@@ -3,7 +3,7 @@ set -e
 
 source /root/venv-ardupilot/bin/activate 
 pip install --upgrade pip
-pip install pytest pymavlink pexpect dronekit
+pip install pytest pymavlink pexpect
 
 # Start SITL if not running
 if ! pgrep -f ArduCopter > /dev/null; then
