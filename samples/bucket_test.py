@@ -1,20 +1,24 @@
-if __name__ == "__main__":
-    from src.modules.imaging.bucket_detector import BucketDetector
-    from src.modules.imaging.camera import DebugCameraFromDir
-    from src.modules.imaging.location import DebugLocationProvider
-    from src.modules.imaging.debug_analysis import DebugImageAnalysisDelegate
+from src.modules.imaging.bucket_detector import BucketDetector
+from src.modules.imaging.camera import DebugCameraFromDir
+from src.modules.imaging.location import DebugLocationProvider
 
-    cam = DebugCameraFromDir("images")
-    det = BucketDetector("samples/models/n640.pt")
-    location = DebugLocationProvider()
-    analysis = DebugImageAnalysisDelegate(det, cam, location)
-    # analysis = ImageAnalysisDelegate(det, cam, location)
+# from src.modules.imaging.analysis import ImageAnalysisDelegate
+from src.modules.imaging.debug_analysis import DebugImageAnalysisDelegate
 
-    def test(a1, a2):
-        if a1 is not None and a2 is not None:
-            print(a1)
-            print(a2)
 
-    analysis.subscribe(test)
+cam = DebugCameraFromDir("images")
+det = BucketDetector("samples/models/n640.pt")
+location = DebugLocationProvider()
+analysis = DebugImageAnalysisDelegate(det, cam, location)
+# analysis = ImageAnalysisDelegate(det, cam, location)
 
-    analysis.start()
+
+def test(a1, a2):
+    if a1 is not None and a2 is not None:
+        print(a1)
+        print(a2)
+
+
+analysis.subscribe(test)
+
+analysis.start()

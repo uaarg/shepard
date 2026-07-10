@@ -1,3 +1,4 @@
 #!/usr/bin/env sh
 
-PYTHONPATH=".:dep/labeller" pytest --ignore=src/modules/mavctl
+export PYTHONPATH=".:src/modules/mavctl:src/modules/mavctl/mavctl"
+pytest
