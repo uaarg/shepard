@@ -33,7 +33,6 @@ camera = OakdCamera()
 camera_thread = threading.Thread(target=camera.start(), daemon=True)
 camera_thread.start()
 
-
 def send_img(message):
     global latest_capture, i, ft_num
 
