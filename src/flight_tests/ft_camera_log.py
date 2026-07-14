@@ -13,7 +13,7 @@ CONN_STR = "tcp:127.0.0.1:14550"
 MESSENGER_PORT = 14552
 
 cam = RPiCamera()
-#mavlink = MAVLinkDelegate()
+# mavlink = MAVLinkDelegate()
 
 drone = connect(CONN_STR, wait_read=False)
 
@@ -27,7 +27,7 @@ last_picture = time.time()
 
 
 def location_dump_to(path: str):
-    with open(path, 'w') as file:
+    with open(path, "w") as file:
         location = {"location": str(drone.location.global_relative_frame)}
         json.dump(location, file)
 
@@ -52,4 +52,4 @@ thread_1 = threading.thread(picture_loop, 3)
 
 thread_1.start()
 
-#mavlink.run()
+# mavlink.run()

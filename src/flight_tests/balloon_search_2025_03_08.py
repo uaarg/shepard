@@ -1,5 +1,6 @@
 import math
 import os
+
 # import threading
 import time
 
@@ -29,10 +30,7 @@ nav.send_status_message("Altimeter test initializing")
 
 # Initialize the XM125 radar altimeter
 radar_sensor = XM125(
-    sensor_id=0,
-    min_distance=250,
-    max_distance=10000,
-    average_window=5
+    sensor_id=0, min_distance=250, max_distance=10000, average_window=5
 )
 
 if not radar_sensor.begin():
@@ -66,19 +64,27 @@ try:
     while True:
         step_size = 1  # meters
         last_pic = current_pic
-        distance, direction, current_pic = detector.process_image_directory(directory_path=f"tmp/log/{ft_num}")
+        distance, direction, current_pic = detector.process_image_directory(
+            directory_path=f"tmp/log/{ft_num}"
+        )
 
         if current_pic == last_pic:
             continue
 
         if direction is not None:
-            nav.send_status_message(f"Balloon detected: Move {direction}, Distance: {distance:.2f}")
+            nav.send_status_message(
+                f"Balloon detected: Move {direction}, Distance: {distance:.2f}"
+            )
 
             if direction == "center":
                 # Move in that direction, need to calculate the N and E offsets based on heading
                 current_heading = drone.heading
-                metres_north_relative = step_size * math.sin(math.radians(current_heading))
-                metres_east_relative = step_size * math.cos(math.radians(current_heading))
+                metres_north_relative = step_size * math.sin(
+                    math.radians(current_heading)
+                )
+                metres_east_relative = step_size * math.cos(
+                    math.radians(current_heading)
+                )
                 nav.set_position_relative(metres_north_relative, metres_east_relative)
             elif direction == "right":
                 nav.set_heading_relative(10)

@@ -19,7 +19,7 @@ GPIO_PIN = 23
 drone = connect(CONN_STR, wait_ready=False)
 
 nav = navigator.Navigator(drone, MESSENGER_PORT)
-mavlink = MAVLinkDelegate(conn_str = mavlink_str)
+mavlink = MAVLinkDelegate(conn_str=mavlink_str)
 
 
 GPIO.setmode(GPIO.BCM)
@@ -44,7 +44,6 @@ def moving_bucket_avg(_, pos):
 
     if pos:
         if len(bucket_avg[0]) > 0 and len(bucket_avg[1]) > 0:
-
             num_x = len(bucket_avg[0])
             num_y = len(bucket_avg[1])
 
@@ -69,7 +68,7 @@ model_file = "best.pt"
 
 detector = BucketDetector(f"samples/models/{model_file}")
 
-analysis = ImageAnalysisDelegate(detector, camera, navigation_provider = nav)
+analysis = ImageAnalysisDelegate(detector, camera, navigation_provider=nav)
 analysis.subscribe(moving_bucket_avg)
 
 nav.send_status_message("Shepard is online")
@@ -95,11 +94,13 @@ def bucket_descent(target_height):
 
     coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED
 
-    nav.set_position_target_local_ned(x = bucket_avg[0][-1],
-                                      y = bucket_avg[1][-1],
-                                      z = 0,
-                                      type_mask = type_mask,
-                                      coordinate_frame = coordinate_frame)
+    nav.set_position_target_local_ned(
+        x=bucket_avg[0][-1],
+        y=bucket_avg[1][-1],
+        z=0,
+        type_mask=type_mask,
+        coordinate_frame=coordinate_frame,
+    )
 
     time.sleep(5)
     alt = nav.get_local_position_ned()[2]
@@ -110,11 +111,13 @@ def bucket_descent(target_height):
         alt = nav.get_local_position_ned()[2]
 
         print(alt)
-        nav.set_position_target_local_ned(x = float(bucket_avg[0][-1] - bucket_avg[0][0]),
-                                          y = float(bucket_avg[1][-1] - bucket_avg[1][0]),
-                                          z = 5,
-                                          type_mask = type_mask,
-                                          coordinate_frame = coordinate_frame)
+        nav.set_position_target_local_ned(
+            x=float(bucket_avg[0][-1] - bucket_avg[0][0]),
+            y=float(bucket_avg[1][-1] - bucket_avg[1][0]),
+            z=5,
+            type_mask=type_mask,
+            coordinate_frame=coordinate_frame,
+        )
         i += 1
         time.sleep(5)
 
@@ -125,11 +128,13 @@ def bucket_descent(target_height):
     coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_NED
     current_local_pos = nav.get_local_position_ned()
 
-    nav.set_position_target_local_ned(x = current_local_pos[0],
-                                      y = current_local_pos[1],
-                                      z = -target_height,
-                                      type_mask = type_mask,
-                                      coordinate_frame = coordinate_frame)
+    nav.set_position_target_local_ned(
+        x=current_local_pos[0],
+        y=current_local_pos[1],
+        z=-target_height,
+        type_mask=type_mask,
+        coordinate_frame=coordinate_frame,
+    )
 
 
 def ActivatePump(duration):
@@ -137,30 +142,35 @@ def ActivatePump(duration):
     current_local_pos = nav.get_local_position_ned()
     # Runs the pump that is connected to GPIO 23 for a specified amount of time
 
-    nav.set_position_target_local_ned(x = current_local_pos[0],
-                                      y = current_local_pos[1],
-                                      z = current_local_pos[2],
-                                      type_mask = type_mask,
-                                      coordinate_frame = coordinate_frame)
+    nav.set_position_target_local_ned(
+        x=current_local_pos[0],
+        y=current_local_pos[1],
+        z=current_local_pos[2],
+        type_mask=type_mask,
+        coordinate_frame=coordinate_frame,
+    )
 
     GPIO.output(GPIO_PIN, GPIO.HIGH)
 
     # Make sure that the drone maintains its location above the bucket, hopefully avoiding drift due to wind or other sources
     # Adjusts the drones position every half second, and the duration is equivalent to the duration passed to ActivatePump()
     for _ in range(duration - 1):
-
-        nav.set_position_target_local_ned(x = current_local_pos[0],
-                                          y = current_local_pos[1],
-                                          z = current_local_pos[2],
-                                          type_mask = type_mask,
-                                          coordinate_frame = coordinate_frame)
+        nav.set_position_target_local_ned(
+            x=current_local_pos[0],
+            y=current_local_pos[1],
+            z=current_local_pos[2],
+            type_mask=type_mask,
+            coordinate_frame=coordinate_frame,
+        )
         time.sleep(0.5)
 
-        nav.set_position_target_local_ned(x = current_local_pos[0],
-                                          y = current_local_pos[1],
-                                          z = current_local_pos[2],
-                                          type_mask = type_mask,
-                                          coordinate_frame = coordinate_frame)
+        nav.set_position_target_local_ned(
+            x=current_local_pos[0],
+            y=current_local_pos[1],
+            z=current_local_pos[2],
+            type_mask=type_mask,
+            coordinate_frame=coordinate_frame,
+        )
         time.sleep(0.5)
 
     GPIO.output(GPIO_PIN, GPIO.LOW)

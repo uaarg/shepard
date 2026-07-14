@@ -7,7 +7,6 @@ def landing_spot(a, number_of_loops=20):
     route = []
     x, y = 0, 0
     for i in range(2, number_of_loops, 2):
-
         for j in range(4):
             if j == 0:
                 y = y - a

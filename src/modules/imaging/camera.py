@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Optional, Any
 
 import pathlib
 from PIL import Image
@@ -35,12 +35,13 @@ class CameraProvider:
         """
         self.capture().save(path)
 
-    def caputure_as_ndarry(self) -> np.ndarray:
+    def capture_as_ndarray(self) -> np.ndarray:
         """
         Captures a single image returns it's numpy.ndarray representation. Will
         have shape (height, width, colors).
         """
         return np.array(self.capture())
+
 
 @dataclass
 class DepthCapture:
@@ -81,6 +82,8 @@ class OakdCamera(CameraProvider):
 
     def __init__(self, fps: int = 30):
         self._init_pipeline(fps)
+        self.device: Optional[dai.Device] = None
+        self.queue: Optional[dai.DataOutputQueue] = None
 
     def _init_pipeline(self, fps: int):
         """Initialize the Depth AI pipeline (will be run on the OAK-D)"""
@@ -129,9 +132,14 @@ class OakdCamera(CameraProvider):
 
         NOTE: .start() must have been called first. If it has not, this will raise Exception."""
         if not self.device or self.device.isClosed():
-            raise Exception("No oakD connection, perhaps you forgot to call the .start() function")
+            raise Exception(
+                "No oakD connection, perhaps you forgot to call the .start() function"
+            )
 
-        msg = self.queue.get()
+        if self.queue is None:
+            raise Exception("No queue available")
+
+        msg: Any = self.queue.get()
         rgbFrame = msg["rgb"]
         cv_frame = rgbFrame.getCvFrame()
         rgb_frame = cv2.cvtColor(cv_frame, cv2.COLOR_BGR2RGB)
@@ -145,21 +153,23 @@ class OakdCamera(CameraProvider):
         return capture
 
     def capture(self) -> Image.Image:
-        capture = self.capture_with_depth
+        capture = self.capture_with_depth()
         img = Image.fromarray(capture.rgb, "RGB")
         return img
-
 
     def start(self):
         """Start the depth-perception process on the OAK-D"""
         print("Starting OAK-D Connection")
         self.device = dai.Device(self.pipeline)
-        self.queue = self.device.getOutputQueue("out", maxSize=1, blocking=False)
+        if self.device:
+            self.queue = self.device.getOutputQueue("out", 1, False)  # type: ignore
 
     def stop(self):
         """Stop the depth-perception process"""
-        self.device.close()
+        if self.device:
+            self.device.close()
         self.queue = None
+
 
 class DebugCamera(CameraProvider):
     """
@@ -186,13 +196,15 @@ class DebugCameraFromDir(CameraProvider):
     Debug camera that returns an image from directory 'image_dir'
     containing only images
     """
+
     def __init__(self, image_dir: str | pathlib.Path):
         import os  # used to get images in folder
+
         self.image_dir = image_dir
         self.imgs = os.listdir(image_dir)
         self.imgs = [os.path.join(image_dir, file) for file in self.imgs]
         if len(self.imgs) == 0:
-            raise ValueError('no files in directory')
+            raise ValueError("no files in directory")
         self.index = 0
 
         # set size at first based on first image
@@ -210,7 +222,7 @@ class DebugCameraFromDir(CameraProvider):
         self.index = (self.index + 1) % len(self.imgs)
 
         return Image.open(filename).resize(self.size)
- 
+
 
 class GazeboCamera(CameraProvider):
     """
@@ -219,7 +231,7 @@ class GazeboCamera(CameraProvider):
 
     def __init__(self):
         self.port = 5600
-       
+
         gst_pipeline = (
             "udpsrc address=127.0.0.1 port=5600 ! "
             "application/x-rtp, encoding-name=H264 ! "
@@ -228,12 +240,12 @@ class GazeboCamera(CameraProvider):
             "videoconvert ! "
             "appsink"
         )
-        self.size = (640, 480) 
+        self.size = (640, 480)
         self.cap = cv2.VideoCapture(gst_pipeline, cv2.CAP_GSTREAMER)
 
         if not self.cap.isOpened():
             print("Failed to open UDP Stream")
-            exit()
+            raise RuntimeError("Failed to open UDP Stream")
 
     def set_size(self, size: Tuple[int, int]):
         self.size = size
@@ -256,7 +268,7 @@ class GazeboCamera(CameraProvider):
                 break
 
             cv2.imshow("Gazebo Video Stream", frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
         self.cap.release()
         cv2.destroyAllWindows()
@@ -294,19 +306,19 @@ class RPiCamera(CameraProvider):
     source.
     """
 
-    def __init__(self, cam_num: int):
+    def __init__(self, cam_num: int = 0):
         from picamera2 import Picamera2
+
         self.camera = Picamera2(cam_num)
         self.size = (640, 480)
         self.configure_camera()
         self.camera.start()
-        print(self.camera.capture_metadata()['ScalerCrop'])
-        print(self.camera.camera_controls['ScalerCrop'])
+        print(self.camera.capture_metadata()["ScalerCrop"])
+        print(self.camera.camera_controls["ScalerCrop"])
 
     def configure_camera(self):
         # Configuring camera properties
-        config = self.camera.create_preview_configuration(
-            main={"size": self.size})
+        config = self.camera.create_preview_configuration(main={"size": self.size})
         self.camera.configure(config)
 
     def set_size(self, size: Tuple[int, int]):

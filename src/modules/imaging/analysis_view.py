@@ -19,8 +19,9 @@ class AnalysisView:
             values[i] = 0.0
 
         dbg_box = dialect.MAVLink_debug_float_array_message(
-            name=bytes("dbg_box", 'utf-8'),
+            name=bytes("dbg_box", "utf-8"),
             time_usec=0,  # timestamp
             array_id=0,
-            data=values)
+            data=values,
+        )
         self.mavlink.send(dbg_box)

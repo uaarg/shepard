@@ -18,7 +18,7 @@ jobs:
       with:
         python-version: '3.10'
         cache: 'pip'
-    - name: Install dependencies
-      run: pip install -r requirements.txt
+    - name: Install lint tool
+      run: pip install flake8==6.1.0
     - name: Run linter
       run: ./scripts/lint.sh

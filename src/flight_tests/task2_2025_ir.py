@@ -17,7 +17,7 @@ MESSENGER_PORT = 14552
 drone = connect(CONN_STR, wait_ready=False)
 
 nav = navigator.Navigator(drone, MESSENGER_PORT)
-mavlink = MAVLinkDelegate(conn_str = CONN_STR)
+mavlink = MAVLinkDelegate(conn_str=CONN_STR)
 
 time.sleep(2)
 
@@ -79,53 +79,65 @@ def bucket_descent():
 
     coordinate_frame = mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED
 
-    nav.set_position_target_local_ned(x = bucket_avg[0][-1],
-                                      y = bucket_avg[1][-1],
-                                      z = 0,
-                                      type_mask = type_mask,
-                                      coordinate_frame = coordinate_frame)
+    nav.set_position_target_local_ned(
+        x=bucket_avg[0][-1],
+        y=bucket_avg[1][-1],
+        z=0,
+        type_mask=type_mask,
+        coordinate_frame=coordinate_frame,
+    )
 
     time.sleep(5)
 
-    nav.set_position_target_local_ned(x = (bucket_avg[0][-1] - bucket_avg[0][0]),
-                                      y = (bucket_avg[1][-1] - bucket_avg[1][0]),
-                                      z = 10,
-                                      type_mask = type_mask,
-                                      coordinate_frame = coordinate_frame)
+    nav.set_position_target_local_ned(
+        x=(bucket_avg[0][-1] - bucket_avg[0][0]),
+        y=(bucket_avg[1][-1] - bucket_avg[1][0]),
+        z=10,
+        type_mask=type_mask,
+        coordinate_frame=coordinate_frame,
+    )
 
     time.sleep(5)
 
-    nav.set_position_target_local_ned(x = (bucket_avg[0][-1] - bucket_avg[0][0]),
-                                      y = (bucket_avg[1][-1] - bucket_avg[1][0]),
-                                      z = 5,
-                                      type_mask = type_mask,
-                                      coordinate_frame = coordinate_frame)
+    nav.set_position_target_local_ned(
+        x=(bucket_avg[0][-1] - bucket_avg[0][0]),
+        y=(bucket_avg[1][-1] - bucket_avg[1][0]),
+        z=5,
+        type_mask=type_mask,
+        coordinate_frame=coordinate_frame,
+    )
 
     time.sleep(5)
 
-    nav.set_position_target_local_ned(x = (bucket_avg[0][-1] - bucket_avg[0][0]),
-                                      y = (bucket_avg[1][-1] - bucket_avg[1][0]),
-                                      z = 5,
-                                      type_mask = type_mask,
-                                      coordinate_frame = coordinate_frame)
+    nav.set_position_target_local_ned(
+        x=(bucket_avg[0][-1] - bucket_avg[0][0]),
+        y=(bucket_avg[1][-1] - bucket_avg[1][0]),
+        z=5,
+        type_mask=type_mask,
+        coordinate_frame=coordinate_frame,
+    )
 
     time.sleep(5)
 
-    nav.set_position_target_local_ned(x = (bucket_avg[0][-1] - bucket_avg[0][0]),
-                                      y = (bucket_avg[1][-1] - bucket_avg[1][0]),
-                                      z = 5,
-                                      type_mask = type_mask,
-                                      coordinate_frame = coordinate_frame)
+    nav.set_position_target_local_ned(
+        x=(bucket_avg[0][-1] - bucket_avg[0][0]),
+        y=(bucket_avg[1][-1] - bucket_avg[1][0]),
+        z=5,
+        type_mask=type_mask,
+        coordinate_frame=coordinate_frame,
+    )
 
     time.sleep(5)
 
-    #Full commit
+    # Full commit
 
-    nav.set_position_target_local_ned(x = 0,
-                                      y = 0,
-                                      z = 5 - target_height,
-                                      type_mask = type_mask,
-                                      coordinate_frame = coordinate_frame)
+    nav.set_position_target_local_ned(
+        x=0,
+        y=0,
+        z=5 - target_height,
+        type_mask=type_mask,
+        coordinate_frame=coordinate_frame,
+    )
 
     time.sleep(5)
 

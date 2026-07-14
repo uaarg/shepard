@@ -17,20 +17,24 @@ def format_measurement_table(screen, start_y, peaks, width):
     screen.addstr(start_y + 2, 2, "─────┼──────────────┼──────────", curses.A_DIM)
 
     # Column headers for averaged data
-    screen.addstr(start_y + 1, width // 2 + 2, "Peak │ Distance (mm) │ Strength", curses.A_DIM)
-    screen.addstr(start_y + 2, width // 2 + 2, "─────┼──────────────┼──────────", curses.A_DIM)
+    screen.addstr(
+        start_y + 1, width // 2 + 2, "Peak │ Distance (mm) │ Strength", curses.A_DIM
+    )
+    screen.addstr(
+        start_y + 2, width // 2 + 2, "─────┼──────────────┼──────────", curses.A_DIM
+    )
 
     if peaks:
         for i, peak_data in enumerate(peaks):
-            raw_distance, raw_strength = peak_data['raw']
+            raw_distance, raw_strength = peak_data["raw"]
 
             # Raw data
             raw_line = f" {i:3d} │ {raw_distance:>12d} │ {raw_strength:>8d}"
             screen.addstr(start_y + 3 + i, 2, raw_line)
 
             # Averaged data if available
-            if peak_data['averaged']:
-                avg_distance, avg_strength = peak_data['averaged']
+            if peak_data["averaged"]:
+                avg_distance, avg_strength = peak_data["averaged"]
                 avg_line = f" {i:3d} │ {avg_distance:>12.1f} │ {avg_strength:>8.1f}"
                 screen.addstr(start_y + 3 + i, width // 2 + 2, avg_line)
     else:
@@ -96,7 +100,7 @@ def tui_main():
                 status_info = [
                     f"Measurements: {measurement_count}",
                     f"Errors: {error_count}",
-                    f"Sample Rate: {1000 / 100:.1f} Hz"  # Assuming 100ms sleep
+                    f"Sample Rate: {1000 / 100:.1f} Hz",  # Assuming 100ms sleep
                 ]
                 for i, info in enumerate(status_info):
                     screen.addstr(status_y, 15 + i * 25, info)
@@ -106,8 +110,8 @@ def tui_main():
                 next_y = format_measurement_table(screen, readings_y, peaks, width)
 
                 # Update history and calculate statistics
-                if peaks and peaks[0]['raw'][0]:  # Use first peak for statistics
-                    distance_history.append(peaks[0]['raw'][0])
+                if peaks and peaks[0]["raw"][0]:  # Use first peak for statistics
+                    distance_history.append(peaks[0]["raw"][0])
                     if len(distance_history) > MAX_HISTORY:
                         distance_history.pop(0)
 
@@ -129,7 +133,7 @@ def tui_main():
                         f"Std Dev: {stdev_dist:.1f}mm",
                         f"Min: {min_dist}mm",
                         f"Max: {max_dist}mm",
-                        f"Samples: {len(distance_history)}"
+                        f"Samples: {len(distance_history)}",
                     ]
 
                     for i, stat in enumerate(stats_data):
@@ -137,10 +141,7 @@ def tui_main():
 
                 # Help section
                 help_y = height - 2
-                help_text = [
-                    ("q", "Quit"),
-                    ("r", "Reset Statistics")
-                ]
+                help_text = [("q", "Quit"), ("r", "Reset Statistics")]
                 screen.addstr(help_y, 0, "Commands:", curses.A_DIM)
                 for i, (key, desc) in enumerate(help_text):
                     screen.addstr(help_y, 12 + i * 20, f"{key}: {desc}", curses.A_DIM)
@@ -149,9 +150,9 @@ def tui_main():
 
                 # Check for quit command
                 c = screen.getch()
-                if c == ord('q'):
+                if c == ord("q"):
                     break
-                elif c == ord('r'):
+                elif c == ord("r"):
                     distance_history.clear()
 
                 time.sleep(0.1)

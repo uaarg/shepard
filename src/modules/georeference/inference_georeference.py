@@ -29,7 +29,7 @@ def LonLat_To_XY(lon, lat, zone=12):
 
     Input is in degrees, return is in meters
     """
-    P = pyproj.Proj(proj='utm', zone=zone, ellps='WGS84', preserve_units=True)
+    P = pyproj.Proj(proj="utm", zone=zone, ellps="WGS84", preserve_units=True)
 
     return P(lon, lat)
 
@@ -41,7 +41,7 @@ def XY_To_LonLat(x, y, zone=12):
 
     Input is in meters, return is in degrees
     """
-    P = pyproj.Proj(proj='utm', zone=zone, ellps='WGS84', preserve_units=True)
+    P = pyproj.Proj(proj="utm", zone=zone, ellps="WGS84", preserve_units=True)
 
     return P(x, y, inverse=True)
 
@@ -62,7 +62,6 @@ def Geofence_to_XY(origin, geofence):
         origin_lat_rad = radians(origin_lat)
 
         for point in geofence:
-
             point_lon_rad = radians(point[0])
             point_lat_rad = radians(point[1])
 
@@ -80,7 +79,7 @@ def Geofence_to_XY(origin, geofence):
         return None
 
 
-'''
+"""
 def meters_to_LonLat(origin, points):
 
     R = 635900
@@ -107,11 +106,11 @@ def meters_to_LonLat(origin, points):
         new_points.append((delta_lat + origin_lat, delta_lon + origin_lon))
 
     return new_points
-'''
+"""
 
 
 def meters_to_LonLat(origin, points):
-    g = Geod(ellps='clrk66')
+    g = Geod(ellps="clrk66")
     new_points = []
     for point in points:
         az = atan(point[1] / point[0])
@@ -123,8 +122,9 @@ def meters_to_LonLat(origin, points):
     return new_points
 
 
-def pixel_to_rel_position(camera_attributes: 'CameraAttributes',
-                          inference: 'Inference', fovh, fovv) -> np.array:
+def pixel_to_rel_position(
+    camera_attributes: "CameraAttributes", inference: "Inference", fovh, fovv
+) -> np.array:
     """
     Calculates the unit vector from an angled camera to an object at x, y pixel coordinates
     x and y are the normalized pixel coordinates between 0 and 1
@@ -133,33 +133,33 @@ def pixel_to_rel_position(camera_attributes: 'CameraAttributes',
 
     direction_vector = np.zeros(2)
 
-    #calculating image height and width in meters
+    # calculating image height and width in meters
     height = 2 * camera_attributes.focal_length * tan(fovv / 2)
     width = 2 * camera_attributes.focal_length * tan(fovh / 2)
 
-    #pixels to meters conversion
+    # pixels to meters conversion
     y_m = inference.y * height
     x_m = inference.x * width
 
-    if (y_m > height / 2):
+    if y_m > height / 2:
         y_m = height - y_m
         theta_y = camera_attributes.angle - atan(
-            (height / 2 - y_m) / camera_attributes.focal_length)
-    elif (y_m <= height / 2):
-        theta_y = atan(
-            (height / 2 - y_m) /
-            camera_attributes.focal_length) + camera_attributes.angle
+            (height / 2 - y_m) / camera_attributes.focal_length
+        )
+    elif y_m <= height / 2:
+        theta_y = (
+            atan((height / 2 - y_m) / camera_attributes.focal_length)
+            + camera_attributes.angle
+        )
 
-    if (x_m > width / 2):
+    if x_m > width / 2:
         x_m = width - x_m
-        theta_x = -1 * (atan(
-            (width / 2 - x_m) / camera_attributes.focal_length))
-    elif (x_m <= width / 2):
+        theta_x = -1 * (atan((width / 2 - x_m) / camera_attributes.focal_length))
+    elif x_m <= width / 2:
         theta_x = atan((width / 2 - x_m) / camera_attributes.focal_length)
 
     y_comp = inference.relative_alt * tan(theta_y)
-    x_comp = (inference.relative_alt /
-              cos(camera_attributes.angle)) * tan(theta_x)
+    x_comp = (inference.relative_alt / cos(camera_attributes.angle)) * tan(theta_x)
 
     offset = calculate_object_offsets()
 
@@ -172,13 +172,14 @@ def pixel_to_rel_position(camera_attributes: 'CameraAttributes',
     return direction_vector
 
 
-#TODO get measurements to calculate offset due to shifted position of camera from the gps
+# TODO get measurements to calculate offset due to shifted position of camera from the gps
 def calculate_object_offsets() -> np.array:
     return np.array([0, 0])
 
 
-def get_object_location(camera_attributes: 'CameraAttributes',
-                        inference: 'Inference') -> tuple:
+def get_object_location(
+    camera_attributes: "CameraAttributes", inference: "Inference"
+) -> tuple:
     """
     This calculates the location of the inference provided
     and returns the longitude, latitude in degrees
@@ -195,6 +196,6 @@ def get_object_location(camera_attributes: 'CameraAttributes',
     )
     print("dir_vector", dir_vector)
 
-    #lon, lat = XY_To_LonLat(dir_vector[0], dir_vector[1])
+    # lon, lat = XY_To_LonLat(dir_vector[0], dir_vector[1])
 
     return (dir_vector[0], dir_vector[1])

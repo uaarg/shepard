@@ -1,13 +1,12 @@
-from typing import Callable, Optional, List, Callable, Any
+from typing import Optional, List, Callable, Any, Tuple
 
 import threading
+import time
+
 # from multiprocessing import Process
 from .detector import BaseDetector, BoundingBox
 from .camera import CameraProvider
 from .debug import ImageAnalysisDebugger
-from ..georeference.inference_georeference import get_object_location
-from .location import LocationProvider
-from ..autopilot.navigator import Navigator
 from PIL import Image
 
 
@@ -43,37 +42,20 @@ class ImageAnalysisDelegate:
     TODO: geolocate the landing pad using the drone's location.
     """
 
-    def __init__(self,
-                 detector: BaseDetector,
-                 camera: CameraProvider,
-                 location_provider: LocationProvider = None,
-                 navigation_provider: Navigator = None,
-                 debugger: Optional[ImageAnalysisDebugger] = None):
+    def __init__(
+        self,
+        detector: BaseDetector,
+        camera: CameraProvider,
+        debugger: Optional[ImageAnalysisDebugger] = None,
+    ):
         self.detector = detector
         self.camera = camera
         self.debugger = debugger
 
-        if location_provider is None and navigation_provider is None:
-            raise ValueError("Either location_provider or navigation_provider must be provided.")
-
-        self.location_provider = location_provider
-        self.navigation_provider = navigation_provider
-
-        self.subscribers: List[Callable[[Image.Image, float, float], Any]] = []
+        self.subscribers: List[Callable[[Image.Image, BoundingBox]]] = []
         self.camera_attributes = CameraAttributes()
-        self.thread = None
+        self.thread: Optional[threading.Thread] = None
         self.loop = True
-
-    def get_inference(self, bounding_box: BoundingBox) -> Inference:
-        if self.location_provider is not None:
-            altitude = self.location_provider.altitude()
-        elif self.navigation_provider is not None:
-            altitude = -1 * self.navigation_provider.get_local_position_ned()[2]
-        else:
-            raise ValueError("No altitude information provider available.")
-
-        inference = Inference(bounding_box, altitude)
-        return inference
 
     def start(self):
         """
@@ -88,7 +70,8 @@ class ImageAnalysisDelegate:
 
     def stop(self):
         self.loop = False
-        self.thread.join()
+        if self.thread is not None:
+            self.thread.join()
 
     def _analyze_image(self):
         """
@@ -106,13 +89,7 @@ class ImageAnalysisDelegate:
 
         for subscriber in self.subscribers:
             if bounding_box:
-                inference = self.get_inference(bounding_box)
-                if inference:
-                    x, y = get_object_location(self.camera_attributes,
-                                               inference)
-                    subscriber(im, (x, y))
-            else:
-                subscriber(im, None)
+                subscriber(im, bounding_box)
 
     def _analysis_loop(self):
         """
@@ -121,6 +98,7 @@ class ImageAnalysisDelegate:
         """
         while self.loop:
             self._analyze_image()
+            time.sleep(0.1)
 
     def subscribe(self, callback: Callable):
         """

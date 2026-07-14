@@ -30,10 +30,7 @@ nav.send_status_message("SHEPARD: Altimeter test initializing")
 
 # Initialize the XM125 radar altimeter
 radar_sensor = XM125(
-    sensor_id=0,
-    min_distance=250,
-    max_distance=10000,
-    average_window=5
+    sensor_id=0, min_distance=250, max_distance=10000, average_window=5
 )
 
 
@@ -56,11 +53,10 @@ try:
         # Check if it's time to send a status message
         current_time = time.time()
         if current_time - last_status_time >= STATUS_INTERVAL:
-
             # Get the latest altimeter reading and log
             result = radar_sensor.measure()
             if result:
-                average = result[0]['averaged']
+                average = result[0]["averaged"]
 
                 if average:
                     AltimeterData.append(average[0])
@@ -94,7 +90,7 @@ finally:
         data = {
             "AltimeterData": AltimeterData,
             "PixHawkData": PixHawkData,
-            "Delta": Delta
+            "Delta": Delta,
         }
         data = json.dumps(data)
 

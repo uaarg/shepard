@@ -1,6 +1,8 @@
-from typing import Callable, Optional, List, Callable, Any
+from typing import Optional, List, Callable, Any, Tuple
 
 import threading
+import time
+
 # from multiprocessing import Process
 from .detector import BaseDetector, BoundingBox
 from .camera import CameraProvider
@@ -29,18 +31,20 @@ class DebugImageAnalysisDelegate:
     TODO: geolocate the landing pad using the drone's location.
     """
 
-    def __init__(self,
-                 detector: BaseDetector,
-                 camera: CameraProvider,
-                 location_provider: LocationProvider,
-                 debugger: Optional[ImageAnalysisDebugger] = None,
-                 ):
+    def __init__(
+        self,
+        detector: BaseDetector,
+        camera: CameraProvider,
+        debugger: Optional[ImageAnalysisDebugger] = None,
+    ):
         import os
+
         self.detector = detector
         self.camera = camera
         self.debugger = debugger
-        self.location_provider = location_provider
-        self.subscribers: List[Callable[[Image.Image, float, float], Any]] = []
+        self.subscribers: List[
+            Callable[[Image.Image, BoundingBox], Any]
+        ] = []
         self.camera_attributes = CameraAttributes()
 
         # log pictures taken
@@ -59,20 +63,24 @@ class DebugImageAnalysisDelegate:
 
         # image number
         self.i = 0
-
-    def get_inference(self, bounding_box: BoundingBox) -> Inference:
-        inference = Inference(bounding_box, self.location_provider.altitude())
-        return inference
+        self.loop = True
+        self.thread: Optional[threading.Thread] = None
 
     def start(self):
         """
         Will start the image analysis process in another thread.
         """
-        thread = threading.Thread(target=self._analysis_loop)
+        self.loop = True
+        self.thread = threading.Thread(target=self._analysis_loop)
         # process = Process(target=self._analysis_loop)
-        thread.start()
+        self.thread.start()
         # process.start()
         # Use `threading` to start `self._analysis_loop` in another thread.
+
+    def stop(self):
+        self.loop = False
+        if self.thread is not None:
+            self.thread.join()
 
     def _analyze_image(self):
         """
@@ -87,8 +95,12 @@ class DebugImageAnalysisDelegate:
 
         if bounding_box:
             draw = ImageDraw.Draw(im)
-            bb = (bounding_box.position.x, bounding_box.position.y,
-                  bounding_box.size.x, bounding_box.size.y)
+            bb = (
+                bounding_box.position.x,
+                bounding_box.position.y,
+                bounding_box.size.x,
+                bounding_box.size.y,
+            )
             draw.rectangle(bb)
 
         im.save(os.path.join(self.bb_img_path, f"{self.i}.png"))
@@ -102,21 +114,16 @@ class DebugImageAnalysisDelegate:
 
         for subscriber in self.subscribers:
             if bounding_box:
-                inference = self.get_inference(bounding_box)
-                if inference:
-                    x, y = get_object_location(self.camera_attributes,
-                                               inference)
-                    subscriber(im, (x, y))
-            else:
-                subscriber(im, None)
+                subscriber(im, bounding_box)
 
     def _analysis_loop(self):
         """
         Indefinitely run image analysis. This should be run in another thread;
         use `start()` to do so.
         """
-        while True:
+        while self.loop:
             self._analyze_image()
+            time.sleep(0.1)
 
     def subscribe(self, callback: Callable):
         """

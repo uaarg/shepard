@@ -1,7 +1,11 @@
 import math
-from src.modules.imaging.location import (DebugLocationProvider,
-                                          MAVLinkLocationProvider, LatLng,
-                                          Heading, Rotation)
+from src.modules.imaging.location import (
+    DebugLocationProvider,
+    MAVLinkLocationProvider,
+    LatLng,
+    Heading,
+    Rotation,
+)
 from src.modules.imaging.mavlink import MAVLinkDelegateMock
 from pymavlink.dialects.v20 import all as dialect
 
@@ -10,8 +14,7 @@ def test_get_location():
     loc = DebugLocationProvider()
     loc.debug_change_location(lat=10.0, lng=20.0)
 
-    assert loc.location() == LatLng(
-        10.0, 20.0), "Location did not match expected value"
+    assert loc.location() == LatLng(10.0, 20.0), "Location did not match expected value"
 
 
 def test_get_location_partial():
@@ -19,16 +22,14 @@ def test_get_location_partial():
     loc.debug_change_location(lat=10.0, lng=20.0)
     loc.debug_change_location(lat=15.0)  # Missing lng
 
-    assert loc.location() == LatLng(
-        15.0, 20.0), "Location did not match expected value"
+    assert loc.location() == LatLng(15.0, 20.0), "Location did not match expected value"
 
 
 def test_get_heading():
     loc = DebugLocationProvider()
     loc.debug_change_location(heading=45.0)
 
-    assert loc.heading() == Heading(
-        45.0), "Heading did not match expected value"
+    assert loc.heading() == Heading(45.0), "Heading did not match expected value"
 
 
 def test_get_altitude():
@@ -42,8 +43,9 @@ def test_get_orientation():
     loc = DebugLocationProvider()
     loc.debug_change_location(pitch=10.0, roll=20.0, yaw=30.0)
 
-    assert loc.orientation() == Rotation(
-        10.0, 20.0, 30.0), "Orientation did not match expected value"
+    assert loc.orientation() == Rotation(10.0, 20.0, 30.0), (
+        "Orientation did not match expected value"
+    )
 
 
 def test_get_orientation_partial():
@@ -51,8 +53,9 @@ def test_get_orientation_partial():
     loc.debug_change_location(pitch=10.0, roll=20.0, yaw=30.0)
     loc.debug_change_location(pitch=12.0)
 
-    assert loc.orientation() == Rotation(
-        12.0, 20.0, 30.0), "Orientation did not match expected value"
+    assert loc.orientation() == Rotation(12.0, 20.0, 30.0), (
+        "Orientation did not match expected value"
+    )
 
 
 def test_position_changes():
@@ -60,13 +63,15 @@ def test_position_changes():
 
     # Initial change
     loc.debug_change_location(lat=10.0, lng=20.0)
-    assert loc.location() == LatLng(
-        10.0, 20.0), "Initial location did not match expected value"
+    assert loc.location() == LatLng(10.0, 20.0), (
+        "Initial location did not match expected value"
+    )
 
     # Change to new location
     loc.debug_change_location(lat=40.0, lng=50.0)
-    assert loc.location() == LatLng(
-        40.0, 50.0), "New location did not match expected value"
+    assert loc.location() == LatLng(40.0, 50.0), (
+        "New location did not match expected value"
+    )
 
 
 def test_get_MAVLink_location():
@@ -83,11 +88,12 @@ def test_get_MAVLink_location():
         vx=0,
         vy=0,
         vz=0,  # Ground X, Y, Z Speed
-        hdg=0  # Heading
+        hdg=0,  # Heading
     )
     mavlink.send(initial_message)
-    assert loc_mavlink.location() == LatLng(
-        10.0, 20.0), "Initial location did not match expected value"
+    assert loc_mavlink.location() == LatLng(10.0, 20.0), (
+        "Initial location did not match expected value"
+    )
 
     # Create a mock GLOBAL_POSITION_INT message for the new location
     new_message = dialect.MAVLink_global_position_int_message(
@@ -99,11 +105,12 @@ def test_get_MAVLink_location():
         vx=0,
         vy=0,
         vz=0,  # Ground X, Y, Z Speed
-        hdg=0  # Heading
+        hdg=0,  # Heading
     )
     mavlink.send(new_message)
-    assert loc_mavlink.location() == LatLng(
-        40.0, 50.0), "New location did not match expected value"
+    assert loc_mavlink.location() == LatLng(40.0, 50.0), (
+        "New location did not match expected value"
+    )
 
 
 def test_get_MAVLink_heading():
@@ -116,18 +123,16 @@ def test_get_MAVLink_heading():
         lat=0,
         lon=0,
         alt=2000,  # Altitude in mm above MSL
-        relative_alt=
-        0,  # Relative altitude in mm above the ground (not used in this test)
+        relative_alt=0,  # Relative altitude in mm above the ground (not used in this test)
         vx=0,
         vy=0,
         vz=0,  # Ground X, Y, Z Speed (not used in this test)
-        hdg=150 * 1e7  # Heading in degE7
+        hdg=150 * 1e7,  # Heading in degE7
     )
     mavlink.send(heading_message)
 
     # Check if the MAVLinkLocationProvider reports the heading correctly
-    assert loc_mavlink.heading() == Heading(
-        150), "Heading did not match expected value"
+    assert loc_mavlink.heading() == Heading(150), "Heading did not match expected value"
 
 
 def test_get_MAVLink_altitude():
@@ -144,13 +149,14 @@ def test_get_MAVLink_altitude():
         vx=0,
         vy=0,
         vz=0,  # Ground X, Y, Z Speed
-        hdg=0  # Heading
+        hdg=0,  # Heading
     )
     mavlink.send(altitude_message)
 
     # Check if the MAVLinkLocationProvider reports the altitude correctly
-    assert loc_mavlink.altitude(
-    ) == 15.0, "Altitude did not match expected value in meters"
+    assert loc_mavlink.altitude() == 15.0, (
+        "Altitude did not match expected value in meters"
+    )
 
 
 def test_get_MAVLink_orientation():
@@ -165,15 +171,18 @@ def test_get_MAVLink_orientation():
         yaw=0.3,  # Yaw in radians
         rollspeed=0,  # Roll speed (not used in this test)
         pitchspeed=0,  # Pitch speed (not used in this test)
-        yawspeed=0  # Yaw speed (not used in this test)
+        yawspeed=0,  # Yaw speed (not used in this test)
     )
     mavlink.send(orientation_message)
 
     # Check if the MAVLinkLocationProvider reports the orientation correctly
-    expected_orientation = Rotation(math.degrees(0.1), math.degrees(0.2),
-                                    math.degrees(0.3))
+    expected_orientation = Rotation(
+        math.degrees(0.1), math.degrees(0.2), math.degrees(0.3)
+    )
     actual_orientation = loc_mavlink.orientation()
-    assert actual_orientation == expected_orientation, "Orientation did not match expected value"
+    assert actual_orientation == expected_orientation, (
+        "Orientation did not match expected value"
+    )
 
 
 def test_get_MAVLink_position_changes():
@@ -190,12 +199,14 @@ def test_get_MAVLink_position_changes():
         vx=0,
         vy=0,
         vz=0,
-        hdg=0.0)
+        hdg=0.0,
+    )
     mavlink.send(initial_position_message)
 
     # Verify initial position
-    assert loc_mavlink.location() == LatLng(
-        10.0, 20.0), "Initial location did not match expected value"
+    assert loc_mavlink.location() == LatLng(10.0, 20.0), (
+        "Initial location did not match expected value"
+    )
 
     # Send another mock GLOBAL_POSITION_INT message for new position
     new_position_message = dialect.MAVLink_global_position_int_message(
@@ -207,16 +218,20 @@ def test_get_MAVLink_position_changes():
         vx=0,
         vy=0,
         vz=0,
-        hdg=45.0 * 1e7)
+        hdg=45.0 * 1e7,
+    )
     mavlink.send(new_position_message)
 
     # Verify new position
-    assert loc_mavlink.location() == LatLng(
-        40.0, 50.0), "New location did not match expected value"
-    assert loc_mavlink.heading() == Heading(
-        45.0), "New heading did not match expected value"
-    assert loc_mavlink.altitude(
-    ) == 2.0, "New altitude did not match expected value in meters"
+    assert loc_mavlink.location() == LatLng(40.0, 50.0), (
+        "New location did not match expected value"
+    )
+    assert loc_mavlink.heading() == Heading(45.0), (
+        "New heading did not match expected value"
+    )
+    assert loc_mavlink.altitude() == 2.0, (
+        "New altitude did not match expected value in meters"
+    )
 
 
 def test_get_MAVLink_position_not_init():

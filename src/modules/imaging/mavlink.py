@@ -11,9 +11,9 @@ class MAVLinkDelegate:
     """
 
     def __init__(self, conn_str: str = "tcp:127.0.0.1:14550"):
-        self._conn = mavutil.mavlink_connection(device=conn_str,
-                                                source_system=255,
-                                                source_component=42)
+        self._conn = mavutil.mavlink_connection(
+            device=conn_str, source_system=255, source_component=42
+        )
 
         self._listeners: List[Callable] = []
 
@@ -73,7 +73,6 @@ class MAVLinkDelegateMock(MAVLinkDelegate):
 
 
 class MessagePrinter:
-
     def __init__(self, mavlink_delegate: MAVLinkDelegate):
         self.mavlink_delegate = mavlink_delegate
         self.mavlink_delegate.subscribe(self._process_message)
