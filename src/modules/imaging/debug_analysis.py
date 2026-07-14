@@ -35,7 +35,6 @@ class DebugImageAnalysisDelegate:
         self,
         detector: BaseDetector,
         camera: CameraProvider,
-        location_provider: LocationProvider,
         debugger: Optional[ImageAnalysisDebugger] = None,
     ):
         import os
@@ -43,9 +42,8 @@ class DebugImageAnalysisDelegate:
         self.detector = detector
         self.camera = camera
         self.debugger = debugger
-        self.location_provider = location_provider
         self.subscribers: List[
-            Callable[[Image.Image, Optional[Tuple[float, float]]], Any]
+            Callable[[Image.Image, BoundingBox], Any]
         ] = []
         self.camera_attributes = CameraAttributes()
 
@@ -67,10 +65,6 @@ class DebugImageAnalysisDelegate:
         self.i = 0
         self.loop = True
         self.thread: Optional[threading.Thread] = None
-
-    def get_inference(self, bounding_box: BoundingBox) -> Inference:
-        inference = Inference(bounding_box, self.location_provider.altitude())
-        return inference
 
     def start(self):
         """
@@ -120,12 +114,7 @@ class DebugImageAnalysisDelegate:
 
         for subscriber in self.subscribers:
             if bounding_box:
-                inference = self.get_inference(bounding_box)
-                if inference:
-                    x, y = get_object_location(self.camera_attributes, inference)
-                    subscriber(im, (x, y))
-            else:
-                subscriber(im, None)
+                subscriber(im, bounding_box)
 
     def _analysis_loop(self):
         """

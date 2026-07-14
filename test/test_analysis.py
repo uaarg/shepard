@@ -10,7 +10,6 @@ from PIL import Image
 
 from src.modules.imaging.analysis import ImageAnalysisDelegate
 from src.modules.imaging.camera import DebugCamera
-from src.modules.imaging.location import DebugLocationProvider
 from src.modules.imaging.debug import ImageAnalysisDebugger
 from src.modules.imaging.detector import BaseDetector, BoundingBox, Vec2
 
@@ -28,19 +27,17 @@ class DebugDetector(BaseDetector):
 def test_analysis_subscriber():
     camera = DebugCamera("res/test-image.jpeg")
     detector = DebugDetector()
-    location_provider = DebugLocationProvider()
-    location_provider.set_altitude(1.0)
-    analysis = ImageAnalysisDelegate(detector, camera, location_provider)
+    analysis = ImageAnalysisDelegate(detector=detector, camera=camera)
 
     global detected
     detected = None
 
-    def _callback(_image, lon_lat):
+    def _callback(_, bounding_box):
         global detected
 
         detected = None
-        if lon_lat:
-            detected = Vec2(lon_lat[0], lon_lat[1])
+        if bounding_box:
+            detected = bounding_box.position
 
     analysis.subscribe(_callback)
 
@@ -49,9 +46,7 @@ def test_analysis_subscriber():
     assert detected is None
     detector.bounding_box = BoundingBox(Vec2(20, 20), Vec2(50, 50))
     analysis._analyze_image()
-    assert detected is not None
-    result = detected - Vec2(0.4158184416499504, -0.574961758930409)
-    assert result.norm < 0.01
+    assert detected == Vec2(20, 20)
 
 
 class MockImageAnlaysisDebugger(ImageAnalysisDebugger):
@@ -85,9 +80,7 @@ def test_analysis_debugger():
     camera = DebugCamera("res/test-image.jpeg")
     detector = DebugDetector()
     debug = MockImageAnlaysisDebugger()
-    location_provider = DebugLocationProvider()
-    location_provider.set_altitude(1.0)
-    analysis = ImageAnalysisDelegate(detector, camera, location_provider, debugger=debug)
+    analysis = ImageAnalysisDelegate(detector, camera, debugger=debug)
 
     def run_analysis():
         detector.bounding_box = BoundingBox(Vec2(0, 0), Vec2(100, 100))
