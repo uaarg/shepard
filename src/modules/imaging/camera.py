@@ -306,7 +306,7 @@ class RPiCamera(CameraProvider):
     source.
     """
 
-    def __init__(self, cam_num: int):
+    def __init__(self, cam_num: int = 0):
         from picamera2 import Picamera2
 
         self.camera = Picamera2(cam_num)
