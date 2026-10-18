@@ -6,9 +6,6 @@ set -x
 echo "Installing system dependencies"
 sudo apt install python3 python3-pip python3-venv
 
-echo "Installing submodules"
-git submodule update --init --recursive
-
 echo "Installing pip dependencies"
 python3 -m venv venv
 source venv/bin/activate

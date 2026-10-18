@@ -15,14 +15,12 @@ This script is designed to run on a system with a USB or UART connection to a Pi
 
 * Install Python3
 * Optional Step: It's highly recommended, you create a virtual env before installing dependencies. Activate the virtual environment and proceed. OS specific steps are available in the docs [https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/]
-* Initialize all submodules ```git submodule update --init --recursive```
 * Install the required dependancies via ```pip install -r requirements.txt```
 * You should now be able to run testing python scripts and launch the application
 
 ## For armv7l Systems (ie ODroid XU4)
 
 * Install Python3
-* Initialize all submodules ```git submodule update --init --recursive```
 * Install via apt ```sudo apt install opencv-python```
 * Download and install the pip wheels for torch and torchvision on armv7l
 * Install the required dependancies via ```pip install -r requirements.txt```
