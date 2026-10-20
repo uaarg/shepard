@@ -22,10 +22,8 @@ while True:
         ver_velocity=0,
         callsign="TEST1",
         squawk=1200,
-        ))
+    ))
 
     drone.set_adsb_avoidance_params(ADSBAvoidanceConfig(fail_dist_xy=100, fail_dist_z=100, fail_time=0))
 
     time.sleep(1)
-
-
