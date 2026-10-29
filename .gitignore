@@ -60,3 +60,6 @@ id_rsa
 
 mavlink-router/
 log
+
+dep/
+third_party/

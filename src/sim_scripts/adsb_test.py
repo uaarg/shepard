@@ -18,6 +18,4 @@ while True:
         callsign="TEST1",
         squawk=1200,
     ))
-
-
     time.sleep(1)

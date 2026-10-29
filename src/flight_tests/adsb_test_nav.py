@@ -23,9 +23,5 @@ while True:
         ver_velocity=0,
         callsign="TEST1",
         squawk=1200,
-        ))
+                                        ))
     time.sleep(0.5)
-
-
-
-
