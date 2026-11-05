@@ -62,7 +62,7 @@ class TelemetryService:
         self._gps_clock_offset: Optional[float] = None
 
         self._stop_event = threading.Event()
-        
+
         self._thread: Optional[threading.Thread] = None
         self._rc_rssi_is_crsf_lq = rc_rssi_is_crsf_lq
 
@@ -141,7 +141,7 @@ class TelemetryService:
             crsf_lq=self._rc_rssi_is_crsf_lq,
             max_age=self.MAX_MESSAGE_AGE_S,
         )
-        
+
         if rc_link_percent is None:
             new_state.rc_link_quality = None
         else:
@@ -155,7 +155,7 @@ class TelemetryService:
                 if new_state.rc_link_quality == 0.0:
                     new_state.flight_mode = Navigator.FLIGHT_MODE_LINK_LOST
         # TODO: also link-lost when the telemetry link is lost, once that link is defined
-        
+
         new_state.telemetry_link_quality = None
         new_state.updated_at = time.monotonic()
 
