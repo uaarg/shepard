@@ -15,7 +15,6 @@ class WebSocketBase:
         self.loop: Optional[asyncio.AbstractEventLoop] = None
         self.connected = False
         self.stop_event: Optional[asyncio.Event] = None
-        self.ready = threading.Event()  # set once event loop and self.stop_event exist
 
     def start_comms(self):
         """
