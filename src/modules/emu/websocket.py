@@ -32,7 +32,7 @@ class WebSocketBase:
             self.log.exception("connection crashed")
         finally:
             self.connected = False
- 
+
     def stop(self, timeout: int = 5):
         """
         Stops the WebSocket event loop. Waits for the thread to finish,
