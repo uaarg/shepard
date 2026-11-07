@@ -112,5 +112,5 @@ class WebSocketBase:
                 self.on_message(msg.data)
             elif msg.type == aiohttp.WSMsgType.ERROR:
                 self.log.error(f"WebSocket error: {ws.exception()}")
-            if self.connected == False:
+            if not self.connected:
                 break
