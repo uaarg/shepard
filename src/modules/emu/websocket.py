@@ -32,7 +32,7 @@ class WebSocketBase:
             self.log.exception("connection crashed")
         finally:
             self.connected = False
-        
+ 
     def stop(self, timeout: int = 5):
         """
         Stops the WebSocket event loop. Waits for the thread to finish,
@@ -61,7 +61,7 @@ class WebSocketBase:
     def on_message(self, data: str):
         """
         Called whenever recieving a message. This function only logs the message
-        but issue #91 should distribute the data to subscriber queues. 
+        but issue #91 should distribute the data to subscriber queues.
         """
         self.log.debug(f"received: {data}")
 
