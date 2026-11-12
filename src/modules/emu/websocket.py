@@ -91,7 +91,7 @@ class WebSocketBase:
 
         for task in done:
             with task.exception() as exc:
-                if task != stop_task and exc != None:
+                if task != stop_task and exc is not None:
                     self.log.error("websocket task failed", exc_info=exc)
 
         await ws.close()
