@@ -39,7 +39,7 @@ async def websocket_handler(request):
                 await ws.send_str(msg.data + '/answer')
         elif msg.type == aiohttp.WSMsgType.ERROR:
             print('ws connection closed with exception %s'
-                  %ws.exception())
+                  % ws.exception())
 
     print('websocket connection closed')
 
