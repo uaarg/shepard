@@ -68,6 +68,9 @@ def test_send_and_receive():
     console_handler = logging.StreamHandler()
     client_logger.addHandler(console_handler)
 
+    # Try stopping before a WebSocket connection exists
+    test_client.stop()
+
     test_client.start_comms()
 
     timer = 0

@@ -39,6 +39,9 @@ class WebSocketBase:
         but gives up and forces disconnection if the thread
         has not terminated before the timeout.
         """
+        if not self.connected:
+            self.log.debug("cannot stop since a connection does not exist")
+            return
         self.loop.call_soon_threadsafe(self.stop_event.set)
         self.thread.join(timeout)
 
@@ -78,13 +81,18 @@ class WebSocketBase:
         # Stop the WebSocket connection when the 'stop_event' flag is triggered
         # Drop the connection if either the producer or the consumer task stops running.
         # If either task stops running this indicates that the WebSocket connection was disrupted.
-        _, pending = await asyncio.wait(
+        done, pending = await asyncio.wait(
             [producer_task, consumer_task, stop_task],
             return_when=asyncio.FIRST_COMPLETED
         )
 
         for task in pending:
             task.cancel()  # Cancel unfinished tasks
+
+        for task in done:
+            with task.exception() as exc:
+                if task != stop_task and exc != None:
+                    self.log.error("websocket task failed", exc_info=exc)
 
         await ws.close()
         self.connected = False
@@ -101,8 +109,13 @@ class WebSocketBase:
             except queue.Empty:
                 await asyncio.sleep(0.02)
                 continue
-            await ws.send_str(msg)
-            self.log.debug(f"sent: {msg}")
+            try:
+                await ws.send_str(msg)
+                self.log.debug(f"sent: {msg}")
+            except Exception:
+                self.log.error(f"message '{msg}' could not be sent")
+                self.send_queue.put_nowait(msg)
+                return
 
     async def consumer(self, ws):
         """
