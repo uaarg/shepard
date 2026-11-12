@@ -102,6 +102,7 @@ class WebSocketBase:
                 await asyncio.sleep(0.02)
                 continue
             await ws.send_str(msg)
+            self.log.debug(f"sent: {msg}")
 
     async def consumer(self, ws):
         """
