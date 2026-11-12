@@ -5,6 +5,7 @@ import logging
 from aiohttp import web
 from src.modules.emu.websocket import WebSocketBase
 
+
 # Define a WebSocket subclass for testing
 class EchoClient(WebSocketBase):
     def __init__(self, name: str, url: str):
@@ -23,6 +24,7 @@ class EchoClient(WebSocketBase):
 
     def on_message(self, data: str):
         self.received.append(data)
+
 
 async def websocket_handler(request):
 
@@ -43,6 +45,7 @@ async def websocket_handler(request):
 
     return ws
 
+
 def start_test_server(port: int):
     """
     Run the test server on a background thread.
@@ -53,6 +56,7 @@ def start_test_server(port: int):
         web.run_app(app, port=port, handle_signals=False)
 
     threading.Thread(target=run, daemon=True).start()
+
 
 def test_send_and_receive():
     start_test_server(8080)
@@ -83,6 +87,7 @@ def test_send_and_receive():
     test_client.stop()
 
     assert test_client.connected is False, "client is still connected after calling 'stop' function"
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
