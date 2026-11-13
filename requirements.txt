@@ -1,3 +1,4 @@
+aiohttp==3.14.5
 dronekit==2.9.2
 dronekit-sitl==3.3.0
 exceptiongroup==1.2.0
@@ -29,6 +30,5 @@ typing_extensions==4.9.0
 yapf==0.40.1
 zipp==3.17.0
 ultralytics==8.3.128
-websockets==15.0.1
 depthai==2.32.0.0
 -e src/modules/mavctl
