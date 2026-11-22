@@ -12,6 +12,7 @@ import threading
 import time
 from dataclasses import dataclass
 from typing import Optional
+from pymavlink import mavutil
 
 from mavctl import Navigator
 from mavctl.messages.location import PositionAccuracy
@@ -41,6 +42,18 @@ class TelemetryService:
 
     # How often the state is refreshed; stops the thread from spinning the CPU
     COLLECT_RATE_HZ = 4.0
+
+    # Messages this service reads, and the rate to request each at (Hz)
+    STREAM_RATES_HZ = {
+        "GLOBAL_POSITION_INT": 4,
+        "GPS_RAW_INT": 4,
+        "SYS_STATUS": 2,
+        "SYSTEM_TIME": 1,
+        "RC_CHANNELS": 2,
+    }
+
+    # Re-send the requests this often; the Pixhawk forgets them when it reboots
+    STREAM_REQUEST_PERIOD_S = 10.0
 
     # A message older than this is treated as missing, so stale data isn't reported
     MAX_MESSAGE_AGE_S = 3.0
@@ -89,6 +102,26 @@ class TelemetryService:
             self._thread = None
         LOGGER.info("Telemetry service stopped")
 
+    def _request_streams(self) -> None:
+        """Asks the autopilot to stream every message this service reads."""
+        master = self._navigator.master
+        for name in self.STREAM_RATES_HZ:
+            # Look up the numeric MAVLink message ID from its name
+            message_id = getattr(mavutil.mavlink, "MAVLINK_MSG_ID_" + name)
+
+            # MAVLink wants the gap between messages in microseconds
+            interval_us = int(1_000_000 / self.STREAM_RATES_HZ[name])
+
+            master.mav.command_long_send(
+                master.target_system,
+                master.target_component,
+                mavutil.mavlink.MAV_CMD_SET_MESSAGE_INTERVAL,
+                0,            # confirmation number
+                message_id,   # param1: which message to stream
+                interval_us,  # param2: time between messages
+                0, 0, 0, 0, 0,
+            )
+
     def read(self) -> TelemetryState:
         """Returns a copy of the current telemetry state, timestamped now."""
         # Copy under the same lock the collector uses, so we never see half an update
@@ -107,8 +140,16 @@ class TelemetryService:
         """Thread body: refresh the state COLLECT_RATE_HZ times per second."""
         period = 1.0 / self.COLLECT_RATE_HZ
         next_run = time.monotonic()
+        next_stream_request = time.monotonic()
 
         while not self._stop_event.is_set():
+            # Re-request streams periodically, in case the Pixhawk rebooted
+            if time.monotonic() >= next_stream_request:
+                try:
+                    self._request_streams()
+                except Exception:  # pylint: disable=broad-exception-caught
+                    LOGGER.exception("Stream request failed, retrying later")
+                next_stream_request = time.monotonic() + self.STREAM_REQUEST_PERIOD_S
             try:
                 self._collect_once()
             except Exception:  # pylint: disable=broad-exception-caught
@@ -232,6 +273,10 @@ class TelemetryService:
         """GPS horizontal/vertical accuracy in metres."""
         gps = self._latest("GPS_RAW_INT")
         if gps is None:
+            return
+
+        # Without a 3D fix the accuracy fields are placeholders (e.g. 4294967 m)
+        if gps.fix_type < mavutil.mavlink.GPS_FIX_TYPE_3D_FIX:
             return
 
         # h_acc/v_acc are MAVLink 2 extension fields; default 0 = "not provided"

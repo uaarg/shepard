@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(na
 logging.getLogger("mavctl.messages.navigator").setLevel(logging.INFO)
 
 # Port the SITL drone is forwarded to
-CONN_STR = "udp:127.0.0.1:14551"
+CONN_STR = "tcp:127.0.0.1:14550"
 
 # Competition requires one telemetry packet per second
 SEND_PERIOD_S = 1.0
