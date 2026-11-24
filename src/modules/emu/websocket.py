@@ -39,11 +39,21 @@ class WebSocketBase:
         but gives up and forces disconnection if the thread
         has not terminated before the timeout.
         """
-        if not self.connected:
-            self.log.debug("cannot stop since a connection does not exist")
+        # Check the thread, not 'connected': a client that is between
+        # reconnect attempts is not connected but still needs to be stopped.
+        if self.thread is None or not self.thread.is_alive() or self.loop is None or self.stop_event is None:
+            self.log.debug("cannot stop since the event loop is not running")
             return
         self.loop.call_soon_threadsafe(self.stop_event.set)
         self.thread.join(timeout)
+
+    @property
+    def stopping(self) -> bool:
+        """
+        True once stop() has been called. Subclasses with reconnect loops
+        should check this so they exit instead of reconnecting.
+        """
+        return self.stop_event is not None and self.stop_event.is_set()
 
     def send(self, msg: str):
         """
@@ -90,9 +100,10 @@ class WebSocketBase:
             task.cancel()  # Cancel unfinished tasks
 
         for task in done:
-            with task.exception() as exc:
-                if task != stop_task and exc is not None:
-                    self.log.error("websocket task failed", exc_info=exc)
+            # task.exception() returns the exception (or None); it is not a context manager
+            exc = task.exception()
+            if task != stop_task and exc is not None:
+                self.log.error("websocket task failed", exc_info=exc)
 
         await ws.close()
         self.connected = False
