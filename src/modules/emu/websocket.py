@@ -3,8 +3,12 @@ import asyncio
 import threading
 import queue
 import logging
+import os
+import json
+from urllib.parse import quote
 from aiohttp import web
 from typing import Optional, Union
+from src.modules.emu.subscriber import SubscriberList
 
 
 class WebSocketBase:
@@ -12,9 +16,11 @@ class WebSocketBase:
         self.log = logging.getLogger(f"shepard.ws.{name}")
         self.thread: Optional[threading.Thread] = None
         self.send_queue: queue.Queue = queue.Queue()
+        self.receive_queue: queue.Queue = queue.Queue()
         self.loop: Optional[asyncio.AbstractEventLoop] = None
         self.connected = False
         self.stop_event: Optional[asyncio.Event] = None
+        self.received: list[str] = []  # used for testing purposes only
 
     def start_comms(self):
         """
@@ -26,12 +32,16 @@ class WebSocketBase:
     async def main(self):
         self.loop = asyncio.get_running_loop()
         self.stop_event = asyncio.Event()
-        try:
-            await self.run_connection()
-        except Exception:
-            self.log.exception("connection crashed")
-        finally:
-            self.connected = False
+        attempts = 0
+        while not self.connected and attempts < 15:
+            try:
+                await self.run_connection()
+                break
+            except Exception:
+                self.log.exception("connection crashed")
+                self.log.debug(f"attempting to re-establish connection...")
+                await asyncio.sleep(0.2)
+        self.connected = False
 
     def stop(self, timeout: int = 5):
         """
@@ -45,11 +55,11 @@ class WebSocketBase:
         self.loop.call_soon_threadsafe(self.stop_event.set)
         self.thread.join(timeout)
 
-    def send(self, msg: str):
+    def send(self, json_str: str):
         """
         Queue a text message.
         """
-        self.send_queue.put(msg)
+        self.send_queue.put(json_str)
 
     def run_event_loop(self):
         asyncio.run(self.main())
@@ -89,10 +99,18 @@ class WebSocketBase:
         for task in pending:
             task.cancel()  # Cancel unfinished tasks
 
+        failed = False
         for task in done:
-            with task.exception() as exc:
+            if task.exception():
+                failed = True
+                exc = task.exception()
                 if task != stop_task and exc is not None:
                     self.log.error("websocket task failed", exc_info=exc)
+
+        if failed:
+            self.log.debug("websocket shutting down due to failure")
+        else:
+            self.log.debug("websocket shutting down normally")
 
         await ws.close()
         self.connected = False
@@ -123,8 +141,59 @@ class WebSocketBase:
         """
         async for msg in ws:
             if msg.type == aiohttp.WSMsgType.TEXT:
-                self.on_message(msg.data)
+                await self.on_message(msg.data)
             elif msg.type == aiohttp.WSMsgType.ERROR:
                 self.log.error(f"WebSocket error: {ws.exception()}")
             if not self.connected:
                 break
+
+
+class AeacClient(WebSocketBase):
+    def __init__(self, name="UAARG",
+                 url: str | None = None,
+                 token: str | None = None,
+                 subscriber_list=SubscriberList()):
+        if url is None:
+            url = os.getenv("URL")
+        if token is None:
+            token = os.getenv("TOKEN")
+        super().__init__(name)  # uavID
+        self.name = name
+        separator = '&' if '?' in url else '?'
+        self.connection_string = f"{url}{separator}Authorization={quote(token)}"
+        self.subscriber_list: SubscriberList = subscriber_list
+
+    async def run_connection(self):
+        """
+        Runs a WebSocket connection to a test server. This function
+        should be replaced with a connection to the real AEAC server.
+        """
+        async with aiohttp.ClientSession() as session:
+            async with session.ws_connect(self.connection_string) as ws:
+                await self.handle_websocket(ws)
+
+    async def on_message(self, data):
+        """
+        Enqueue incoming messages onto a thread-safe queue.
+        """
+        data = await asyncio.to_thread(json.loads, data)  # convert JSON to dict
+        self.log.debug("received " + str(data))
+        self.received.append(data)
+        try:
+            self.receive_queue.put_nowait(data)  # Python queues are thread-safe by default
+
+            # Create a lock on the subscriber list to avoid subscribers being added while
+            # we iterate over the list.
+            with self.subscriber_list.lock:
+                for subscriber in self.subscriber_list.storage:
+                    try:
+                        subscriber.receive_queue.put_nowait(data)
+                    except Exception as exc:
+                        self.log.exception("could not put incoming message on subscriber queue", exc_info=exc)
+        except Exception as exc:
+            self.log.exception("could not put incoming message on queue", exc_info=exc)
+
+    def telemetry_request(self):
+        data = {'uavId': self.name}
+        _dict = {'action': 'telemetry_request', 'data': data}
+        self.send(json.dumps(_dict))
