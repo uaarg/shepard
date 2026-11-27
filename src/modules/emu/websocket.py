@@ -153,9 +153,9 @@ class AeacClient(WebSocketBase):
                  url: str | None = None,
                  token: str | None = None,
                  subscriber_list=SubscriberList()):
-        if url == None:
+        if url is None:
             url = os.getenv("URL")
-        if token == None:
+        if token is None:
             token = os.getenv("TOKEN")
         super().__init__(name)  # uavID
         self.name = name

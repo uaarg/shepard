@@ -7,10 +7,11 @@ class Subscriber:
         self.name: str = name
         self.receive_queue: queue.Queue = None
 
+
 class SubscriberList:
     """
     A list of individual subscribers to which the client sends
-    each message it receives. 
+    each message it receives.
     """
     def __init__(self):
         self.storage: list = []
@@ -28,4 +29,4 @@ class SubscriberList:
             subscriber.receive_queue = queue.Queue()
             self.storage.append(subscriber)
             return subscriber
-            
+    

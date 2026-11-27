@@ -18,6 +18,7 @@ def wait_until(condition, timeout=5.0, interval=0.5):
         time.sleep(interval)
     return condition()
 
+
 def find_event(q: Queue, event, timeout=5.0):
     """
     Get from the queue until a message with the given event is found
@@ -38,6 +39,7 @@ def find_event(q: Queue, event, timeout=5.0):
             return msg
         else:
             seen.append(msg)
+
 
 def test_aeac_client():
     """
@@ -62,7 +64,7 @@ def test_aeac_client():
 
     time.sleep(0.5)
     aeac_client.start_comms()
-    
+
     try:
         assert wait_until(lambda: aeac_client.connected), "client never connected"
         subscriber_list = aeac_client.subscriber_list
@@ -71,7 +73,7 @@ def test_aeac_client():
         
         assert isinstance(subscriber1, Subscriber), \
             f"Expected type 'Subscriber', got subscriber1: '{type(subscriber1).__name__}'"
-        
+ 
         assert isinstance(subscriber2, Subscriber), \
             f"Expected type 'Subscriber', got subscriber2: '{type(subscriber2).__name__}'"
 
@@ -85,6 +87,7 @@ def test_aeac_client():
         aeac_client.stop()
     
     assert wait_until(lambda: not aeac_client.connected), "client is still connected after calling stop()"
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
