@@ -70,7 +70,7 @@ def test_aeac_client():
         subscriber_list = aeac_client.subscriber_list
         subscriber1 = subscriber_list.subscribe("subscriber1")
         subscriber2 = subscriber_list.subscribe("subscriber2")
-   
+
         assert isinstance(subscriber1, Subscriber), \
             f"Expected type 'Subscriber', got subscriber1: '{type(subscriber1).__name__}'"
 
@@ -85,7 +85,7 @@ def test_aeac_client():
         assert sub1_msg == sub2_msg, "subscribers received different acks"
     finally:
         aeac_client.stop()
-      
+
     assert wait_until(lambda: not aeac_client.connected), "client is still connected after calling stop()"
 
 
