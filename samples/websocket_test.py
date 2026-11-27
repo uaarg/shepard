@@ -13,6 +13,7 @@ pytestmark = pytest.mark.skipif(
     reason="URL/TOKEN not set, skipping AEAC server test"
 )
 
+
 def wait_until(condition, timeout=5.0, interval=0.5):
     """
     Sleeps until the condition is satisfied or the timer runs out.
@@ -52,7 +53,6 @@ def test_aeac_client():
     Establish a connection to the AEAC telemetry server and test communications
     between the server and client.
     """
-    dotenv.load_dotenv()
     assert os.getenv("URL"), "URL .env variable does not exist"
     assert os.getenv("TOKEN"), "TOKEN .env variable does not exist"
 
