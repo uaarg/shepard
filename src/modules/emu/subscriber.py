@@ -21,7 +21,7 @@ class SubscriberList:
         """
         Returns a 'Subscriber' object whose queue attribute is updated
         whenever the WebSocket client recieves a new message. We ensure
-        that a lock is used whenever adding a subscriber to the list to 
+        that a lock is used whenever adding a subscriber to the list to
         avoid the WebSocket client misreading the number of current subscribers.
         """
         with self.lock:
@@ -29,4 +29,3 @@ class SubscriberList:
             subscriber.receive_queue = queue.Queue()
             self.storage.append(subscriber)
             return subscriber
-    

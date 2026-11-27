@@ -149,7 +149,7 @@ class WebSocketBase:
 
 
 class AeacClient(WebSocketBase):
-    def __init__(self, name="UAARG", 
+    def __init__(self, name="UAARG",
                  url: str | None = None,
                  token: str | None = None,
                  subscriber_list=SubscriberList()):
