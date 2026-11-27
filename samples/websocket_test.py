@@ -2,10 +2,16 @@ import time
 import logging
 import dotenv
 import os
+import pytest
 from queue import Queue
 from src.modules.emu.websocket import AeacClient
 from src.modules.emu.subscriber import Subscriber
 
+dotenv.load_dotenv()
+pytestmark = pytest.mark.skipif(
+    not (os.getenv("URL") and os.getenv("TOKEN")),
+    reason="URL/TOKEN not set, skipping AEAC server test"
+)
 
 def wait_until(condition, timeout=5.0, interval=0.5):
     """
